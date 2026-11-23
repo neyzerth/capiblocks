@@ -2749,6 +2749,68 @@ body.is-dragging-block { cursor: grabbing; user-select: none; }
   max-width: 340px;
 }
 
+/* ===========================
+   Modal de ejemplos
+   Tarjeta con miniatura 4:3 a la izquierda y texto + Cargar a la derecha.
+   =========================== */
+.examples-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.examples-grid[hidden] {
+  display: none;
+}
+
+.example-card--program {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 10px 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.example-thumb {
+  width: 120px;
+  aspect-ratio: 4 / 3;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #1d242b;
+}
+
+.example-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.example-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.example-card--program h3 {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.example-card--program p {
+  margin: 0;
+  font-size: 12px;
+}
+
+.example-actions {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+}
+
 /* Fondos de la biblioteca: miniaturas 16:9 (los assets son 640×360). */
 .asset-grid--backdrops {
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2819,6 +2881,18 @@ body.is-dragging-block { cursor: grabbing; user-select: none; }
   .asset-card img {
     width: 40px;
     height: 40px;
+  }
+
+  .examples-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .example-card--program {
+    grid-template-columns: 92px minmax(0, 1fr);
+  }
+
+  .example-thumb {
+    width: 92px;
   }
 }
 

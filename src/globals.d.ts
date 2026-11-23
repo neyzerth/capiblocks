@@ -18,6 +18,11 @@ declare global {
     CodeMirror: any;
     MBBlocks?: any;
     MBPythonEditor?: any;
+    /** Catálogo de programas de ejemplo (src/examples.ts) y carga sin diálogo. */
+    MBExamples?: {
+      list: () => ReadonlyArray<any>;
+      load: (id: string, opts?: { force?: boolean }) => Promise<boolean>;
+    };
     /** Conexión Web Serial + REPL de MicroPython (src/serial.ts). */
     MBSerial?: any;
   }
