@@ -8,10 +8,13 @@
     "node": ">=18"
   },
   "scripts": {
+    "dev": "node dev.mjs",
     "build": "node build.mjs",
     "serve": "node build.mjs && node serve.mjs",
+    "preview": "node serve.mjs",
     "check": "node build.mjs && node check.mjs"
   },
+  "packageManager": "pnpm@12.15.0",
   "keywords": [
     "blockly",
     "scratch",

@@ -6,15 +6,22 @@ Idioma de la interfaz: español por defecto; el código y los commits pueden ir 
 ## Comandos
 
 ```bash
-node build.mjs    # construye dist/ (sin dependencias, Node 18+)
-node serve.mjs    # sirve dist/ en http://localhost:8080
-node check.mjs    # verifica el build; sale 1 si algo falta
-npm run check     # build + verificación
+pnpm dev          # desarrollo: build + servidor + recarga al guardar (puerto 8080)
+pnpm build        # construye dist/
+pnpm preview      # sirve dist/ ya construido
+pnpm check        # build + verificación (sale 1 si algo falta)
+
+# equivalentes sin pnpm:
+node dev.mjs [puerto] [--no-open]
+node build.mjs
+node serve.mjs
+node check.mjs
 ```
 
 No hay `npm install`: Blockly está vendorizado en `vendor/blockly/` (blockly.min.js + media/).
 Si actualizas Blockly, reemplaza esos archivos y su LICENSE, y sube la versión en
-THIRD-PARTY-NOTICES.md.
+THIRD-PARTY-NOTICES.md. El proyecto no tiene dependencias de runtime ni de build: cualquier
+gestor (pnpm/npm) solo ejecuta scripts de Node.
 
 ## Mapa del código
 

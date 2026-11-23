@@ -19,18 +19,20 @@ de un servicio en línea y que se pueda corregir.
 
 ## Probar
 
-Requiere Node 18 o superior solo para construir y servir; no hay dependencias que instalar.
+Requiere Node 18 o superior; no hay dependencias que instalar. pnpm y npm sirven igual (los scripts
+son Node puro).
 
 ```bash
-node build.mjs      # genera dist/
-node serve.mjs      # abre http://localhost:8080
+pnpm dev            # desarrollo: construye, sirve y recarga el navegador al guardar
+pnpm build          # solo genera dist/
+pnpm preview        # sirve dist/ ya construido
+pnpm check          # construye y verifica (archivos, sin URLs externas, marca, motor)
 ```
+
+Con npm: `npm run dev`, `npm run build`, `npm run preview`, `npm run check`.
+Sin gestor de paquetes: `node dev.mjs`, `node build.mjs`, `node serve.mjs`, `node check.mjs`.
 
 También puedes abrir `dist/index.html` con doble clic: funciona igual.
-
-```bash
-npm run check       # construye y verifica (archivos, sin URLs externas, marca, motor)
-```
 
 ## Estructura
 
