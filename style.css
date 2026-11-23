@@ -2833,7 +2833,7 @@ body.is-dragging-block { cursor: grabbing; user-select: none; }
    Animaciones de UI
    La entrada corre sola al quitar `hidden` (display:none reinicia la
    animación). La salida usa .closing (JS quita .closing y oculta al
-   terminar, ver closeModalEl en script.ts).
+   terminar, ver hideElAnimated en script.ts).
    =========================== */
 .modal-backdrop {
   animation: mbBackdropIn 0.2s ease both;
@@ -2865,6 +2865,23 @@ body.is-dragging-block { cursor: grabbing; user-select: none; }
   animation: mbMenuIn 0.16s ease-out both;
 }
 
+/* Panel de bloques (flyout): se desliza desde las categorías. */
+.blockly-flyout {
+  animation: mbFlyoutIn 0.22s ease-out both;
+}
+
+.blockly-flyout.closing {
+  animation: mbFlyoutOut 0.18s ease forwards;
+  pointer-events: none;
+}
+
+/* Pestañas del panel izquierdo (Dispositivos/Objetos/Fondos):
+   solo la entrada — la pestaña que sale se oculta al instante para que
+   el cambio se sienta inmediato, como en mBlock. */
+.targets-pane {
+  animation: mbPaneIn 0.18s ease-out both;
+}
+
 @keyframes mbBackdropIn {
   from { opacity: 0; }
 }
@@ -2893,12 +2910,26 @@ body.is-dragging-block { cursor: grabbing; user-select: none; }
   from { opacity: 0; transform: translateY(-6px); }
 }
 
+@keyframes mbFlyoutIn {
+  from { opacity: 0; transform: translateX(-14px); }
+}
+
+@keyframes mbFlyoutOut {
+  to { opacity: 0; transform: translateX(-14px); }
+}
+
+@keyframes mbPaneIn {
+  from { opacity: 0; transform: translateY(6px); }
+}
+
 /* Accesibilidad: sin movimiento cuando el usuario lo pide al sistema. */
 @media (prefers-reduced-motion: reduce) {
   .modal-backdrop,
   .modal-box,
   .toast-banner,
-  .has-submenu.open > .submenu {
+  .has-submenu.open > .submenu,
+  .blockly-flyout,
+  .targets-pane {
     animation: none !important;
   }
 }
