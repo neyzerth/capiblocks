@@ -297,20 +297,55 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     }
   });
 
-  function saveProjectLocally(downloadFile = false) {
+  /* Límite blando para localStorage: la cuota típica es ~5 MB por origen y el
+     navegador cuenta UTF-16, de ahí el margen de 2 MB. */
+  const LOCAL_PROJECT_LIMIT = 2 * 1024 * 1024;
+
+  /* Proyecto serializado completo. Lo comparten el guardado en localStorage y la
+     descarga .json (que siempre lleva sprites y fondos enteros). */
+  function buildProjectPayload() {
     const name = ($('#projectInput')?.value || t('untitled')).trim() || t('untitled');
-    const payload = {
+    return {
       name,
       lang: window.__I18N_LANG || 'en',
       device: state.activeDevice,
       blocks: (window.MBBlocks && MBBlocks.active())
         ? { engine: 'blockly', state: MBBlocks.serialize() }
         : state.blocks,
+      sprites: state.sprites,
+      activeSpriteId: state.activeSpriteId,
+      backdrops: state.backdrops,
+      activeBackdropId: state.activeBackdropId,
       savedAt: new Date().toISOString()
     };
+  }
+
+  /* Un objeto subido lleva su imagen incrustada como data-URI y puede pesar MB. */
+  function isUploadedSprite(sprite) {
+    return !!sprite && typeof sprite.asset === 'string' && sprite.asset.startsWith('data:');
+  }
+
+  /* Copia del payload para localStorage. Si el JSON completo pasa del límite,
+     quita SOLO los sprites subidos (data-URI): los excluidos siguen vivos en la
+     sesión y la descarga .json los conserva. Si aun así no cabe, el try/catch de
+     saveProjectLocally lo convierte en "no se pudo guardar". */
+  function payloadForStorage(payload) {
+    const full = JSON.stringify(payload);
+    if (full.length <= LOCAL_PROJECT_LIMIT) return { json: full, excluded: 0 };
+    const sprites = payload.sprites.filter((s) => !isUploadedSprite(s));
+    return {
+      json: JSON.stringify({ ...payload, sprites }),
+      excluded: payload.sprites.length - sprites.length
+    };
+  }
+
+  function saveProjectLocally(downloadFile = false) {
+    const payload = buildProjectPayload();
+    const name = payload.name;
+    const storage = payloadForStorage(payload);
     let stored = false;
     try {
-      localStorage.setItem('mblock.lastProject', JSON.stringify(payload));
+      localStorage.setItem('mblock.lastProject', storage.json);
       stored = !!localStorage.getItem('mblock.lastProject');
     } catch (_) {}
     if (downloadFile) {
@@ -321,17 +356,90 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
       a.click();
       URL.revokeObjectURL(a.href);
     }
-    showToast(stored ? t('savedToast') : t('saveFailedToast'));
+    if (!stored) showToast(t('saveFailedToast'));
+    else if (storage.excluded > 0) showToast(t('customSpritesNotStored'));
+    else showToast(t('savedToast'));
   }
 
-  /* Vuelve a abrir el último proyecto guardado en este navegador. */
-  function restoreLastProject() {
-    let raw: string | null = null;
-    try { raw = localStorage.getItem('mblock.lastProject'); } catch (_) {}
-    if (!raw) return false;
-    let p: any = null;
-    try { p = JSON.parse(raw); } catch (_) { return false; }
-    if (!p) return false;
+  /* Valor numérico tolerante: un proyecto editado a mano no debe romper el render. */
+  function sceneNumber(value, fallback) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  function defaultCapiSprite() {
+    return { id: 'capi', name: 'Capi', x: 0, y: 0, size: 100, dir: 90, visible: true, hue: 0, asset: 'capi' };
+  }
+
+  /* Normaliza un sprite guardado: conserva su id (lo usan render y pruebas),
+     repara ids ausentes o repetidos y descarta entradas que no son objetos. */
+  function normalizeRestoredSprite(raw, index, used) {
+    if (!raw || typeof raw !== 'object') return null;
+    let id = typeof raw.id === 'string' ? raw.id.trim() : '';
+    if (!id || used.has(id)) {
+      let n = index + 1;
+      do { id = `sprite_restored_${n}`; n += 1; } while (used.has(id));
+    }
+    used.add(id);
+    return {
+      id,
+      name: (typeof raw.name === 'string' && raw.name.trim()) || t('spriteName'),
+      x: sceneNumber(raw.x, 0),
+      y: sceneNumber(raw.y, 0),
+      size: sceneNumber(raw.size, 100),
+      dir: sceneNumber(raw.dir, 90),
+      visible: raw.visible !== false,
+      hue: sceneNumber(raw.hue, 0),
+      /* Cualquier asset vale, incluidos los data-URI de objetos subidos. */
+      asset: (typeof raw.asset === 'string' && raw.asset) || 'capi'
+    };
+  }
+
+  /* Fondos guardados: solo ids del catálogo, sin duplicados; si no queda ninguno,
+     el lienzo blanco. */
+  function normalizeRestoredBackdrops(list) {
+    const ids: string[] = [];
+    if (Array.isArray(list)) {
+      list.forEach((id) => {
+        if (typeof id === 'string' && backdropById(id) && !ids.includes(id)) ids.push(id);
+      });
+    }
+    return ids.length ? ids : ['blank'];
+  }
+
+  /* Aplica la escena de un proyecto cargado y repinta todo lo que depende de ella.
+     Payloads viejos sin sprites/fondos vuelven al Capi + lienzo blanco de siempre. */
+  function restoreProjectScene(p) {
+    const used = new Set<string>();
+    const sprites: any[] = [];
+    if (Array.isArray(p.sprites)) {
+      p.sprites.forEach((raw, index) => {
+        const sprite = normalizeRestoredSprite(raw, index, used);
+        if (sprite) sprites.push(sprite);
+      });
+    }
+    state.sprites = sprites.length ? sprites : [defaultCapiSprite()];
+    state.activeSpriteId = state.sprites.some((s) => s.id === p.activeSpriteId)
+      ? p.activeSpriteId
+      : state.sprites[0].id;
+
+    state.backdrops = normalizeRestoredBackdrops(p.backdrops);
+    state.activeBackdropId = state.backdrops.includes(p.activeBackdropId)
+      ? p.activeBackdropId
+      : state.backdrops[0];
+
+    renderSpriteList();
+    renderSprites();
+    renderBackdropList();
+    applyBackdropVisual(state.activeBackdropId, $('#stageCanvasBox'));
+    syncSpriteInputs();
+    updateInfoTargetName();
+  }
+
+  /* Restaura un proyecto ya parseado. Camino único para localStorage y para abrir
+     un .json: nombre, dispositivo, bloques y escena (sprites + fondos). */
+  function applyProjectPayload(p) {
+    if (!p || typeof p !== 'object') return false;
 
     if (p.name) syncProjectName(p.name, '');
     if (p.device && DEVICE_LIBRARY.some((d) => d.id === p.device)) {
@@ -345,7 +453,19 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     } else if (Array.isArray(p.blocks)) {
       state.blocks = p.blocks;
     }
+    restoreProjectScene(p);
     return true;
+  }
+
+  /* Vuelve a abrir el último proyecto guardado en este navegador. */
+  function restoreLastProject() {
+    let raw: string | null = null;
+    try { raw = localStorage.getItem('mblock.lastProject'); } catch (_) {}
+    if (!raw) return false;
+    let p: any = null;
+    try { p = JSON.parse(raw); } catch (_) { return false; }
+    if (!p) return false;
+    return applyProjectPayload(p);
   }
 
   function exportPythonFile() {
@@ -391,19 +511,13 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     reader.onload = () => {
       try {
         const parsed = JSON.parse(String(reader.result));
-        const enginePayload = parsed.blocks && parsed.blocks.engine === 'blockly' ? parsed.blocks.state : null;
-        if (enginePayload && window.MBBlocks && MBBlocks.active()) {
-          MBBlocks.load(enginePayload);
-          if (parsed.name) syncProjectName(parsed.name, '');
-          renderWorkspaceBlocks();
-          updatePythonViews();
-        } else if (Array.isArray(parsed.blocks)) {
-          pushUndo();
-          state.blocks = parsed.blocks;
-          if (parsed.name) syncProjectName(parsed.name, '');
-          renderWorkspaceBlocks();
-          updatePythonViews();
-        }
+        /* Los proyectos viejos guardaban solo el array de bloques: se puede
+           deshacer la carga con Ctrl+Z. Los de Blockly no pasan por el undo. */
+        if (Array.isArray(parsed?.blocks) && !(parsed.blocks.engine === 'blockly')) pushUndo();
+        /* Mismo camino que localStorage: nombre, dispositivo, bloques, sprites y fondos. */
+        applyProjectPayload(parsed);
+        renderWorkspaceBlocks();
+        updatePythonViews();
       } catch (_) {}
     };
     reader.readAsText(file);
@@ -930,6 +1044,7 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
   /* API mínima de sprites: la usan las pruebas y la futura biblioteca (Task 4+). */
   (window as any).MBSprites = {
     list: () => state.sprites,
+    active: () => state.activeSpriteId,
     add: (sprite) => {
       const id = (sprite && sprite.id) || nextSpriteId();
       state.sprites.push({
