@@ -1,8 +1,8 @@
 (() => {
-  const DICTS = window.__I18N_DICTS || {};
+  const DICTS: Record<string, Record<string, string>> = window.__I18N_DICTS || {};
   const SUPPORTED = Object.keys(DICTS).length ? Object.keys(DICTS) : ['en'];
 
-  function detectInitialLang() {
+  function detectInitialLang(): string {
     const params = new URLSearchParams(window.location.search);
     const paramLang = (params.get('lang') || '').toLowerCase().slice(0, 2);
     if (SUPPORTED.includes(paramLang)) return paramLang;
@@ -14,9 +14,9 @@
   }
 
   let currentLang = detectInitialLang();
-  let currentDict = DICTS[currentLang] || DICTS.en || {};
+  let currentDict: Record<string, string> = DICTS[currentLang] || DICTS.en || {};
 
-  function t(key, fallback) {
+  function t(key: string, fallback?: string): string {
     if (Object.prototype.hasOwnProperty.call(currentDict, key)) {
       return currentDict[key];
     }
@@ -26,7 +26,7 @@
     return fallback !== undefined ? fallback : key;
   }
 
-  function apply() {
+  function apply(): void {
     document.documentElement.lang = currentLang;
 
     const titleKey = document.body && document.body.classList.contains('privacy-page')
@@ -61,16 +61,16 @@
       el.setAttribute('aria-checked', isSelected ? 'true' : 'false');
     });
 
-    const settingsSelect = document.getElementById('settingsLangSelect');
+    const settingsSelect = document.getElementById('settingsLangSelect') as HTMLSelectElement | null;
     if (settingsSelect) settingsSelect.value = currentLang;
 
-    const projectInput = document.getElementById('projectInput');
+    const projectInput = document.getElementById('projectInput') as HTMLInputElement | null;
     if (projectInput && projectInput.dataset.userEdited !== 'true') {
       projectInput.value = t('untitled');
     }
   }
 
-  function setLang(langCode) {
+  function setLang(langCode: string): boolean {
     const code = (langCode || '').toLowerCase().slice(0, 2);
     if (!SUPPORTED.includes(code)) return false;
     currentLang = code;

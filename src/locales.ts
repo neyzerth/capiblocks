@@ -1,4 +1,4 @@
-window.__I18N_DICTS = {
+const I18N_DICTS = {
   en: {
     pageTitle: "capiBlocks Block-Based IDE- Coding for Beginners",
     privacyPageTitle: "Privacy Policy - capiBlocks IDE",
@@ -713,3 +713,5 @@ window.__I18N_DICTS = {
     blkPlayMeow: "播放声音 [pop]"
   }
 };
+
+(window as any).__I18N_DICTS = I18N_DICTS;

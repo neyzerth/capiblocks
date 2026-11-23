@@ -1,7 +1,7 @@
 (() => {
-  const $ = (sel, root = document) => root.querySelector(sel);
-  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
-  const t = (key, def) => (window.t ? window.t(key, def) : (def || key));
+  const $ = (sel: string, root: ParentNode = document): any => root.querySelector(sel);
+  const $$ = (sel: string, root: ParentNode = document): any[] => Array.from(root.querySelectorAll(sel));
+  const t = (key: string, def?: string): string => (window.t ? window.t(key, def) : (def || key));
 
   /* ===========================
      Data: Categories, Blocks, Devices, Extensions
@@ -131,7 +131,7 @@
   /* ===========================
      Application State
      =========================== */
-  const state = {
+  const state: Record<string, any> = {
     activeTargetTab: 'devices',
     activeDevice: 'esp32',
     addedDevices: ['esp32'],
@@ -155,7 +155,7 @@
   /* ===========================
      Utilities
      =========================== */
-  let toastTimer = null;
+  let toastTimer: any = null;
   function showToast(msg) {
     const banner = $('#toastBanner');
     if (!banner) return;
@@ -171,7 +171,7 @@
 
   function playTone(freq = 523, durationMs = 180) {
     try {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioCtx) return;
       const ctx = new AudioCtx();
       const osc = ctx.createOscillator();
@@ -190,7 +190,7 @@
   /* ===========================
      Header Dropdown Menus
      =========================== */
-  let openSubmenu = null;
+  let openSubmenu: any = null;
   function closeMenus() {
     if (!openSubmenu) return;
     openSubmenu.classList.remove('open');
@@ -200,10 +200,11 @@
   }
 
   document.addEventListener('click', (e) => {
-    const trigger = e.target.closest('.has-submenu > .menu-trigger');
+    const trigger = (e.target as Element)?.closest('.has-submenu > .menu-trigger');
     if (trigger) {
       e.stopPropagation();
-      const parent = trigger.parentElement;
+      const parent = trigger.parentElement as HTMLElement;
+      if (!parent) return;
       const wasOpen = parent.classList.contains('open');
       closeMenus();
       if (!wasOpen) {
@@ -213,7 +214,7 @@
       }
       return;
     }
-    if (!e.target.closest('.submenu')) {
+    if (!(e.target as Element)?.closest('.submenu')) {
       closeMenus();
     }
   });
@@ -309,10 +310,10 @@
 
   /* Vuelve a abrir el último proyecto guardado en este navegador. */
   function restoreLastProject() {
-    let raw = null;
+    let raw: string | null = null;
     try { raw = localStorage.getItem('mblock.lastProject'); } catch (_) {}
     if (!raw) return false;
-    let p = null;
+    let p: any = null;
     try { p = JSON.parse(raw); } catch (_) { return false; }
     if (!p) return false;
 
@@ -693,7 +694,7 @@
     searchWrap.hidden = !state.searchMode;
     listEl.innerHTML = '';
 
-    let blocksToShow = [];
+    let blocksToShow: any[] = [];
     if (state.searchMode) {
       titleEl.textContent = t('search');
       const query = ($('#blockSearchInput')?.value || '').trim().toLowerCase();
@@ -731,9 +732,9 @@
   /* Arrastrar un bloque de la paleta al lienzo (el clic sigue funcionando). */
   let flyoutSuppressClick = false;
 
-  function attachFlyoutDrag(btn, blk) {
-    let press = null;
-    let ghost = null;
+  function attachFlyoutDrag(btn: HTMLElement, blk: any) {
+    let press: any = null;
+    let ghost: any = null;
     let dragging = false;
 
     const onMove = (e) => {
@@ -1019,8 +1020,8 @@
     setTimeout(() => { btn.textContent = t('copyCode', orig); }, 1400);
   }
 
-  $('#copyPythonBtn')?.addEventListener('click', function () { copyPythonText(this); });
-  $('#copyPreviewBtn')?.addEventListener('click', function () { copyPythonText(this); });
+  $('#copyPythonBtn')?.addEventListener('click', function (this: any) { copyPythonText(this); });
+  $('#copyPreviewBtn')?.addEventListener('click', function (this: any) { copyPythonText(this); });
   $('#runPythonBtn')?.addEventListener('click', runBlocksSimulation);
 
   /* ===========================
@@ -1058,7 +1059,7 @@
     return [
       { label: t('envWebGL'), ok: true, critical: true },
       { label: t('envStorage'), ok: typeof window.localStorage !== 'undefined', critical: true },
-      { label: t('envAudio'), ok: Boolean(window.AudioContext || window.webkitAudioContext), critical: true },
+      { label: t('envAudio'), ok: Boolean(window.AudioContext || (window as any).webkitAudioContext), critical: true },
       { label: t('envSerial'), ok: 'serial' in navigator },
       { label: t('envBluetooth'), ok: 'bluetooth' in navigator }
     ];
@@ -1095,7 +1096,7 @@
         <p>${dev.desc}</p>
         <button type="button" class="${added ? 'modal-btn-secondary' : 'modal-btn-primary'}">${added ? t('addedBtn') : t('addBtn')}</button>
       `;
-      card.querySelector('button').addEventListener('click', () => {
+      card.querySelector('button')?.addEventListener('click', () => {
         if (!added) {
           state.addedDevices.push(dev.id);
           renderDeviceList();
@@ -1132,7 +1133,7 @@
         <p class="mtarget-name">${dev.name}</p>
       `;
       card.addEventListener('click', (e) => {
-        if (e.target.closest('.mtarget-delete-btn')) {
+        if ((e.target as Element)?.closest('.mtarget-delete-btn')) {
           if (state.addedDevices.length > 1) {
             state.addedDevices = state.addedDevices.filter((x) => x !== dev.id);
             state.activeDevice = state.addedDevices[0];
@@ -1163,7 +1164,7 @@
         <p>${t(ext.descKey)}</p>
         <button type="button" class="${added ? 'modal-btn-secondary' : 'modal-btn-primary'}">${added ? t('addedBtn') : t('addBtn')}</button>
       `;
-      card.querySelector('button').addEventListener('click', () => {
+      card.querySelector('button')?.addEventListener('click', () => {
         if (!added) {
           state.addedExtensions.push(ext.id);
           renderToolbox();
@@ -1236,7 +1237,7 @@
     if (window.MBBlocks && MBBlocks.active()) {
       MBBlocks.loadProgram(steps);
     } else {
-      const flat = [];
+      const flat: any[] = [];
       const walk = (list) => list.forEach((s) => {
         flat.push({ ...(BLOCK_INDEX[s.id] || {}), uid: `${s.id}_${flat.length}` });
         if (s.do) walk(s.do);
@@ -1280,7 +1281,7 @@
   /* ===========================
      Initialize
      =========================== */
-  const BLOCK_INDEX = {};
+  const BLOCK_INDEX: Record<string, any> = {};
   Object.keys(BLOCKS_BY_CAT).forEach((cat) => {
     (BLOCKS_BY_CAT[cat] || []).forEach((b) => { BLOCK_INDEX[b.id] = b; });
   });

@@ -13,10 +13,10 @@ const problems = [];
 const ok = (msg) => console.log('OK  ', msg);
 const bad = (msg) => { problems.push(msg); console.error('FALLO', msg); };
 
-// 1. Archivos esenciales
+// 1. Archivos esenciales del build
 const required = [
-  'index.html', 'privacy.html', 'style.css', 'script.js', 'i18n.js',
-  'blockly-app.js', 'blockly.min.js', 'favicon.svg', 'locales/locales.js'
+  'index.html', 'privacy.html', 'style.css', 'app.js', 'i18n.js',
+  'blockly.min.js', 'codemirror.js', 'favicon.svg'
 ];
 for (const rel of required) {
   if (fs.existsSync(path.join(dist, rel))) ok(`dist/${rel}`);
@@ -27,14 +27,14 @@ if (fs.existsSync(media) && fs.readdirSync(media).length >= 10) ok('dist/blockly
 else bad('falta dist/blockly-media/ (media de Blockly)');
 
 // 2. Nada de URLs externas en el sitio (debe funcionar offline / file://)
-const sources = ['index.html', 'privacy.html', 'style.css', 'script.js', 'i18n.js', 'blockly-app.js', 'locales/locales.js'];
+const sources = ['index.html', 'privacy.html', 'style.css', 'app.js', 'i18n.js'];
 const allow = /https?:\/\/(www\.)?w3\.org/;
 for (const rel of sources) {
-  const text = fs.readFileSync(path.join(root, rel), 'utf8');
+  const text = fs.readFileSync(path.join(dist, rel), 'utf8');
   const hits = (text.match(/https?:\/\/[^\s"'<>)]+/g) || []).filter((u) => !allow.test(u));
   if (hits.length) bad(`${rel} referencia recurso externo: ${hits.slice(0, 3).join(', ')}`);
 }
-if (!problems.length) ok('sin recursos externos en el código fuente');
+if (!problems.length) ok('sin recursos externos en el build');
 
 // 3. Lo que referencia index.html existe en dist/
 const html = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
@@ -44,11 +44,12 @@ for (const ref of new Set(refs)) {
   else bad(`index.html referencia ${ref} y no existe en dist/`);
 }
 
-// 4. El motor arranca: el hook de Blockly está en el HTML y en blockly-app.js
-if (html.includes('blocklyDiv') && html.includes('blockly-app.js')) ok('hook del workspace presente');
+// 4. El motor arranca: bundle cargado y API de bloques presente
+if (html.includes('blocklyDiv') && html.includes('app.js')) ok('hook del workspace presente');
 else bad('index.html no monta el workspace de Blockly');
-if (fs.readFileSync(path.join(root, 'blockly-app.js'), 'utf8').includes('window.MBBlocks')) ok('API window.MBBlocks');
-else bad('blockly-app.js no expone window.MBBlocks');
+const bundle = fs.readFileSync(path.join(dist, 'app.js'), 'utf8');
+if (bundle.includes('MBBlocks') && bundle.includes('MBPythonEditor')) ok('APIs MBBLocks/MBPythonEditor en el bundle');
+else bad('app.js no expone MBBlocks/MBPythonEditor');
 
 // 5. La marca no vuelve a decir mBlock en texto visible
 const visible = html.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<!--[\s\S]*?-->/g, '');

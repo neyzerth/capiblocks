@@ -12,9 +12,10 @@
     "build": "node build.mjs",
     "serve": "node build.mjs && node serve.mjs",
     "preview": "node serve.mjs",
-    "check": "node build.mjs && node check.mjs",
+    "check": "node build.mjs && tsc -p tsconfig.json --noEmit && node check.mjs",
     "test:e2e": "playwright test",
-    "test": "node build.mjs && node check.mjs && playwright test"
+    "test": "node build.mjs && tsc -p tsconfig.json --noEmit && node check.mjs && playwright test",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "packageManager": "pnpm@12.15.0",
   "keywords": [
@@ -27,6 +28,10 @@
   ],
   "devDependencies": {
     "@playwright/test": "^1.65.1",
-    "codemirror": "^5.65.21"
+    "@types/codemirror": "^5.60.18",
+    "blockly": "13.5.0",
+    "codemirror": "^5.65.21",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
   }
 }

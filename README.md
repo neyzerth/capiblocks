@@ -21,14 +21,15 @@ de un servicio en línea y que se pueda corregir.
 
 ## Probar
 
-Requiere Node 18 o superior; no hay dependencias que instalar. pnpm y npm sirven igual (los scripts
-son Node puro).
+Requiere Node 18+ y `pnpm install` una vez (solo herramientas de desarrollo: TypeScript y esbuild).
+El sitio construido no tiene dependencias y funciona offline.
 
 ```bash
 pnpm dev            # desarrollo: construye, sirve y recarga el navegador al guardar
 pnpm build          # solo genera dist/
 pnpm preview        # sirve dist/ ya construido
-pnpm check          # construye y verifica (archivos, sin URLs externas, marca, motor)
+pnpm check          # typecheck + build + verificación
+pnpm typecheck      # solo TypeScript (tsc --noEmit)
 ```
 
 Con npm: `npm run dev`, `npm run build`, `npm run preview`, `npm run check`.
@@ -52,12 +53,15 @@ También puedes abrir `dist/index.html` con doble clic: funciona igual.
 ## Estructura
 
 ```
-index.html, style.css, script.js     interfaz y lógica del IDE
-i18n.js, locales/locales.js          traducciones es / en / zh
-blockly-app.js                       puente con Blockly: bloques, Python, simulación
-python-editor.js                     editor Python (CodeMirror) vendorizado
+index.html, style.css                interfaz (HTML estático)
+src/script.ts                        UI y estado; catálogo de bloques (BLOCKS_BY_CAT)
+src/blockly-app.ts                   puente con Blockly: bloques, Python, simulación
+src/python-editor.ts                 editor Python (CodeMirror)
+src/i18n.ts, src/locales.ts          traducciones es / en / zh
+src/app.ts                           entrada del bundle (compila a dist/app.js)
 vendor/blockly/, vendor/codemirror/  motores vendorizados (Apache-2.0 / MIT)
-build.mjs, serve.mjs, check.mjs      construir, servir, verificar
+build.mjs, serve.mjs, dev.mjs        compilar (esbuild + TS), servir, desarrollo
+check.mjs                            verificación del build
 dist/                                salida del build (no se versiona)
 ```
 

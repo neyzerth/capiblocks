@@ -50,7 +50,7 @@ Leyenda: ✅ hecho · 🚧 en curso · ⬜ pendiente.
 
 ## 6. Calidad
 
-- ✅ `node check.mjs`: archivos del build, recursos externos, marca, motor.
+- ✅ Código en **TypeScript** estricto (`pnpm typecheck`) y verificación del build (`node check.mjs`).
 - ✅ Tests end-to-end con **Playwright** (`pnpm test:e2e`): bloques, arrastre, Python,
   guardado/restauración, ejemplos, ESP32 y layout móvil.
 - ⬜ Tests unitarios de utilidades puras (sin DOM).

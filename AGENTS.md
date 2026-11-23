@@ -9,8 +9,9 @@ Idioma de la interfaz: español por defecto; el código y los commits pueden ir 
 pnpm dev          # desarrollo: build + servidor + recarga al guardar (puerto 8080)
 pnpm build        # construye dist/
 pnpm preview      # sirve dist/ ya construido
-pnpm check        # build + verificación (sale 1 si algo falta)
-pnpm test         # build + check + tests end-to-end (Playwright)
+pnpm typecheck    # TypeScript estricto (tsc --noEmit)
+pnpm check        # typecheck + build + verificación
+pnpm test         # typecheck + build + check + tests end-to-end (Playwright)
 pnpm test:e2e     # solo los tests de navegador
 
 # equivalentes sin pnpm:
@@ -28,17 +29,18 @@ gestor (pnpm/npm) solo ejecuta scripts de Node.
 ## Mapa del código
 
 - `index.html`: estructura del IDE (header, escenario, panel de dispositivos, paleta, workspace).
+- `src/*.ts`: todo el código de la app; esbuild lo compila a un único `dist/app.js` (IIFE).
 - `style.css`: tema completo. El color de acento vive en variables al inicio del archivo
   (`--HEADER-BG`, `--PRIMARY-COLOR`, `--BODY-BG`…). Rebrandear = tocar variables, no componentes.
-- `script.js`: UI y estado. `attachFlyoutDrag` arrastra bloques de la paleta al lienzo
+- `src/script.ts`: UI y estado. `attachFlyoutDrag` arrastra bloques de la paleta al lienzo
   (`MBBlocks.addAt`); el clic sigue añadiéndolos. `BLOCKS_BY_CAT` es **la fuente única** del catálogo de bloques
   (id, color, `py`, `action`); los bloques de Blockly se generan desde ahí.
-- `blockly-app.js`: `window.MBBlocks` — definición dinámica de bloques, inyección del workspace
+- `src/blockly-app.ts`: `window.MBBlocks` — definición dinámica de bloques, inyección del workspace
   (renderer `zelos`), generación de Python, acciones para el simulador, serialización y carga.
-- `python-editor.js`: editor CodeMirror (resaltado, Tab) montado en la pestaña Python y en el panel de vista previa.
-- `i18n.js` + `locales/locales.js`: traducciones; las etiquetas de bloques se releen al cambiar idioma
+- `src/python-editor.ts`: editor CodeMirror (resaltado, Tab) montado en la pestaña Python y en el panel de vista previa.
+- `src/i18n.ts` + `src/locales.ts`: traducciones; las etiquetas de bloques se releen al cambiar idioma
   (`MBBlocks.relabel`).
-- `build.mjs` / `serve.mjs` / `dev.mjs` / `check.mjs`: build, servidor local, modo desarrollo con recarga y verificación.
+- `build.mjs` / `serve.mjs` / `dev.mjs` / `check.mjs`: build (esbuild), servidor local, modo desarrollo con recarga y verificación.
 
 ## Reglas que no se rompen
 

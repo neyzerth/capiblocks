@@ -93,8 +93,8 @@ server.listen(port, '127.0.0.1', () => {
 });
 
 // Vigila el código fuente (no dist/ ni docs/)
-const watchFiles = ['index.html', 'style.css', 'script.js', 'privacy.html', 'i18n.js', 'blockly-app.js', 'build.mjs'];
-const watchDirs = ['locales', 'vendor'];
+const watchFiles = ['index.html', 'style.css', 'privacy.html', 'build.mjs', 'tsconfig.json'];
+const watchDirs = ['src', 'vendor'];
 
 let timer = null;
 function schedule(reason) {

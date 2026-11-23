@@ -1,27 +1,19 @@
 #!/usr/bin/env node
 /**
- * Build capiBlocks: copia el sitio y el motor Blockly (vendorizado) a dist/.
- * Sin dependencias: solo Node 18+.
+ * Build capiBlocks: compila TypeScript (esbuild) y copia el sitio + los motores
+ * vendorizados a dist/. Requiere `pnpm install` una vez (esbuild/TypeScript son
+ * dependencias de desarrollo; el sitio servido no tiene dependencias).
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { build as esbuild } from 'esbuild';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const out = path.join(root, 'dist');
 const vendor = path.join(root, 'vendor', 'blockly');
 
-const siteFiles = [
-  'index.html',
-  'style.css',
-  'script.js',
-  'privacy.html',
-  'i18n.js',
-  'favicon.ico',
-  'favicon.svg',
-  'blockly-app.js',
-  'python-editor.js'
-];
+const siteFiles = ['index.html', 'style.css', 'privacy.html', 'favicon.ico', 'favicon.svg'];
 
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
@@ -31,8 +23,26 @@ for (const rel of siteFiles) {
   console.log('copiado', rel);
 }
 
-fs.cpSync(path.join(root, 'locales'), path.join(out, 'locales'), { recursive: true });
-console.log('copiado locales');
+// App completa (locales + i18n + motor + editor + UI) y bundle solo de i18n para privacy.html
+await esbuild({
+  entryPoints: [path.join(root, 'src', 'app.ts')],
+  bundle: true,
+  format: 'iife',
+  target: ['es2020'],
+  outfile: path.join(out, 'app.js'),
+  logLevel: 'warning'
+});
+console.log('compilado app.js');
+
+await esbuild({
+  entryPoints: [path.join(root, 'src', 'i18n-entry.ts')],
+  bundle: true,
+  format: 'iife',
+  target: ['es2020'],
+  outfile: path.join(out, 'i18n.js'),
+  logLevel: 'warning'
+});
+console.log('compilado i18n.js');
 
 fs.copyFileSync(path.join(vendor, 'blockly.min.js'), path.join(out, 'blockly.min.js'));
 console.log('copiado blockly.min.js (vendor/blockly)');

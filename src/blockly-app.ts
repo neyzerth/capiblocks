@@ -7,15 +7,15 @@
   const B = window.Blockly;
   if (!B) return;
 
-  let workspace = null;
-  let labelFor = (id) => id;
-  let catalogById = {};
-  let entries = [];
-  let onChange = null;
+  let workspace: any = null;
+  let labelFor: (id: string) => string = (id) => id;
+  let catalogById: Record<string, any> = {};
+  let entries: any[] = [];
+  let onChange: (() => void) | null = null;
   let lang = 'en';
 
   /* Blocks whose label placeholders become editable fields. */
-  const FIELD_SPECS = {
+  const FIELD_SPECS: Record<string, any[]> = {
     led_all: [{ name: 'COLOR', type: 'colour', def: '#ff5252' }],
     led_single: [{ name: 'COLOR', type: 'colour', def: '#1eaaff' }],
     disp_print: [{ name: 'TEXT', type: 'text', def: '¡Hola!' }],
@@ -29,15 +29,15 @@
     sen_btn: [{ name: 'BUTTON', type: 'text', def: 'a' }]
   };
 
-  const STATEMENT_INPUT = {
+  const STATEMENT_INPUT: Record<string, boolean> = {
     ctrl_repeat: true,
     ctrl_forever: true,
     ctrl_if: true,
     my_def: true
   };
 
-  function typeOf(id) { return 'mb_' + id; }
-  function idOf(type) { return type.indexOf('mb_') === 0 ? type.slice(3) : type; }
+  function typeOf(id: string) { return 'mb_' + id; }
+  function idOf(type: string) { return type.indexOf('mb_') === 0 ? type.slice(3) : type; }
 
   function fieldArgs(spec) {
     if (!spec) return null;
@@ -66,7 +66,7 @@
       B.Blocks[type] = {
         init: function () {
           const { message, specs } = messageFor(entry);
-          const json = {
+          const json: any = {
             message0: message,
             colour: colour,
             tooltip: message,
@@ -112,8 +112,8 @@
     return t;
   }
 
-  function statementChildren(block) {
-    const out = [];
+  function statementChildren(block: any): any[] {
+    const out: any[] = [];
     for (const input of block.inputList || []) {
       const conn = input.connection;
       if (!conn || !conn.targetBlock) continue;
@@ -361,9 +361,9 @@
       const startX = (m ? m.viewLeft : 0) + 48;
       const startY = (m ? m.viewTop : 0) + 40;
 
-      const build = (list, isRoot) => {
-        let first = null;
-        let prev = null;
+      const build = (list: any[], isRoot: boolean): any => {
+        let first: any = null;
+        let prev: any = null;
         list.forEach((step) => {
           if (!catalogById[step.id]) return;
           const b = workspace.newBlock(typeOf(step.id));

@@ -2,10 +2,11 @@
    - Resaltado de sintaxis, números de línea, Tab = 4 espacios, Shift+Tab = menos sangría.
    - Se usa tanto en la pestaña Python (editable) como en el panel de vista previa (solo lectura). */
 (function () {
-  if (!window.CodeMirror) return;
+  const CodeMirror: any = window.CodeMirror;
+  if (!CodeMirror) return;
 
-  let main = null;
-  let preview = null;
+  let main: any = null;
+  let preview: any = null;
 
   const base = {
     mode: 'python',
@@ -48,7 +49,7 @@
 
     getValue() {
       if (main) return main.getValue();
-      const ta = document.getElementById('pythonTextarea');
+      const ta = document.getElementById('pythonTextarea') as HTMLTextAreaElement | null;
       return ta ? ta.value : '';
     },
 
