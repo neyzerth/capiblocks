@@ -79,7 +79,13 @@
     sensing: [
       { id: 'sen_loud', key: 'blkSensingLoudness', color: '#ff6f00', devices: ['cyberpi'], py: 'loudness = cyberpi.get_loudness()' },
       { id: 'sen_light', key: 'blkSensingLight', color: '#ff6f00', devices: ['cyberpi'], py: 'light = cyberpi.get_bri()' },
-      { id: 'sen_btn', key: 'blkSensingButton', color: '#ff6f00', devices: ['cyberpi'], py: 'if cyberpi.controller.is_press("a"):' }
+      { id: 'sen_btn', key: 'blkSensingButton', color: '#ff6f00', devices: ['cyberpi'], py: 'if cyberpi.controller.is_press("a"):' },
+      /* Sensores externos del ESP32 (DHT, HC-SR04, PIR, LDR y pulsador). */
+      { id: 'esp32_read_dht', key: 'blkEsp32Dht', color: '#ff6f00', devices: ['esp32'], esp32: "VAR = _capi_dht(PIN, 'MODEL')[WHAT]" },
+      { id: 'esp32_read_distance', key: 'blkEsp32Distance', color: '#ff6f00', devices: ['esp32'], esp32: 'VAR = _capi_distance(TRIG, ECHO)' },
+      { id: 'esp32_read_pir', key: 'blkEsp32Pir', color: '#ff6f00', devices: ['esp32'], esp32: 'VAR = Pin(PIN, Pin.IN).value()' },
+      { id: 'esp32_read_ldr', key: 'blkEsp32Ldr', color: '#ff6f00', devices: ['esp32'], esp32: 'VAR = ADC(Pin(PIN)).read()' },
+      { id: 'esp32_read_button', key: 'blkEsp32Button', color: '#ff6f00', devices: ['esp32'], esp32: 'VAR = 1 if Pin(PIN, Pin.IN, Pin.PULL_UP).value() == 0 else 0' }
     ],
     lan: [
       { id: 'lan_send', key: 'blkLanBroadcast', color: '#00d7b0', devices: ['cyberpi'], py: 'cyberpi.mesh_broadcast.set("ping", 1)' },

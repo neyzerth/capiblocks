@@ -58,19 +58,19 @@ test('al cambiar a CyberPi vuelve el python de cyberpi y viceversa', async ({ pa
 
 test('con ESP32 la paleta solo muestra las categorías del ESP32', async ({ page }) => {
   await boot(page);
-  await expect(page.locator('.toolbox-categories button')).toHaveCount(6);
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(7);
   await expect(page.locator('.toolbox-categories button', { hasText: /LED/ })).toHaveCount(0);
   await expect(page.locator('.toolbox-categories button', { hasText: /Audio|音频/ })).toHaveCount(0);
 });
 
-test('la paleta sigue al dispositivo: CyberPi 13 categorías, ESP32 6', async ({ page }) => {
+test('la paleta sigue al dispositivo: CyberPi 13 categorías, ESP32 7', async ({ page }) => {
   await boot(page);
   await addCyberPi(page);
   await expect(page.locator('.toolbox-categories button')).toHaveCount(13);
   await expect(page.locator('.toolbox-categories button', { hasText: /LED/ })).toHaveCount(1);
 
   await page.locator('#deviceListCol .mtarget-card', { hasText: 'ESP32' }).click();
-  await expect(page.locator('.toolbox-categories button')).toHaveCount(6);
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(7);
 });
 
 /* --- T3: pines --- */
@@ -83,4 +83,17 @@ test('los bloques de pines generan GPIO y PWM con sus valores por defecto', asyn
   expect(py).toContain('from machine import Pin, PWM, ADC');
   expect(py).toContain('Pin(2, Pin.OUT).value(1)');
   expect(py).toContain('PWM(Pin(2), 50).duty(int(25.6 + 90 * 0.568))');
+});
+
+/* --- T4: sensores --- */
+
+test('los sensores ESP32 emiten solo el helper que usan y leen el DHT por defecto', async ({ page }) => {
+  await boot(page);
+  await addFromPalette(page, /Events|Eventos|事件/);
+  await addFromPalette(page, /Sensing|Sensores|感知/);
+  const py = await page.evaluate(() => MBBlocks.python());
+  expect(py).toContain('def _capi_dht(pin, model):');
+  expect(py).toContain('    import dht');
+  expect(py).toContain("temp = _capi_dht(2, 'DHT11')[0]");
+  expect(py).not.toContain('def _capi_distance');
 });

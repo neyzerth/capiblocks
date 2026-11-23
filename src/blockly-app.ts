@@ -40,7 +40,33 @@
 
   /* Helpers de MicroPython: se emiten solo los que usan los bloques presentes.
      `ids` son los bloques que disparan el helper (los llena el catálogo). */
-  const HELPERS: { ids: string[]; code: string }[] = [];
+  const HELPERS: { ids: string[]; code: string }[] = [
+    {
+      ids: ['esp32_read_dht'],
+      code: [
+        'def _capi_dht(pin, model):',
+        '    import dht',
+        "    klass = dht.DHT22 if model == 'DHT22' else dht.DHT11",
+        '    d = klass(machine.Pin(pin))',
+        '    d.measure()',
+        '    return (d.temperature(), d.humidity())'
+      ].join('\n')
+    },
+    {
+      ids: ['esp32_read_distance'],
+      code: [
+        'def _capi_distance(trig, echo):',
+        '    t = machine.Pin(trig, machine.Pin.OUT)',
+        '    e = machine.Pin(echo, machine.Pin.IN)',
+        '    t.value(0); time.sleep_us(2)',
+        '    t.value(1); time.sleep_us(10); t.value(0)',
+        '    while e.value() == 0: pass',
+        '    s = time.ticks_us()',
+        '    while e.value() == 1: pass',
+        '    return time.ticks_diff(time.ticks_us(), s) * 0.01715'
+      ].join('\n')
+    }
+  ];
 
   /* Pines del ESP32 para los desplegables: [etiqueta, valor] con etiqueta = número. */
   const PINS_DIGITAL = ['2', '4', '5', '12', '13', '14', '15', '16', '17', '18', '19', '21', '22', '23', '25', '26', '27', '32', '33'];
@@ -56,6 +82,11 @@
     esp32_pwm_set: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL) }, { name: 'DUTY', type: 'number', def: 50 }],
     esp32_pwm_stop: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL) }],
     esp32_servo_angle: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL) }, { name: 'ANGLE', type: 'number', def: 90 }],
+    esp32_read_dht: [{ name: 'WHAT', type: 'dropdown', options: [['temperatura', '0'], ['humedad', '1']] }, { name: 'MODEL', type: 'dropdown', options: [['DHT11', 'DHT11'], ['DHT22', 'DHT22']] }, { name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL) }, { name: 'VAR', type: 'text', def: 'temp' }],
+    esp32_read_distance: [{ name: 'TRIG', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '5' }, { name: 'ECHO', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '18' }, { name: 'VAR', type: 'text', def: 'dist' }],
+    esp32_read_pir: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '27' }, { name: 'VAR', type: 'text', def: 'mov' }],
+    esp32_read_ldr: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_ADC), def: '32' }, { name: 'VAR', type: 'text', def: 'luz' }],
+    esp32_read_button: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '4' }, { name: 'VAR', type: 'text', def: 'boton' }],
     led_all: [{ name: 'COLOR', type: 'colour', def: '#ff5252' }],
     led_single: [{ name: 'COLOR', type: 'colour', def: '#1eaaff' }],
     disp_print: [{ name: 'TEXT', type: 'text', def: '¡Hola!' }],
@@ -137,6 +168,12 @@
             json.nextStatement = 'MB_STMT';
           }
           this.jsonInit(json);
+          /* Un desplegable con `def` arranca en ese pin/valor: el JSON de Blockly
+             siempre elige la primera opción de la lista. */
+          specs.forEach((f) => {
+            if (f.type !== 'dropdown' || f.def === undefined) return;
+            try { this.getField(f.name).setValue(String(f.def)); } catch (_) {}
+          });
         }
       };
     });
@@ -218,6 +255,17 @@
         const angle = Number(fieldValue(block, 'ANGLE', 90)) || 0;
         return `PWM(Pin(${fieldValue(block, 'PIN', '2')}), 50).duty(int(25.6 + ${angle} * 0.568))`;
       }
+      /* --- Sensores (ESP32) --- */
+      case 'esp32_read_dht':
+        return `${fieldValue(block, 'VAR', 'temp')} = _capi_dht(${fieldValue(block, 'PIN', '2')}, '${fieldValue(block, 'MODEL', 'DHT11')}')[${fieldValue(block, 'WHAT', '0')}]`;
+      case 'esp32_read_distance':
+        return `${fieldValue(block, 'VAR', 'dist')} = _capi_distance(${fieldValue(block, 'TRIG', '5')}, ${fieldValue(block, 'ECHO', '18')})`;
+      case 'esp32_read_pir':
+        return `${fieldValue(block, 'VAR', 'mov')} = Pin(${fieldValue(block, 'PIN', '27')}, Pin.IN).value()`;
+      case 'esp32_read_ldr':
+        return `${fieldValue(block, 'VAR', 'luz')} = ADC(Pin(${fieldValue(block, 'PIN', '32')})).read()`;
+      case 'esp32_read_button':
+        return `${fieldValue(block, 'VAR', 'boton')} = 1 if Pin(${fieldValue(block, 'PIN', '4')}, Pin.IN, Pin.PULL_UP).value() == 0 else 0`;
       case 'led_all': {
         const [r, g, b] = rgbFromHex(fieldValue(block, 'COLOR', '#ff5252'));
         return `cyberpi.led.on(${r}, ${g}, ${b})`;
