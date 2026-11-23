@@ -38,7 +38,8 @@ Leyenda: ✅ hecho · 🚧 en curso · ⬜ pendiente.
 
 ## 3. Simulación
 
-- ✅ Escenario con mascota capibara: LEDs, pantalla, sonido, movimiento, giro, fondos.
+- ✅ Escenario con mascota capibara: LEDs, pantalla, sonido, movimiento, giro (derecha e
+  izquierda), fondos.
 - ✅ Ejecutar (bandera verde) y detener; los bloques repetidos se limitan para no colgar la página.
 - ✅ **Varios objetos en escena**: lista dinámica con miniatura y nombre, selección, borrado (nunca
   el último) y tarjeta «+ Añadir»; los bloques y las propiedades actúan sobre el objeto activo.

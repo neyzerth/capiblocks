@@ -29,7 +29,9 @@ También puede abrirse `dist/index.html` directamente (`file://`).
    `color`, `py` (código Python) y, si aplica, `hat: true` o `action` para el simulador.
 2. Si la etiqueta tiene un hueco editable (`[color]`), agrega su spec en `FIELD_SPECS` de
    `src/blockly-app.ts` (`colour`, `text` o `number`). El campo se llama como en la spec
-   (`COLOR`, `TEXT`, `SECS`…).
+   (`COLOR`, `TEXT`, `SECS`…). **Un hueco sin spec no se ve**: `messageFor` lo borra del
+   mensaje (queda «mover  pasos») y el bloque pierde el campo; la consola avisa una vez por
+   id. Revisa los tres idiomas: cada `[token]` de `src/locales.ts` necesita su spec.
 3. Añade las traducciones del `key` en `src/locales.ts` (en/es/zh).
 4. Si el bloque lleva cuerpo (como `repeat`), agrégalo a `STATEMENT_INPUT`.
 5. `pnpm test` y añade un caso si el bloque tiene comportamiento propio.
@@ -59,15 +61,17 @@ nueva, crea el SVG con ese nombre y la entrada aparece en la biblioteca y en el 
 ### Añadir un programa de ejemplo
 
 1. Añade una entrada al archivo de su categoría: `src/examples-iot.ts`, `src/examples-escenario.ts`
-   o `src/examples-basicos.ts` (`{ id, name, desc, cat, thumb, device?, steps }`). Los pasos son
-   `{ id, fields?, do?[] }` y cada `id` debe existir en `BLOCKS_BY_CAT`.
+   o `src/examples-basicos.ts` (`{ id, name, desc, cat, thumb, device?, backdrops?, steps }`). Los
+   pasos son `{ id, fields?, do?[] }` y cada `id` debe existir en `BLOCKS_BY_CAT`.
 2. Usa un **id nuevo** (los ids son estables: renombrar rompe specs y referencias). El título se
    cambia en `name`.
 3. Si usa bloques exclusivos de una placa (`devices: [...]` en el bloque), declara `device` con su
    id de `DEVICE_LIBRARY`; al cargar se añade y se activa.
-4. Crea la miniatura `assets/examples/<id>.svg`. `node check.mjs` confirma que no hay URLs externas
+4. Si el programa usa «siguiente fondo», declara `backdrops` con ids de `BACKDROP_LIBRARY`: sin
+   fondos en el proyecto, el bloque cicla una lista de uno y no cambia nada.
+5. Crea la miniatura `assets/examples/<id>.svg`. `node check.mjs` confirma que no hay URLs externas
    y `pnpm test` (spec data-driven) carga el ejemplo y valida su miniatura.
-5. Los ejemplos piden confirmación si el lienzo ya tiene bloques.
+6. Los ejemplos piden confirmación si el lienzo ya tiene bloques.
 
 ### Cambiar el color de acento
 

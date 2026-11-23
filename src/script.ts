@@ -140,7 +140,8 @@ import { EXAMPLES, EXAMPLE_CATEGORIES, type Example } from './examples';
     ],
     motion: [
       { id: 'mov_steps', key: 'blkMoveSteps', color: '#4c97ff', py: 'sprite.forward(20)', action: { type: 'move', dx: 24 } },
-      { id: 'mov_turn', key: 'blkTurnRight', color: '#4c97ff', py: 'sprite.right(15)', action: { type: 'turn', deg: 15 } }
+      { id: 'mov_turn', key: 'blkTurnRight', color: '#4c97ff', py: 'sprite.right(15)', action: { type: 'turn', deg: 15 } },
+      { id: 'mov_turn_left', key: 'blkTurnLeft', color: '#4c97ff', py: 'sprite.left(15)', action: { type: 'turn', deg: -15 } }
     ],
     looks: [
       { id: 'look_say', key: 'blkSayHello', color: '#9966ff', py: 'sprite.say("Hello!", 2)', action: { type: 'say', text: 'Hello!' } },
@@ -1116,6 +1117,7 @@ import { EXAMPLES, EXAMPLE_CATEGORIES, type Example } from './examples';
     state.running = false;
     state.runTimers.forEach((id) => clearTimeout(id));
     state.runTimers = [];
+    clearTimeout(state.sayHideTimer);
     const bubble = $('#stageSpeechBubble');
     if (bubble) bubble.hidden = true;
     const ledStrip = $('#stageLedStrip');
@@ -1158,6 +1160,13 @@ import { EXAMPLES, EXAMPLE_CATEGORIES, type Example } from './examples';
           if (bubble) {
             bubble.textContent = act.text || 'Hello!';
             bubble.hidden = false;
+            /* "decir … durante [N] segundos": la burbuja dura lo que el campo. */
+            clearTimeout(state.sayHideTimer);
+            if (act.secs) {
+              state.sayHideTimer = setTimeout(() => {
+                if (state.running) bubble.hidden = true;
+              }, act.secs * 1000);
+            }
           }
         } else if (act.type === 'hue' && sprite) {
           sprite.hue = (sprite.hue + (act.deg || 30)) % 360;
