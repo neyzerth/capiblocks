@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="keywords" content="capiBlocks blockly coding robotics spanish iot">
+  <meta name="description" content="capiBlocks: IDE de bloques para IoT y robótica, en español, que funciona sin conexión.">
+  <title>capiBlocks — IDE de bloques para IoT</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <section class="ant-layout gui-layout">
+    <!-- Top Privacy Banner -->
+    <div class="privacy-license-bar" id="privacyBanner" role="region" aria-label="Privacy notice">
+      <div class="privacy-text" data-t="privacyText">To provide better services and personalized experiences, we may collect and analyze your usage data. Please review our privacy policy and select 'Agree'.</div>
+      <div class="privacy-btn-wrapper">
+        <button type="button" class="privacy-btn privacy-btn-policy" id="privacyPolicyBtn" data-t="privacyPolicy">Privacy Policy</button>
+        <button type="button" class="privacy-btn privacy-btn-agree" id="agreeBtn" data-t="agree">Agree</button>
+      </div>
+    </div>
+
+    <!-- Main Blue Header -->
+    <header class="ant-layout-header gui-header" id="appHeader">
+      <ul class="header-menu left-menu" id="leftMenu" role="menu">
+        <li class="menu-item menu-item-logo" role="menuitem" aria-label="capiBlocks home">
+          <span class="brand-wordmark">
+            <span class="brand-makeblock">capi</span>
+            <span class="brand-mblock">Blocks</span>
+          </span>
+        </li>
+
+        <!-- Language Selector (Globe) -->
+        <li class="menu-item has-submenu menu-item-lang" id="langMenuItem" role="none">
+          <button type="button" class="menu-trigger" id="langTrigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">
+            <svg class="icon icon-globe" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              <circle cx="10" cy="10" r="7.5"/>
+              <ellipse cx="10" cy="10" rx="3.4" ry="7.5"/>
+              <line x1="2.8" y1="7.5" x2="17.2" y2="7.5"/>
+              <line x1="2.8" y1="12.5" x2="17.2" y2="12.5"/>
+            </svg>
+          </button>
+          <ul class="submenu lang-submenu" id="langSubmenu" role="menu">
+            <li class="submenu-item" role="menuitemradio" data-lang-choice="en" aria-checked="true">
+              <span class="lang-label">English</span>
+              <span class="lang-check" aria-hidden="true">✓</span>
+            </li>
+            <li class="submenu-item" role="menuitemradio" data-lang-choice="es" aria-checked="false">
+              <span class="lang-label">Español</span>
+              <span class="lang-check" aria-hidden="true">✓</span>
+            </li>
+            <li class="submenu-item" role="menuitemradio" data-lang-choice="zh" aria-checked="false">
+              <span class="lang-label">简体中文</span>
+              <span class="lang-check" aria-hidden="true">✓</span>
+            </li>
+          </ul>
+        </li>
+
+        <!-- File Menu -->
+        <li class="menu-item has-submenu menu-item-file" id="fileMenuItem" role="none">
+          <button type="button" class="menu-trigger" id="fileTrigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">
+            <svg class="icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+              <path d="M1.5 3A1.5 1.5 0 0 1 3 1.5h3.2c.4 0 .78.16 1.06.44L8.32 3H13a1.5 1.5 0 0 1 1.5 1.5v7A1.5 1.5 0 0 1 13 13H3a1.5 1.5 0 0 1-1.5-1.5V3z"/>
+            </svg>
+            <span data-t="file">File</span>
+          </button>
+          <ul class="submenu file-submenu" id="fileSubmenu" role="menu">
+            <li class="submenu-item" role="menuitem" data-file-action="new" data-t="fileNew">New</li>
+            <li class="submenu-item" role="menuitem" data-file-action="open" data-t="fileOpen">Open from your computer</li>
+            <li class="submenu-item" role="menuitem" data-file-action="save-local" data-t="fileSaveLocal">Save to your computer</li>
+            <li class="submenu-divider" role="separator"></li>
+            <li class="submenu-item" role="menuitem" data-file-action="export-py" data-t="fileExportPython">Export Python (.py)</li>
+          </ul>
+        </li>
+
+        <!-- Project Name Input -->
+        <li class="menu-item menu-item-project" role="none">
+          <input type="text" class="ant-input input-filename" id="projectInput" value="Untitled" data-t-placeholder="projectNamePlaceholder" data-t-aria="projectNamePlaceholder">
+        </li>
+
+        <!-- Save Action -->
+        <li class="menu-item menu-item-save" role="none">
+          <button type="button" class="menu-trigger" id="saveBtn" role="menuitem">
+            <svg class="icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+              <path d="M2 2.5A1.5 1.5 0 0 1 3.5 1h7.38c.4 0 .78.16 1.06.44l1.62 1.62c.28.28.44.66.44 1.06V13.5A1.5 1.5 0 0 1 12.5 15h-9A1.5 1.5 0 0 1 2 13.5v-11zM4.5 2.5v3.5h5.5V2.5H4.5zm0 7v4h7v-4h-7z"/>
+            </svg>
+            <span data-t="save">Save</span>
+          </button>
+        </li>
+
+        <!-- Responsive Overflow Ellipsis Menu -->
+        <li class="menu-item has-submenu menu-item-ellipsis" id="ellipsisMenuItem" role="none">
+          <button type="button" class="menu-trigger" id="ellipsisTrigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">
+            <svg class="icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+              <circle cx="3" cy="8" r="1.4"/>
+              <circle cx="8" cy="8" r="1.4"/>
+              <circle cx="13" cy="8" r="1.4"/>
+            </svg>
+          </button>
+          <ul class="submenu ellipsis-submenu" id="ellipsisSubmenu" role="menu">
+            <li class="submenu-group-label" data-t="languageMenuTitle">Language</li>
+            <li class="submenu-lang-row" role="none">
+              <button type="button" class="lang-pill" data-lang-choice="en">English</button>
+              <button type="button" class="lang-pill" data-lang-choice="es">Español</button>
+              <button type="button" class="lang-pill" data-lang-choice="zh">中文</button>
+            </li>
+            <li class="submenu-divider" role="separator"></li>
+            <li class="submenu-input-row" role="none">
+              <input type="text" class="submenu-filename-input" id="projectInputMobile" value="Untitled" data-t-placeholder="projectNamePlaceholder" data-t-aria="projectNamePlaceholder">
+            </li>
+            <li class="submenu-item" role="menuitem" data-file-action="new" data-t="fileNew">New</li>
+            <li class="submenu-item" role="menuitem" data-file-action="open" data-t="fileOpen">Open from your computer</li>
+            <li class="submenu-item" role="menuitem" data-file-action="save-local" data-t="fileSaveLocal">Save to your computer</li>
+            <li class="submenu-item" role="menuitem" data-file-action="export-py" data-t="fileExportPython">Export Python (.py)</li>
+            <li class="submenu-divider phone-only" role="separator"></li>
+            <li class="submenu-item phone-only" role="menuitem" data-modal-open="feedbackModal" data-t="feedback">Feedback</li>
+            <li class="submenu-item phone-only" role="menuitem" data-modal-open="settingsModal" data-t="setting">Setting</li>
+          </ul>
+        </li>
+      </ul>
+
+      <ul class="header-menu right-menu" id="rightMenu" role="menu">
+        <li class="menu-item" id="guide" role="none">
+          <button type="button" class="menu-trigger" role="menuitem" data-modal-open="guideModal">
+            <svg class="icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+              <path d="M3 1.5h10A1.5 1.5 0 0 1 14.5 3v10a1.5 1.5 0 0 1-1.5 1.5H3A1.5 1.5 0 0 1 1.5 13V3A1.5 1.5 0 0 1 3 1.5zm1.5 3v1.5h7V4.5h-7zm0 3v1.5h7V7.5h-7zm0 3V12h4.5v-1.5H4.5z"/>
+            </svg>
+            <span data-t="userGuide">User Guide</span>
+          </button>
+        </li>
+        <li class="menu-item" id="demos" role="none">
+          <button type="button" class="menu-trigger" role="menuitem" data-modal-open="examplesModal">
+            <svg class="icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+              <path d="M1.5 3.2C3.3 2.5 5.6 2.6 7.5 3.8v9.4c-1.8-1-4-1.2-6-.5V3.2zm13 0c-1.8-.7-4.1-.6-6 .6v9.4c1.8-1 4-1.2 6-.5V3.2z"/>
+            </svg>
+            <span data-t="examplePrograms">Example Programs</span>
+          </button>
+        </li>
+        <li class="menu-item menu-item-feedback" id="feedback" role="none">
+          <button type="button" class="menu-trigger" role="menuitem" data-modal-open="feedbackModal">
+            <svg class="icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+              <path d="M2 2.5A1.5 1.5 0 0 1 3.5 1h9A1.5 1.5 0 0 1 14 2.5v7A1.5 1.5 0 0 1 12.5 11H6l-3 3v-3H3.5A1.5 1.5 0 0 1 2 9.5v-7zM5 5.2a.8.8 0 1 0 0 1.6.8.8 0 0 0 0-1.6zm3 0a.8.8 0 1 0 0 1.6.8.8 0 0 0 0-1.6zm3 0a.8.8 0 1 0 0 1.6.8.8 0 0 0 0-1.6z"/>
+            </svg>
+            <span data-t="feedback">Feedback</span>
+          </button>
+        </li>
+        <li class="menu-item menu-item-setting" id="setting" role="none">
+          <button type="button" class="menu-trigger" role="menuitem" data-modal-open="settingsModal">
+            <svg class="icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+              <path d="M6.8 1.2h2.4l.4 1.7c.4.14.8.32 1.16.54l1.54-.84 1.7 1.7-.84 1.54c.22.36.4.76.54 1.16l1.7.4v2.4l-1.7.4c-.14.4-.32.8-.54 1.16l.84 1.54-1.7 1.7-1.54-.84c-.36.22-.76.4-1.16.54l-.4 1.7H6.8l-.4-1.7a5.4 5.4 0 0 1-1.16-.54l-1.54.84-1.7-1.7.84-1.54A5.4 5.4 0 0 1 2.3 9.2l-1.7-.4V6.4l1.7-.4c.14-.4.32-.8.54-1.16L2 3.3 3.7 1.6l1.54.84c.36-.22.76-.4 1.16-.54l.4-1.7zM8 5.6a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8z"/>
+            </svg>
+            <span data-t="setting">Setting</span>
+          </button>
+        </li>
+        <li class="menu-item menu-item-user" id="user" role="none">
+          <button type="button" class="avatar-btn" role="menuitem" data-modal-open="settingsModal" data-t-aria="account" data-t-title="account">
+            <svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true">
+              <circle cx="16" cy="16" r="16" fill="#8a5a3b"/>
+              <circle cx="10" cy="9.5" r="3.2" fill="#a87e62"/>
+              <circle cx="22" cy="9.5" r="3.2" fill="#a87e62"/>
+              <circle cx="16" cy="17" r="9.6" fill="#e0b389"/>
+              <rect x="12.2" y="17" width="7.6" height="6.6" rx="3.3" fill="#a67c60"/>
+              <path d="M11 13.8 h3 M18 13.8 h3" stroke="#4a2415" stroke-width="1.7" stroke-linecap="round"/>
+              <circle cx="9.6" cy="19" r="1.7" fill="#f3a08a"/>
+              <circle cx="22.4" cy="19" r="1.7" fill="#f3a08a"/>
+            </svg>
+          </button>
+        </li>
+      </ul>
+    </header>
+
+    <!-- Main IDE Workspace -->
+    <section class="ant-layout gui-layout-main" id="layoutMain">
+      <!-- Left Sidebar: Stage + Devices/Sprites/Background Panel -->
+      <aside class="gui-layout-side" id="layoutSide">
+        <section class="side-layout-inner">
+        <header class="gui-stage">
+          <section class="stage-panel-layout">
+          <main class="stage-panel-content">
+          <section class="stage-canvas-box" id="stageCanvasBox">
+            <div class="stage-grid-overlay" id="stageGridOverlay" aria-hidden="true"></div>
+            <div class="stage-led-strip" id="stageLedStrip" hidden>
+              <span class="led-dot"></span><span class="led-dot"></span><span class="led-dot"></span><span class="led-dot"></span><span class="led-dot"></span>
+            </div>
+            <div class="stage-speech-bubble" id="stageSpeechBubble" hidden></div>
+            <div class="stage-sprite-wrap" id="stageSprite">
+              <!-- Mascota capibara (SVG) -->
+              <svg viewBox="0 0 100 120" width="66" height="80" role="img" aria-label="Mascota capibara">
+                <ellipse cx="50" cy="112" rx="31" ry="4.5" fill="#e6e6e6"/>
+                <!-- Orejas -->
+                <circle cx="33" cy="27" r="9" fill="#a87e62" stroke="#4a2415" stroke-width="2.2"/>
+                <circle cx="67" cy="27" r="9" fill="#a87e62" stroke="#4a2415" stroke-width="2.2"/>
+                <circle cx="33" cy="27" r="3.6" fill="#94674e"/>
+                <circle cx="67" cy="27" r="3.6" fill="#94674e"/>
+                <!-- Cuerpo -->
+                <path d="M50 17 C64 17 74 26 76 40 C78 55 81 72 81 86 C81 97 69 103 50 103 C31 103 19 97 19 86 C19 72 22 55 24 40 C26 26 36 17 50 17 Z" fill="#e0b389" stroke="#4a2415" stroke-width="2.4" stroke-linejoin="round"/>
+                <!-- Patas traseras -->
+                <path d="M28 96 q7 -3 12 0 q2 5 -5 6 q-9 0 -7 -6 Z" fill="#8e6650" stroke="#4a2415" stroke-width="1.8"/>
+                <path d="M72 96 q-7 -3 -12 0 q-2 5 5 6 q9 0 7 -6 Z" fill="#8e6650" stroke="#4a2415" stroke-width="1.8"/>
+                <!-- Patitas delanteras -->
+                <ellipse cx="30" cy="82" rx="5.5" ry="7.5" fill="#9a7560" stroke="#4a2415" stroke-width="1.8" transform="rotate(12 30 82)"/>
+                <ellipse cx="70" cy="82" rx="5.5" ry="7.5" fill="#9a7560" stroke="#4a2415" stroke-width="1.8" transform="rotate(-12 70 82)"/>
+                <!-- Hocico -->
+                <rect x="35" y="47" width="30" height="25" rx="12.5" fill="#a67c60" stroke="#4a2415" stroke-width="2"/>
+                <!-- Mejillas -->
+                <circle cx="27.5" cy="60" r="5.5" fill="#f3a08a"/>
+                <circle cx="72.5" cy="60" r="5.5" fill="#f3a08a"/>
+                <!-- Ojos somnolientos -->
+                <path d="M34 45 h8" stroke="#4a2415" stroke-width="3" stroke-linecap="round" fill="none"/>
+                <path d="M58 45 h8" stroke="#4a2415" stroke-width="3" stroke-linecap="round" fill="none"/>
+                <!-- Nariz y boca -->
+                <path d="M45 53 q2 -1.6 4 0" fill="none" stroke="#4a2415" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M51 53 q2 -1.6 4 0" fill="none" stroke="#4a2415" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M50 56 v7" stroke="#4a2415" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M50 63 q-4 3 -6 2 M50 63 q4 3 6 2" fill="none" stroke="#4a2415" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="stage-screen-readout" id="stageScreenReadout" hidden></div>
+          </section>
+          </main>
+
+          <footer class="stage-controls">
+            <div class="stage-controls-left">
+              <button type="button" class="ctrl-btn" id="fullscreenBtn" data-t-aria="fullscreen" data-t-title="fullscreen">
+                <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                  <path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/>
+                </svg>
+              </button>
+              <div class="stage-size-group" role="group" aria-label="Stage size">
+                <button type="button" class="ctrl-btn size-btn" id="smallStageBtn" data-t-aria="smallStage" data-t-title="smallStage">
+                  <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                    <rect x="2" y="3" width="5" height="5" rx="1"/>
+                    <rect x="9" y="3" width="5" height="10" rx="1" opacity="0.5"/>
+                    <rect x="2" y="10" width="5" height="3" rx="1" opacity="0.5"/>
+                  </svg>
+                </button>
+                <button type="button" class="ctrl-btn size-btn active" id="normalStageBtn" data-t-aria="defaultStage" data-t-title="defaultStage">
+                  <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                    <rect x="2" y="3" width="6" height="10" rx="1"/>
+                    <rect x="10" y="3" width="4" height="10" rx="1" opacity="0.55"/>
+                  </svg>
+                </button>
+              </div>
+              <button type="button" class="ctrl-btn" id="gridToggleBtn" data-t-aria="toggleGrid" data-t-title="toggleGrid">
+                <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+                  <rect x="2" y="2" width="3" height="3" rx="0.6"/><rect x="6.5" y="2" width="3" height="3" rx="0.6"/><rect x="11" y="2" width="3" height="3" rx="0.6"/>
+                  <rect x="2" y="6.5" width="3" height="3" rx="0.6"/><rect x="6.5" y="6.5" width="3" height="3" rx="0.6"/><rect x="11" y="6.5" width="3" height="3" rx="0.6"/>
+                  <rect x="2" y="11" width="3" height="3" rx="0.6"/><rect x="6.5" y="11" width="3" height="3" rx="0.6"/><rect x="11" y="11" width="3" height="3" rx="0.6"/>
+                </svg>
+              </button>
+            </div>
+            <div class="stage-controls-right">
+              <button type="button" class="circle-btn btn-stopall" id="stopBtn" data-t-aria="stopAll" data-t-title="stopAll">
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                  <rect x="3" y="3" width="10" height="10" rx="2"/>
+                </svg>
+              </button>
+              <button type="button" class="circle-btn btn-greenflag" id="runBtn" data-t-aria="greenFlag" data-t-title="greenFlag">
+                <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+                  <path d="M3.5 2v12h1.4V9.5c1.6-.7 3.1.8 5.2.5 1-.1 1.8-.5 2.4-.9V3.2c-.8.5-1.7.8-2.6.8-1.9 0-3.2-1.4-5-.7V2H3.5z"/>
+                </svg>
+              </button>
+            </div>
+          </footer>
+          </section>
+        </header>
+
+        <!-- Target Tabs Panel (Devices / Sprites / Background) -->
+        <main class="gui-target-panel">
+          <section class="targets-container">
+          <header class="targets-header" role="tablist">
+            <button type="button" class="target-tab target-selected" id="tabDevices" role="tab" aria-selected="true" data-target-tab="devices" data-t="devices">Devices</button>
+            <button type="button" class="target-tab" id="tabSprites" role="tab" aria-selected="false" data-target-tab="sprites" data-t="sprites">Sprites</button>
+            <button type="button" class="target-tab" id="tabBackground" role="tab" aria-selected="false" data-target-tab="background" data-t="background">Background</button>
+          </header>
+
+          <!-- Devices Tab Pane -->
+          <main class="targets-pane pane-devices active" id="paneDevices" role="tabpanel">
+            <section class="device-list-col" id="deviceListCol">
+              <div class="mtarget-card selected" data-device="cyberpi">
+                <button type="button" class="mtarget-delete-btn" aria-label="Remove CyberPi">×</button>
+                <div class="mtarget-thumb">
+                  <svg viewBox="0 0 64 42" width="46" height="30" role="img" aria-label="CyberPi microcontroller">
+                    <rect x="4" y="4" width="56" height="34" rx="5" fill="#3a4552" stroke="#1d242b" stroke-width="1.5"/>
+                    <rect x="22" y="10" width="20" height="16" rx="2" fill="#111922"/>
+                    <rect x="25" y="13" width="14" height="10" rx="1" fill="#8a5a3b" opacity="0.75"/>
+                    <circle cx="13" cy="21" r="4.5" fill="#1d242b" stroke="#6d7c8d" stroke-width="1"/>
+                    <circle cx="51" cy="16" r="2.6" fill="#ff695a"/>
+                    <circle cx="51" cy="25" r="2.6" fill="#25cc76"/>
+                    <rect x="19" y="30" width="26" height="3" rx="1.5" fill="#63b3ed"/>
+                  </svg>
+                </div>
+                <p class="mtarget-name" data-t="cyberpi">CyberPi</p>
+              </div>
+
+              <button type="button" class="mtarget-add-card" id="addDeviceBtn" data-modal-open="addDeviceModal">
+                <span class="add-circle" aria-hidden="true">+</span>
+                <span class="mtarget-name" data-t="add">Add</span>
+              </button>
+            </section>
+
+            <aside class="device-info-col">
+              <button type="button" class="switch-mlink-btn" id="switchMlinkBtn">
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                  <path d="M2 5.5h11m-3-3l3 3-3 3M14 10.5H3m3-3l-3 3 3 3"/>
+                </svg>
+                <span id="switchMlinkText" data-t="switchToMlink">Switch to mLink</span>
+              </button>
+
+              <div class="info-section-label" data-t="connection">Connection</div>
+              <div class="connect-grid">
+                <button type="button" class="web-link-btn" disabled title="Bluetooth">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path d="M7 7l10 10-5 4V3l5 4L7 17"/>
+                  </svg>
+                  <span class="connect-text" data-t="bluetooth">Bluetooth</span>
+                </button>
+                <button type="button" class="web-link-btn serial-btn" id="serialConnectBtn">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <rect x="8" y="4" width="8" height="10" rx="2" transform="rotate(45 12 9)"/>
+                    <path d="M6 18l3-3M15 9l3-3"/>
+                  </svg>
+                  <span class="connect-text" id="serialConnectLabel" data-t="serial">Serial</span>
+                </button>
+              </div>
+
+              <div class="info-section-label mode-label">
+                <span data-t="modeSwitch">Mode Switch</span>
+                <span class="tip-circle" data-t-title="modeSwitchTip" aria-hidden="true">?</span>
+              </div>
+              <div class="device-mode-switcher" role="group" aria-label="Mode switch">
+                <button type="button" class="mode-opt" id="modeUploadBtn" data-mode="upload" data-t="upload">Upload</button>
+                <button type="button" class="mode-opt active" id="modeLiveBtn" data-mode="live" data-t="live">Live</button>
+              </div>
+
+              <div class="device-status-area">
+                <div class="unconnected-graphic" id="deviceGraphic">
+                  <!-- Original vector illustration matching unconnected mascot style -->
+                  <svg viewBox="0 0 120 100" width="106" height="88" role="img" aria-label="Device connection status">
+                    <ellipse cx="64" cy="90" rx="32" ry="6" fill="#efe3d6"/>
+                    <!-- Broken link bubble -->
+                    <circle cx="30" cy="40" r="18" fill="#ffb87a"/>
+                    <path d="M44 50l6 5-9-1z" fill="#ffb87a"/>
+                    <path d="M23 44l4-4M33 34l4-4" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/>
+                    <rect x="21" y="38" width="9" height="5" rx="2.5" transform="rotate(-45 25 40)" fill="none" stroke="#ffffff" stroke-width="2"/>
+                    <rect x="30" y="31" width="9" height="5" rx="2.5" transform="rotate(-45 34 33)" fill="none" stroke="#ffffff" stroke-width="2"/>
+                    <!-- Capibara esperando conexión (misma mascota del escenario) -->
+                    <g transform="translate(38 10) scale(0.64)">
+                      <ellipse cx="50" cy="112" rx="31" ry="4.5" fill="#e6e6e6"/>
+                      <circle cx="33" cy="27" r="9" fill="#a87e62" stroke="#4a2415" stroke-width="2.2"/>
+                      <circle cx="67" cy="27" r="9" fill="#a87e62" stroke="#4a2415" stroke-width="2.2"/>
+                      <circle cx="33" cy="27" r="3.6" fill="#94674e"/>
+                      <circle cx="67" cy="27" r="3.6" fill="#94674e"/>
+                      <path d="M50 17 C64 17 74 26 76 40 C78 55 81 72 81 86 C81 97 69 103 50 103 C31 103 19 97 19 86 C19 72 22 55 24 40 C26 26 36 17 50 17 Z" fill="#e0b389" stroke="#4a2415" stroke-width="2.4" stroke-linejoin="round"/>
+                      <path d="M28 96 q7 -3 12 0 q2 5 -5 6 q-9 0 -7 -6 Z" fill="#8e6650" stroke="#4a2415" stroke-width="1.8"/>
+                      <path d="M72 96 q-7 -3 -12 0 q-2 5 5 6 q9 0 7 -6 Z" fill="#8e6650" stroke="#4a2415" stroke-width="1.8"/>
+                      <ellipse cx="30" cy="82" rx="5.5" ry="7.5" fill="#9a7560" stroke="#4a2415" stroke-width="1.8" transform="rotate(12 30 82)"/>
+                      <ellipse cx="70" cy="82" rx="5.5" ry="7.5" fill="#9a7560" stroke="#4a2415" stroke-width="1.8" transform="rotate(-12 70 82)"/>
+                      <rect x="35" y="47" width="30" height="25" rx="12.5" fill="#a67c60" stroke="#4a2415" stroke-width="2"/>
+                      <circle cx="27.5" cy="60" r="5.5" fill="#f3a08a"/>
+                      <circle cx="72.5" cy="60" r="5.5" fill="#f3a08a"/>
+                      <path d="M34 45 h8" stroke="#4a2415" stroke-width="3" stroke-linecap="round" fill="none"/>
+                      <path d="M58 45 h8" stroke="#4a2415" stroke-width="3" stroke-linecap="round" fill="none"/>
+                      <path d="M45 53 q2 -1.6 4 0" fill="none" stroke="#4a2415" stroke-width="1.8" stroke-linecap="round"/>
+                      <path d="M51 53 q2 -1.6 4 0" fill="none" stroke="#4a2415" stroke-width="1.8" stroke-linecap="round"/>
+                      <path d="M50 56 v7" stroke="#4a2415" stroke-width="1.8" stroke-linecap="round"/>
+                      <path d="M50 63 q-4 3 -6 2 M50 63 q4 3 6 2" fill="none" stroke="#4a2415" stroke-width="1.8" stroke-linecap="round"/>
+                    </g>
+                    <!-- Cable y enchufe -->
+                    <path d="M57 63 q-6 2 -8 5" fill="none" stroke="#4a2415" stroke-width="2" stroke-linecap="round"/>
+                    <rect x="40" y="65" width="10" height="7" rx="2" fill="#c9a27e" stroke="#4a2415" stroke-width="1.5"/>
+                    <path d="M42 65 v-3 M47 65 v-3" stroke="#4a2415" stroke-width="1.6" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <p class="device-status-text" id="deviceStatusText" data-t="connectYourDevice">Connect your device</p>
+                <button type="button" class="device-help-link" id="deviceHelpBtn" data-modal-open="deviceHelpModal" data-t="howToUseDevice">How to use device?</button>
+              </div>
+            </aside>
+          </main>
+
+          <!-- Sprites Tab Pane -->
+          <div class="targets-pane pane-sprites" id="paneSprites" role="tabpanel" hidden>
+            <div class="sprite-props">
+              <div class="sprite-prop-row">
+                <label for="spriteNameInput" data-t="spriteName">Sprite</label>
+                <input type="text" id="spriteNameInput" value="Capi" class="prop-input prop-input-wide">
+              </div>
+              <div class="sprite-prop-grid">
+                <label>X <input type="number" id="spriteXInput" value="0" class="prop-input"></label>
+                <label>Y <input type="number" id="spriteYInput" value="0" class="prop-input"></label>
+                <label><span data-t="size">Size</span> <input type="number" id="spriteSizeInput" value="100" min="20" max="200" class="prop-input"></label>
+                <label><span data-t="direction">Direction</span> <input type="number" id="spriteDirInput" value="90" class="prop-input"></label>
+              </div>
+              <div class="sprite-actions-row">
+                <label class="toggle-inline">
+                  <input type="checkbox" id="spriteVisibleCheck" checked>
+                  <span data-t="show">Show</span>
+                </label>
+                <button type="button" class="mini-pill-btn" id="costumesBtn" data-t="costumes">Costumes</button>
+                <button type="button" class="mini-pill-btn" id="soundsBtn" data-t="sounds">Sounds</button>
+              </div>
+            </div>
+            <div class="sprite-cards-row">
+              <div class="mtarget-card selected">
+                <div class="mtarget-thumb">
+                  <svg viewBox="0 0 60 60" width="38" height="38" aria-hidden="true">
+                    <circle cx="18" cy="18" r="6" fill="#1d242b"/><circle cx="42" cy="18" r="6" fill="#1d242b"/>
+                    <circle cx="30" cy="32" r="15" fill="#fff" stroke="#1d242b" stroke-width="2.5"/>
+                    <circle cx="24" cy="31" r="4" fill="#1d242b"/><circle cx="36" cy="31" r="4" fill="#1d242b"/>
+                    <circle cx="24.5" cy="30" r="1.4" fill="#fff"/><circle cx="35.5" cy="30" r="1.4" fill="#fff"/>
+                    <ellipse cx="30" cy="36" rx="2.5" ry="1.6" fill="#1d242b"/>
+                  </svg>
+                </div>
+                <p class="mtarget-name" data-t="panda">Capi</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Background Tab Pane -->
+          <div class="targets-pane pane-background" id="paneBackground" role="tabpanel" hidden>
+            <div class="bg-summary">
+              <div class="bg-preview-box" id="bgPreviewBox"></div>
+              <p class="bg-count-text" data-t="numberOfCostumes">Number of costumes: 1</p>
+              <div class="bg-presets">
+                <button type="button" class="bg-preset-btn active" data-backdrop="blank" data-t="backdropBlank">White Canvas</button>
+                <button type="button" class="bg-preset-btn" data-backdrop="grid" data-t="backdropGrid">Coordinate Grid</button>
+                <button type="button" class="bg-preset-btn" data-backdrop="sky" data-t="backdropSky">Blue Sky</button>
+                <button type="button" class="bg-preset-btn" data-backdrop="night" data-t="backdropNight">Starry Night</button>
+              </div>
+            </div>
+          </div>
+          </section>
+        </main>
+        </section>
+      </aside>
+
+      <!-- Right Editor Area -->
+      <main class="gui-editor" id="guiEditor">
+        <section class="editor-panel">
+          <!-- Blockly Category Toolbox -->
+          <div class="blocklyToolboxDiv" id="toolboxDiv" role="navigation" aria-label="Block categories">
+            <button type="button" class="toolbox-search-btn" id="toolboxSearchBtn">
+              <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="8.5" cy="8.5" r="5.5"/>
+                <path d="M13 13l4 4" stroke-linecap="round"/>
+              </svg>
+              <span data-t="search">Search</span>
+            </button>
+
+            <div class="toolbox-categories" id="toolboxCategories"></div>
+
+            <div class="blocks-extension">
+              <button type="button" class="blocks-extension-btn" id="extensionBtn" data-modal-open="extensionModal">
+                <svg class="ext-icon" viewBox="0 0 28 28" width="26" height="26" aria-hidden="true">
+                  <rect x="2" y="2" width="24" height="24" rx="5" fill="#8a5a3b"/>
+                  <path d="M14 8v12M8 14h12" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/>
+                </svg>
+                <p data-t="extension">extension</p>
+              </button>
+            </div>
+          </div>
+
+          <!-- Slide-out Block Flyout (closed on initial load to match screenshot) -->
+          <div class="blockly-flyout" id="blocklyFlyout" hidden>
+            <div class="flyout-header">
+              <span class="flyout-title" id="flyoutTitle">Audio</span>
+              <button type="button" class="flyout-close" id="flyoutCloseBtn" aria-label="Close">×</button>
+            </div>
+            <div class="flyout-search-wrap" id="flyoutSearchWrap" hidden>
+              <input type="search" id="blockSearchInput" class="flyout-search-input" data-t-placeholder="searchPlaceholder" data-t-aria="searchPlaceholder">
+            </div>
+            <div class="flyout-blocks" id="flyoutBlocks"></div>
+          </div>
+
+          <!-- Dotted Workspace Canvas + Mode Switcher + Floating Controls -->
+          <div class="workspace-surface" id="workspaceSurface">
+            <!-- Skewed Blocks / Python Mode Switcher -->
+            <section class="editor-mode-switcher" role="tablist" aria-label="Editor mode">
+              <div class="mode-switcher-group">
+                <button type="button" class="mode-switch-tab active" id="tabModeBlocks" role="tab" aria-selected="true" data-editor-mode="blocks">
+                  <span data-t="blocksTab">Blocks</span>
+                </button>
+                <button type="button" class="mode-switch-tab" id="tabModePython" role="tab" aria-selected="false" data-editor-mode="python">
+                  <span data-t="pythonTab">Python</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- Interactive Block Canvas -->
+            <div class="blocks-canvas" id="blocksCanvas">
+              <div class="workspace-blocks-layer" id="workspaceBlocksLayer"></div>
+              <!-- Real Blockly workspace (engine: google/blockly, Apache-2.0) -->
+              <div id="blocklyDiv" class="blockly-div" aria-label="Block workspace"></div>
+
+              <!-- Bottom-Left Watermark Info Panel -->
+              <div class="blocklyInfoPanel" aria-live="polite">
+                <div class="info-panel-device-thumb">
+                  <svg viewBox="0 0 64 42" width="54" height="35" aria-hidden="true">
+                    <rect x="4" y="4" width="56" height="34" rx="5" fill="#4b5563"/>
+                    <rect x="22" y="10" width="20" height="16" rx="2" fill="#1f2937"/>
+                    <rect x="25" y="13" width="14" height="10" rx="1" fill="#9ca3af"/>
+                    <circle cx="13" cy="21" r="4.5" fill="#374151"/>
+                    <circle cx="51" cy="16" r="2.6" fill="#9ca3af"/>
+                    <circle cx="51" cy="25" r="2.6" fill="#9ca3af"/>
+                  </svg>
+                </div>
+                <div class="info-panel-footer">
+                  <span id="infoTargetName" data-t="cyberpi">CyberPi</span>
+                  <span class="info-panel-divider" aria-hidden="true"></span>
+                  <span class="info-panel-count">
+                    <span data-t="blockNumberLabel">Block Number:</span>
+                    <span id="blockCountNum">0</span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Fake subtle vertical scrollbar matching original screenshot -->
+              <div class="workspace-scrollbar" aria-hidden="true">
+                <div class="workspace-scrollbar-thumb"></div>
+              </div>
+
+              <!-- Bottom-Right Floating Action Controls -->
+              <div class="workspace-undo-group">
+                <button type="button" class="float-btn float-btn-muted" id="undoBtn" disabled data-t-aria="undo" data-t-title="undo">
+                  <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                    <path d="M4.5 6.5H10a3.5 3.5 0 1 1 0 7H7.5M4.5 6.5L7 4M4.5 6.5L7 9" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                <button type="button" class="float-btn float-btn-muted" id="redoBtn" disabled data-t-aria="redo" data-t-title="redo">
+                  <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                    <path d="M11.5 6.5H6a3.5 3.5 0 1 0 0 7h2.5M11.5 6.5L9 4M11.5 6.5L9 9" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="workspace-zoom-stack">
+                <button type="button" class="float-btn float-btn-orange" id="codePreviewBtn" data-t-aria="codePreviewTitle" data-t-title="codePreviewTitle">
+                  <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                    <path d="M5.5 5L3 8l2.5 3M8 5h5M8 8h5M8 11h5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                <button type="button" class="float-btn float-btn-blue" id="zoomInBtn" data-t-aria="zoomIn" data-t-title="zoomIn">
+                  <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                    <circle cx="7" cy="7" r="4.5"/>
+                    <path d="M10.5 10.5L14 14M7 5v4M5 7h4" stroke-linecap="round"/>
+                  </svg>
+                </button>
+                <button type="button" class="float-btn float-btn-blue" id="zoomOutBtn" data-t-aria="zoomOut" data-t-title="zoomOut">
+                  <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                    <circle cx="7" cy="7" r="4.5"/>
+                    <path d="M10.5 10.5L14 14M5 7h4" stroke-linecap="round"/>
+                  </svg>
+                </button>
+                <button type="button" class="float-btn float-btn-blue" id="zoomResetBtn" data-t-aria="zoomReset" data-t-title="zoomReset">
+                  <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path d="M4.5 6.5h7M4.5 9.5h7" stroke-linecap="round"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Python Full Editor Pane (shown when Python tab selected) -->
+            <div class="python-editor-pane" id="pythonEditorPane" hidden>
+              <div class="python-toolbar">
+                <span class="python-file-label">main.py</span>
+                <div class="python-toolbar-actions">
+                  <button type="button" class="mini-pill-btn" id="copyPythonBtn" data-t="copyCode">Copy</button>
+                  <button type="button" class="mini-pill-btn primary" id="runPythonBtn" data-t="runCode">Run</button>
+                </div>
+              </div>
+              <textarea id="pythonTextarea" class="python-textarea" spellcheck="false" aria-label="Python code editor"></textarea>
+            </div>
+
+            <!-- Slide-in Python Preview Drawer (toggled by orange button) -->
+            <aside class="code-preview-drawer" id="codePreviewDrawer" hidden>
+              <div class="code-preview-header">
+                <span data-t="codePreviewTitle">Preview: Python</span>
+                <div class="code-preview-actions">
+                  <button type="button" class="mini-pill-btn" id="copyPreviewBtn" data-t="copyCode">Copy</button>
+                  <button type="button" class="flyout-close" id="closePreviewBtn" aria-label="Close">×</button>
+                </div>
+              </div>
+              <pre class="code-preview-pre" id="codePreviewPre"></pre>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </section>
+
+    <!-- Bottom Compatibility Tip Bar -->
+    <section class="browser-compatible-tip" id="compatTipBar" role="status">
+      <span class="compat-message">
+        <span data-t="compatPrefix">You may encounter compatibility problems in this environment, and some functions may fail to work properly. Click "</span><a href="javascript:void(0)" id="environmentPop" class="compat-link" data-modal-open="envModal" data-t="checkEnvironment">Check environment</a><span data-t="compatSuffix">" to learn more.</span>
+      </span>
+      <button type="button" class="btn-close" id="compatCloseBtn" data-t-aria="close">
+        <svg viewBox="0 0 18 18" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <circle cx="9" cy="9" r="7.5"/>
+          <path d="M6.2 6.2l5.6 5.6M11.8 6.2l-5.6 5.6" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </section>
+  </section>
+
+  <!-- Toast notification -->
+  <div class="toast-banner" id="toastBanner" role="status" aria-live="polite" hidden></div>
+
+  <!-- Hidden file input for Open from computer -->
+  <input type="file" id="projectFileInput" accept=".json,.mblock" hidden>
+
+  <!-- Modals -->
+  <div class="modal-backdrop" id="privacyModal" role="dialog" aria-modal="true" hidden>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 data-t="privacyPolicy">Privacy Policy</h2>
+        <button type="button" class="modal-close" data-modal-close aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <p data-t="privacyText"></p>
+        <h3 data-t="privacySection1Title">1. Data We Collect</h3>
+        <p data-t="privacySection1Body"></p>
+        <h3 data-t="privacySection2Title">2. How Your Projects Are Stored</h3>
+        <p data-t="privacySection2Body"></p>
+        <h3 data-t="privacySection3Title">3. Your Choices</h3>
+        <p data-t="privacySection3Body"></p>
+      </div>
+      <div class="modal-footer">
+        <a href="privacy.html" class="modal-link" data-t="openFullPolicy">Open full privacy page</a>
+        <button type="button" class="modal-btn-primary" id="privacyModalAgreeBtn" data-t="agree">Agree</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="envModal" role="dialog" aria-modal="true" hidden>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 data-t="envModalTitle">Environment Compatibility Check</h2>
+        <button type="button" class="modal-close" data-modal-close aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <ul class="env-check-list" id="envCheckList"></ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="modal-btn-primary" data-modal-close data-t="close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="guideModal" role="dialog" aria-modal="true" hidden>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 data-t="guideTitle">User Guide</h2>
+        <button type="button" class="modal-close" data-modal-close aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <h3 data-t="guideStep1Title">1. Choose a Device or Sprite</h3>
+        <p data-t="guideStep1Desc"></p>
+        <h3 data-t="guideStep2Title">2. Add Blocks to Your Workspace</h3>
+        <p data-t="guideStep2Desc"></p>
+        <h3 data-t="guideStep3Title">3. Preview Python & Run</h3>
+        <p data-t="guideStep3Desc"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="modal-btn-primary" data-modal-close data-t="close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="examplesModal" role="dialog" aria-modal="true" hidden>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 data-t="examplesTitle">Example Programs</h2>
+        <button type="button" class="modal-close" data-modal-close aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="cards-grid">
+          <div class="example-card">
+            <h3 data-t="example1Name">Panda Dance & Greeting</h3>
+            <p data-t="example1Desc"></p>
+            <button type="button" class="modal-btn-primary" data-load-example="panda" data-t="loadExample">Load Example</button>
+          </div>
+          <div class="example-card">
+            <h3 data-t="example2Name">CyberPi Rainbow LEDs</h3>
+            <p data-t="example2Desc"></p>
+            <button type="button" class="modal-btn-primary" data-load-example="leds" data-t="loadExample">Load Example</button>
+          </div>
+          <div class="example-card">
+            <h3 data-t="example3Name">Interactive Counter Loop</h3>
+            <p data-t="example3Desc"></p>
+            <button type="button" class="modal-btn-primary" data-load-example="counter" data-t="loadExample">Load Example</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="feedbackModal" role="dialog" aria-modal="true" hidden>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 data-t="feedbackTitle">Send Feedback</h2>
+        <button type="button" class="modal-close" data-modal-close aria-label="Close">×</button>
+      </div>
+      <form id="feedbackForm" class="modal-body">
+        <textarea id="feedbackText" class="modal-textarea" rows="4" required data-t-placeholder="feedbackPlaceholder"></textarea>
+        <input type="email" id="feedbackEmail" class="modal-input" data-t-placeholder="feedbackEmailPlaceholder">
+        <div class="modal-footer inline-footer">
+          <button type="button" class="modal-btn-secondary" data-modal-close data-t="close">Close</button>
+          <button type="submit" class="modal-btn-primary" data-t="feedbackSubmit">Submit Feedback</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="settingsModal" role="dialog" aria-modal="true" hidden>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 data-t="settingsTitle">Settings</h2>
+        <button type="button" class="modal-close" data-modal-close aria-label="Close">×</button>
+      </div>
+      <div class="modal-body settings-body">
+        <div class="setting-row">
+          <label for="settingsLangSelect" data-t="settingsLanguage">Interface Language</label>
+          <select id="settingsLangSelect" class="modal-select">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="zh">简体中文</option>
+          </select>
+        </div>
+        <label class="setting-toggle">
+          <input type="checkbox" id="toggleGridDots" checked>
+          <span data-t="settingsGrid">Show Workspace Grid Dots</span>
+        </label>
+        <label class="setting-toggle">
+          <input type="checkbox" id="toggleCompatBar" checked>
+          <span data-t="settingsCompatBar">Show Compatibility Banner</span>
+        </label>
+        <label class="setting-toggle">
+          <input type="checkbox" id="togglePrivacyBar" checked>
+          <span data-t="settingsPrivacyBar">Show Privacy Banner</span>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="modal-btn-secondary" id="resetPrefsBtn" data-t="settingsResetStorage">Reset Local Preferences</button>
+        <button type="button" class="modal-btn-primary" data-modal-close data-t="close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="addDeviceModal" role="dialog" aria-modal="true" hidden>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 data-t="addDeviceTitle">Device Library</h2>
+        <button type="button" class="modal-close" data-modal-close aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <p data-t="addDeviceNote">Select a device to add to your workspace:</p>
+        <div class="cards-grid" id="deviceLibraryGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="extensionModal" role="dialog" aria-modal="true" hidden>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 data-t="extCenterTitle">Extension Center</h2>
+        <button type="button" class="modal-close" data-modal-close aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <p data-t="extCenterNote">Add extra block categories to your toolbox:</p>
+        <div class="cards-grid" id="extensionLibraryGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="deviceHelpModal" role="dialog" aria-modal="true" hidden>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 data-t="deviceHelpTitle">How to Use CyberPi</h2>
+        <button type="button" class="modal-close" data-modal-close aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <ol class="help-list">
+          <li data-t="deviceHelpStep1"></li>
+          <li data-t="deviceHelpStep2"></li>
+          <li data-t="deviceHelpStep3"></li>
+        </ol>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="modal-btn-primary" data-modal-close data-t="close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="locales/locales.js"></script>
+  <script src="i18n.js"></script>
+  <script src="blockly.min.js"></script>
+  <script src="blockly-app.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

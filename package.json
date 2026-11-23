@@ -1,0 +1,23 @@
+{
+  "name": "capiblocks",
+  "version": "0.1.0",
+  "description": "capiBlocks: IDE de bloques para IoT y robótica, en español y sin conexión",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "serve": "node build.mjs && node serve.mjs",
+    "check": "node build.mjs && node check.mjs"
+  },
+  "keywords": [
+    "blockly",
+    "scratch",
+    "iot",
+    "educacion",
+    "espanol",
+    "programacion-visual"
+  ]
+}

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacidad — capiBlocks</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="privacy-page">
+  <header class="ant-layout-header gui-header">
+    <ul class="header-menu left-menu" role="menu">
+      <li class="menu-item menu-item-logo" role="menuitem">
+        <a href="index.html" class="brand-wordmark brand-link">
+          <span class="brand-makeblock">capi</span>
+          <span class="brand-mblock">Blocks</span>
+        </a>
+      </li>
+    </ul>
+    <ul class="header-menu right-menu" role="menu">
+      <li class="menu-item" role="none">
+        <div class="privacy-lang-bar">
+          <button type="button" class="lang-pill" data-lang-choice="en">English</button>
+          <button type="button" class="lang-pill" data-lang-choice="es">Español</button>
+          <button type="button" class="lang-pill" data-lang-choice="zh">中文</button>
+        </div>
+      </li>
+    </ul>
+  </header>
+
+  <main class="privacy-page-main">
+    <div class="privacy-card">
+      <h1 data-t="privacyPolicy">Privacy Policy</h1>
+      <p data-t="privacyText"></p>
+      <h2 data-t="privacySection1Title">1. Data We Collect</h2>
+      <p data-t="privacySection1Body"></p>
+      <h2 data-t="privacySection2Title">2. How Your Projects Are Stored</h2>
+      <p data-t="privacySection2Body"></p>
+      <h2 data-t="privacySection3Title">3. Your Choices</h2>
+      <p data-t="privacySection3Body"></p>
+      <div class="privacy-page-actions">
+        <a href="index.html" class="modal-btn-secondary" data-t="backToEditor">Back to Editor</a>
+        <button type="button" id="agreePageBtn" class="modal-btn-primary" data-t="agree">Agree</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="locales/locales.js"></script>
+  <script src="i18n.js"></script>
+  <script>
+    document.querySelectorAll('[data-lang-choice]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (window.__I18N_SET) window.__I18N_SET(btn.getAttribute('data-lang-choice'));
+      });
+    });
+    const agreeBtn = document.getElementById('agreePageBtn');
+    if (agreeBtn) {
+      agreeBtn.addEventListener('click', () => {
+        try { localStorage.setItem('mblock.privacyAgreed', 'true'); } catch (_) {}
+        window.location.href = 'index.html';
+      });
+    }
+  </script>
+</body>
+</html>

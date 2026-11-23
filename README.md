@@ -1,0 +1,59 @@
+# capiBlocks
+
+IDE de bloques para IoT y robótica, en español y **sin conexión**. Nació como reemplazo de las
+herramientas tipo Scratch que usamos en clase (mBlock), para tener una copia propia que no dependa
+de un servicio en línea y que se pueda corregir.
+
+![capiBlocks](docs/screenshot.png)
+
+## Qué incluye
+
+- Lienzo de bloques real (Blockly, render Scratch) con arrastrar y encajar.
+- 13 categorías de bloques IoT: Audio, LED, Pantalla, Sensores, LAN, IA, IoT, Eventos, Control,
+  Operadores, Variables y bloques propios.
+- Escenario con mascota capibara, simulación de LEDs, pantalla y sonido.
+- Vista de **Python** generada desde los bloques.
+- Guardar/abrir proyectos en archivo `.json`.
+- Interfaz en **español, inglés y chino** (`?lang=es`, `?lang=en`, `?lang=zh`).
+- Todo funciona desde el disco (`file://`): cero peticiones a internet.
+
+## Probar
+
+Requiere Node 18 o superior solo para construir y servir; no hay dependencias que instalar.
+
+```bash
+node build.mjs      # genera dist/
+node serve.mjs      # abre http://localhost:8080
+```
+
+También puedes abrir `dist/index.html` con doble clic: funciona igual.
+
+```bash
+npm run check       # construye y verifica (archivos, sin URLs externas, marca, motor)
+```
+
+## Estructura
+
+```
+index.html, style.css, script.js     interfaz y lógica del IDE
+i18n.js, locales/locales.js          traducciones es / en / zh
+blockly-app.js                       puente con Blockly: bloques, Python, simulación
+vendor/blockly/                      motor Blockly (Apache-2.0) vendorizado
+build.mjs, serve.mjs, check.mjs      construir, servir, verificar
+dist/                                salida del build (no se versiona)
+```
+
+## Hoja de ruta
+
+- [ ] Workspace utilizable en teléfono (hoy se oculta en < 768 px).
+- [ ] Arrastrar bloques desde la paleta al lienzo (hoy un clic los coloca).
+- [ ] Más bloques IoT y ejemplos para clase.
+- [ ] Despliegue automático en GitHub Pages.
+
+## Licencia
+
+MIT. El motor Blockly es Apache-2.0 y se distribuye en `vendor/blockly/`; ver
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+Proyecto educativo sin relación con Makeblock ni con Scratch. "mBlock", "Scratch" y sus logotipos
+pertenecen a sus dueños.

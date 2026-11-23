@@ -1,0 +1,10 @@
+# Build
+dist/
+
+# Dependencias (el proyecto no las necesita: Blockly está vendorizado)
+node_modules/
+
+# Sistema y temporales
+.DS_Store
+*.log
+*.tmp
