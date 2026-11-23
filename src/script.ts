@@ -13,9 +13,13 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
   /* ===========================
      Data: Categories, Blocks, Devices, Extensions
      =========================== */
+  /* Categorías de dispositivo. `devices` ausente = universal; si está, la
+     categoría solo aparece con uno de esos dispositivos activo. Las categorías
+     sin `devices` se ocultan solas cuando ningún bloque aplica al dispositivo. */
   const DEVICE_CATEGORIES = [
     { id: 'audio', labelKey: 'catAudio', color: '#ab47bc', icon: 'chip' },
     { id: 'led', labelKey: 'catLed', color: '#9300d8', icon: 'chip' },
+    { id: 'pins', labelKey: 'catPins', color: '#4c97ff', icon: 'chip', devices: ['esp32'] },
     { id: 'display', labelKey: 'catDisplay', color: '#6739b6', icon: 'chip' },
     { id: 'motion_sensing', labelKey: 'catMotionSensing', color: '#ff6f00', icon: 'chip' },
     { id: 'sensing', labelKey: 'catSensing', color: '#ff6f00', icon: 'chip' },
@@ -43,55 +47,82 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
 
   const BLOCKS_BY_CAT = {
     audio: [
-      { id: 'play_until_done', key: 'blkPlayUntilDone', color: '#ab47bc', py: 'cyberpi.audio.play_until("hi")', action: { type: 'beep', freq: 523 } },
-      { id: 'play_sound', key: 'blkPlaySound', color: '#ab47bc', py: 'cyberpi.audio.play("hi")', action: { type: 'beep', freq: 587 } },
-      { id: 'play_note', key: 'blkPlayNote', color: '#ab47bc', py: 'cyberpi.audio.play_music(60, 0.25)', action: { type: 'beep', freq: 659 } },
-      { id: 'play_hz', key: 'blkPlayHz', color: '#ab47bc', py: 'cyberpi.audio.play_tone(700, 1)', action: { type: 'beep', freq: 700 } },
-      { id: 'set_volume', key: 'blkSetVolume', color: '#ab47bc', py: 'cyberpi.audio.set_vol(80)' },
-      { id: 'stop_sounds', key: 'blkStopSounds', color: '#ab47bc', py: 'cyberpi.audio.stop()' }
+      { id: 'play_until_done', key: 'blkPlayUntilDone', color: '#ab47bc', devices: ['cyberpi'], py: 'cyberpi.audio.play_until("hi")', action: { type: 'beep', freq: 523 } },
+      { id: 'play_sound', key: 'blkPlaySound', color: '#ab47bc', devices: ['cyberpi'], py: 'cyberpi.audio.play("hi")', action: { type: 'beep', freq: 587 } },
+      { id: 'play_note', key: 'blkPlayNote', color: '#ab47bc', devices: ['cyberpi'], py: 'cyberpi.audio.play_music(60, 0.25)', action: { type: 'beep', freq: 659 } },
+      { id: 'play_hz', key: 'blkPlayHz', color: '#ab47bc', devices: ['cyberpi'], py: 'cyberpi.audio.play_tone(700, 1)', action: { type: 'beep', freq: 700 } },
+      { id: 'set_volume', key: 'blkSetVolume', color: '#ab47bc', devices: ['cyberpi'], py: 'cyberpi.audio.set_vol(80)' },
+      { id: 'stop_sounds', key: 'blkStopSounds', color: '#ab47bc', devices: ['cyberpi'], py: 'cyberpi.audio.stop()' },
+      { id: 'esp32_buzzer_tone', key: 'blkEsp32Buzzer', color: '#ab47bc', devices: ['esp32'], esp32: '_capi_tone(PIN, FREQ, MS)' }
     ],
     led: [
-      { id: 'led_all', key: 'blkLedAll', color: '#9300d8', py: 'cyberpi.led.on(255, 50, 50)', action: { type: 'led', color: '#ff5252' } },
-      { id: 'led_single', key: 'blkLedSingle', color: '#9300d8', py: 'cyberpi.led.on(30, 170, 255, id=1)', action: { type: 'led', color: '#1eaaff' } },
-      { id: 'led_off', key: 'blkLedOff', color: '#9300d8', py: 'cyberpi.led.off("all")', action: { type: 'led', color: 'off' } },
-      { id: 'led_bri', key: 'blkLedBrightness', color: '#9300d8', py: 'cyberpi.led.set_bri(50)' }
+      { id: 'led_all', key: 'blkLedAll', color: '#9300d8', devices: ['cyberpi'], py: 'cyberpi.led.on(255, 50, 50)', action: { type: 'led', color: '#ff5252' } },
+      { id: 'led_single', key: 'blkLedSingle', color: '#9300d8', devices: ['cyberpi'], py: 'cyberpi.led.on(30, 170, 255, id=1)', action: { type: 'led', color: '#1eaaff' } },
+      { id: 'led_off', key: 'blkLedOff', color: '#9300d8', devices: ['cyberpi'], py: 'cyberpi.led.off("all")', action: { type: 'led', color: 'off' } },
+      { id: 'led_bri', key: 'blkLedBrightness', color: '#9300d8', devices: ['cyberpi'], py: 'cyberpi.led.set_bri(50)' },
+      /* Salidas ESP32: tira neopixel y relé. */
+      { id: 'esp32_neopixel_fill', key: 'blkEsp32Neopixel', color: '#9300d8', devices: ['esp32'], esp32: '_capi_np_set(PIN, N, R, G, B)' },
+      { id: 'esp32_neopixel_off', key: 'blkEsp32NeoOff', color: '#9300d8', devices: ['esp32'], esp32: '_capi_np_set(PIN, N, 0, 0, 0)' },
+      { id: 'esp32_relay', key: 'blkEsp32Relay', color: '#9300d8', devices: ['esp32'], esp32: 'Pin(PIN, Pin.OUT).value(STATE)' }
+    ],
+    /* Pines GPIO/PWM/servo del ESP32 (MicroPython `machine.Pin`). */
+    pins: [
+      { id: 'esp32_pin_out', key: 'blkEsp32PinOut', color: '#4c97ff', devices: ['esp32'], esp32: 'Pin(PIN, Pin.OUT).value(LEVEL)' },
+      { id: 'esp32_pin_read', key: 'blkEsp32PinRead', color: '#4c97ff', devices: ['esp32'], esp32: 'VAR = Pin(PIN, Pin.IN).value()' },
+      { id: 'esp32_pin_analog', key: 'blkEsp32PinAnalog', color: '#4c97ff', devices: ['esp32'], esp32: 'VAR = ADC(Pin(PIN)).read()' },
+      { id: 'esp32_pwm_set', key: 'blkEsp32PwmSet', color: '#4c97ff', devices: ['esp32'], esp32: 'PWM(Pin(PIN), 1000).duty(int(DUTY * 10.23))' },
+      { id: 'esp32_pwm_stop', key: 'blkEsp32PwmStop', color: '#4c97ff', devices: ['esp32'], esp32: 'PWM(Pin(PIN), 1000).deinit()' },
+      { id: 'esp32_servo_angle', key: 'blkEsp32Servo', color: '#4c97ff', devices: ['esp32'], esp32: 'PWM(Pin(PIN), 50).duty(int(25.6 + ANGLE * 0.568))' }
     ],
     display: [
-      { id: 'disp_print', key: 'blkDisplayPrint', color: '#6739b6', py: 'cyberpi.console.println("Hello mBlock!")', action: { type: 'screen', text: 'Hello mBlock!' } },
-      { id: 'disp_clear', key: 'blkDisplayClear', color: '#6739b6', py: 'cyberpi.console.clear()', action: { type: 'screen', text: '' } },
-      { id: 'disp_chart', key: 'blkDisplayChart', color: '#6739b6', py: 'cyberpi.linechart.add(75)', action: { type: 'screen', text: 'Chart: 75%' } }
+      { id: 'disp_print', key: 'blkDisplayPrint', color: '#6739b6', devices: ['cyberpi'], py: 'cyberpi.console.println("Hello mBlock!")', action: { type: 'screen', text: 'Hello mBlock!' } },
+      { id: 'disp_clear', key: 'blkDisplayClear', color: '#6739b6', devices: ['cyberpi'], py: 'cyberpi.console.clear()', action: { type: 'screen', text: '' } },
+      { id: 'disp_chart', key: 'blkDisplayChart', color: '#6739b6', devices: ['cyberpi'], py: 'cyberpi.linechart.add(75)', action: { type: 'screen', text: 'Chart: 75%' } }
     ],
     motion_sensing: [
-      { id: 'ms_tilt', key: 'blkMotionTilt', color: '#ff6f00', hat: true, py: '@event.is_tiltforward\ndef on_tilt():' },
-      { id: 'ms_shake', key: 'blkMotionShake', color: '#ff6f00', py: 'strength = cyberpi.get_shakeval()' }
+      { id: 'ms_tilt', key: 'blkMotionTilt', color: '#ff6f00', devices: ['cyberpi'], hat: true, py: '@event.is_tiltforward\ndef on_tilt():' },
+      { id: 'ms_shake', key: 'blkMotionShake', color: '#ff6f00', devices: ['cyberpi'], py: 'strength = cyberpi.get_shakeval()' }
     ],
     sensing: [
-      { id: 'sen_loud', key: 'blkSensingLoudness', color: '#ff6f00', py: 'loudness = cyberpi.get_loudness()' },
-      { id: 'sen_light', key: 'blkSensingLight', color: '#ff6f00', py: 'light = cyberpi.get_bri()' },
-      { id: 'sen_btn', key: 'blkSensingButton', color: '#ff6f00', py: 'if cyberpi.controller.is_press("a"):' }
+      { id: 'sen_loud', key: 'blkSensingLoudness', color: '#ff6f00', devices: ['cyberpi'], py: 'loudness = cyberpi.get_loudness()' },
+      { id: 'sen_light', key: 'blkSensingLight', color: '#ff6f00', devices: ['cyberpi'], py: 'light = cyberpi.get_bri()' },
+      { id: 'sen_btn', key: 'blkSensingButton', color: '#ff6f00', devices: ['cyberpi'], py: 'if cyberpi.controller.is_press("a"):' },
+      /* Sensores externos del ESP32 (DHT, HC-SR04, PIR, LDR y pulsador). */
+      { id: 'esp32_read_dht', key: 'blkEsp32Dht', color: '#ff6f00', devices: ['esp32'], esp32: "VAR = _capi_dht(PIN, 'MODEL')[WHAT]" },
+      { id: 'esp32_read_distance', key: 'blkEsp32Distance', color: '#ff6f00', devices: ['esp32'], esp32: 'VAR = _capi_distance(TRIG, ECHO)' },
+      { id: 'esp32_read_pir', key: 'blkEsp32Pir', color: '#ff6f00', devices: ['esp32'], esp32: 'VAR = Pin(PIN, Pin.IN).value()' },
+      { id: 'esp32_read_ldr', key: 'blkEsp32Ldr', color: '#ff6f00', devices: ['esp32'], esp32: 'VAR = ADC(Pin(PIN)).read()' },
+      { id: 'esp32_read_button', key: 'blkEsp32Button', color: '#ff6f00', devices: ['esp32'], esp32: 'VAR = 1 if Pin(PIN, Pin.IN, Pin.PULL_UP).value() == 0 else 0' }
     ],
     lan: [
-      { id: 'lan_send', key: 'blkLanBroadcast', color: '#00d7b0', py: 'cyberpi.mesh_broadcast.set("ping", 1)' },
-      { id: 'lan_recv', key: 'blkLanReceive', color: '#00d7b0', hat: true, py: '@event.mesh_broadcast("ping")\ndef on_lan():' }
+      { id: 'lan_send', key: 'blkLanBroadcast', color: '#00d7b0', devices: ['cyberpi'], py: 'cyberpi.mesh_broadcast.set("ping", 1)' },
+      { id: 'lan_recv', key: 'blkLanReceive', color: '#00d7b0', devices: ['cyberpi'], hat: true, py: '@event.mesh_broadcast("ping")\ndef on_lan():' }
     ],
     ai: [
-      { id: 'ai_speech', key: 'blkAiSpeech', color: '#a6d200', py: 'cyberpi.cloud.listen("es", 2)' },
-      { id: 'ai_text', key: 'blkAiText', color: '#a6d200', py: 'result = cyberpi.cloud.listen_result()' }
+      { id: 'ai_speech', key: 'blkAiSpeech', color: '#a6d200', devices: ['cyberpi'], py: 'cyberpi.cloud.listen("es", 2)' },
+      { id: 'ai_text', key: 'blkAiText', color: '#a6d200', devices: ['cyberpi'], py: 'result = cyberpi.cloud.listen_result()' }
     ],
     iot: [
-      { id: 'iot_wifi', key: 'blkIotWifi', color: '#a6d200', py: 'cyberpi.wifi.connect("Network", "****")' },
-      { id: 'iot_send', key: 'blkIotSend', color: '#a6d200', py: 'cyberpi.cloud.broadcast("status", "ok")' }
+      { id: 'iot_wifi', key: 'blkIotWifi', color: '#a6d200', devices: ['cyberpi'], py: 'cyberpi.wifi.connect("Network", "****")' },
+      { id: 'iot_send', key: 'blkIotSend', color: '#a6d200', devices: ['cyberpi'], py: 'cyberpi.cloud.broadcast("status", "ok")' },
+      /* WiFi, HTTP y NTP del ESP32 (sin TLS: el helper limpia el esquema). */
+      { id: 'esp32_wifi_connect', key: 'blkEsp32Wifi', color: '#a6d200', devices: ['esp32'], esp32: '_capi_wifi("SSID", "PASS")' },
+      { id: 'esp32_wifi_is_up', key: 'blkEsp32WifiUp', color: '#a6d200', devices: ['esp32'], esp32: 'VAR = network.WLAN(network.STA_IF).isconnected()' },
+      { id: 'esp32_http_get', key: 'blkEsp32HttpGet', color: '#a6d200', devices: ['esp32'], esp32: 'VAR = _capi_http_get("URL")' },
+      { id: 'esp32_http_post', key: 'blkEsp32HttpPost', color: '#a6d200', devices: ['esp32'], esp32: '_capi_http_post("URL", "DATA")' },
+      { id: 'esp32_ntp_sync', key: 'blkEsp32Ntp', color: '#a6d200', devices: ['esp32'], esp32: 'ntptime.settime()' }
     ],
     events: [
-      { id: 'evt_flag', key: 'blkEvtFlag', color: '#ffbf00', hat: true, py: '@event.start\ndef on_start():' },
-      { id: 'evt_key', key: 'blkEvtKey', color: '#ffbf00', hat: true, py: '@event.is_press("space")\ndef on_key():' },
-      { id: 'evt_start', key: 'blkEvtStart', color: '#ffbf00', hat: true, py: '@event.start\ndef on_cyberpi_start():' }
+      { id: 'evt_flag', key: 'blkEvtFlag', color: '#ffbf00', hat: true, py: '@event.start\ndef on_start():', esp32: 'def on_flag():' },
+      { id: 'evt_key', key: 'blkEvtKey', color: '#ffbf00', devices: ['cyberpi'], hat: true, py: '@event.is_press("space")\ndef on_key():' },
+      { id: 'evt_start', key: 'blkEvtStart', color: '#ffbf00', devices: ['cyberpi'], hat: true, py: '@event.start\ndef on_cyberpi_start():', esp32: 'def on_start():' }
     ],
     control: [
       { id: 'ctrl_wait', key: 'blkCtrlWait', color: '#ffab19', py: 'time.sleep(1)', action: { type: 'wait', ms: 450 } },
       { id: 'ctrl_repeat', key: 'blkCtrlRepeat', color: '#ffab19', py: 'for count in range(4):' },
       { id: 'ctrl_forever', key: 'blkCtrlForever', color: '#ffab19', py: 'while True:' },
-      { id: 'ctrl_if', key: 'blkCtrlIf', color: '#ffab19', py: 'if True:' }
+      { id: 'ctrl_if', key: 'blkCtrlIf', color: '#ffab19', py: 'if True:' },
+      { id: 'esp32_deep_sleep', key: 'blkEsp32Sleep', color: '#ffab19', devices: ['esp32'], esp32: 'machine.deepsleep(int(SECS * 1000))' }
     ],
     operators: [
       { id: 'op_add', key: 'blkOpAdd', color: '#59c059', py: 'total = 10 + 20' },
@@ -125,8 +156,15 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     { id: 'mbot2', name: 'mBot2', desc: 'Smart educational coding robot' },
     { id: 'halocode', name: 'Halocode', desc: 'Wireless IoT board with LED ring' },
     { id: 'arduino_uno', name: 'Arduino Uno', desc: 'Classic microcontroller board' },
-    { id: 'esp32', name: 'ESP32', desc: 'Wi-Fi + Bluetooth IoT microcontroller' }
+    { id: 'esp32', name: 'ESP32', desc: 'Wi-Fi + Bluetooth IoT microcontroller' },
+    { id: 'esp32s3', name: 'ESP32-S3', desc: 'Wi-Fi + BLE board with PSRAM' }
   ];
+
+  /* Variantes que comparten bloques y codegen con su familia (los nombres de
+     DEVICE_LIBRARY se muestran tal cual, sin traducir). */
+  const DEVICE_FAMILY: Record<string, string> = { esp32s3: 'esp32' };
+  /** Familia del dispositivo: `esp32s3` → `esp32`; el resto, su propio id. */
+  const deviceFamily = (id: string): string => DEVICE_FAMILY[id] || id;
 
   const EXTENSION_LIBRARY = [
     { id: 'ext_music', nameKey: 'extMusic', descKey: 'extMusicDesc', color: '#0fbd8c' },
@@ -147,8 +185,6 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     searchMode: false,
     editorMode: 'blocks',
     deviceMode: 'live',
-    usingMlink: false,
-    serialConnected: false,
     zoom: 1,
     blocks: [],
     undoStack: [],
@@ -444,9 +480,7 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     if (p.name) syncProjectName(p.name, '');
     if (p.device && DEVICE_LIBRARY.some((d) => d.id === p.device)) {
       if (!state.addedDevices.includes(p.device)) state.addedDevices.unshift(p.device);
-      state.activeDevice = p.device;
-      const dev = DEVICE_LIBRARY.find((d) => d.id === p.device);
-      if (dev && $('#infoTargetName')) $('#infoTargetName').textContent = dev.name;
+      setActiveDevice(p.device);
     }
     if (p.blocks && p.blocks.engine === 'blockly' && window.MBBlocks && MBBlocks.active()) {
       MBBlocks.load(p.blocks.state);
@@ -1146,8 +1180,14 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     });
   }
 
-  $('#runBtn')?.addEventListener('click', runBlocksSimulation);
+  $('#runBtn')?.addEventListener('click', async () => {
+    if (await runOnDeviceIfConnected()) return;
+    runBlocksSimulation();
+  });
   $('#stopBtn')?.addEventListener('click', () => {
+    if (window.MBSerial && window.MBSerial.isConnected()) {
+      window.MBSerial.interrupt().catch(() => {});
+    }
     stopExecution();
     const sprite = activeSprite();
     if (sprite) {
@@ -1196,8 +1236,10 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
 
     const infoName = $('#infoTargetName');
     if (infoName) {
-      if (tab === 'devices') infoName.textContent = t('cyberpi');
-      else if (tab === 'sprites') infoName.textContent = activeSprite()?.name || $('#spriteNameInput')?.value || t('panda');
+      if (tab === 'devices') {
+        const dev = DEVICE_LIBRARY.find((d) => d.id === state.activeDevice);
+        infoName.textContent = dev ? dev.name : t('cyberpi');
+      } else if (tab === 'sprites') infoName.textContent = activeSprite()?.name || $('#spriteNameInput')?.value || t('panda');
       else infoName.textContent = t('background');
     }
 
@@ -1211,35 +1253,143 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     btn.addEventListener('click', () => switchTargetTab(btn.getAttribute('data-target-tab')));
   });
 
-  // Device controls
+  /* ===========================
+     Serial (Web Serial) — conectar, subir, Live y consola
+     =========================== */
+  /** Líneas que conserva la consola antes de tirar las más viejas. */
+  const CONSOLE_MAX_LINES = 500;
+  /** Último estado notificado por MBSerial ('connecting'|'connected'|'disconnected'). */
+  let serialStatus = 'disconnected';
+  let uploadInProgress = false;
+
+  /** Añade una línea de la placa a la consola: tope de 500 y autoscroll. */
+  function appendConsolaLine(line: string) {
+    const out = $('#serialConsoleOut');
+    if (!out) return;
+    const next = out.textContent ? `${out.textContent}\n${line}` : line;
+    const lines = next.split('\n');
+    out.textContent = lines.length > CONSOLE_MAX_LINES
+      ? lines.slice(lines.length - CONSOLE_MAX_LINES).join('\n')
+      : next;
+    out.scrollTop = out.scrollHeight;
+  }
+
+  /** Refresca los controles seriales según el último estado y el soporte del navegador. */
   function updateDeviceStatusText() {
+    const api = window.MBSerial;
+    const supported = !!(api && api.available());
+    const connected = !!(supported && api.isConnected());
     const statusText = $('#deviceStatusText');
     const serialBtn = $('#serialConnectBtn');
     const serialLabel = $('#serialConnectLabel');
-    if (statusText) {
-      statusText.textContent = state.serialConnected ? t('deviceConnectedMsg') : t('connectYourDevice');
-    }
+    const uploadBtn = $('#uploadToDeviceBtn');
+    const consoleBtn = $('#serialConsoleBtn');
+
     if (serialBtn) {
-      serialBtn.classList.toggle('connected', state.serialConnected);
+      serialBtn.disabled = !supported;
+      serialBtn.title = supported ? '' : t('serialUnsupported');
+      serialBtn.classList.toggle('connected', connected);
+      serialBtn.setAttribute('aria-pressed', connected ? 'true' : 'false');
     }
     if (serialLabel) {
-      serialLabel.textContent = state.serialConnected ? t('connected') : t('serial');
+      serialLabel.textContent = connected
+        ? t('connected')
+        : serialStatus === 'connecting' ? t('serialConnecting') : t('serial');
     }
-    const mlinkText = $('#switchMlinkText');
-    if (mlinkText) {
-      mlinkText.textContent = state.usingMlink ? t('switchToWeb') : t('switchToMlink');
+    if (statusText) {
+      statusText.textContent = connected ? t('deviceConnectedMsg') : t('connectYourDevice');
+    }
+    if (uploadBtn) {
+      uploadBtn.disabled = !connected || uploadInProgress;
+      uploadBtn.title = connected ? t('uploadToDevice') : t('connectYourDevice');
+    }
+    if (consoleBtn) {
+      consoleBtn.disabled = !connected;
+      consoleBtn.title = connected ? t('consoleTitle') : t('connectYourDevice');
     }
   }
 
-  $('#switchMlinkBtn')?.addEventListener('click', () => {
-    state.usingMlink = !state.usingMlink;
+  /** Callback de MBSerial.connect(): guarda el estado y repinta la UI. */
+  function updateSerialUi(status: string) {
+    serialStatus = status;
     updateDeviceStatusText();
+  }
+
+  async function connectSerial() {
+    const api = window.MBSerial;
+    if (!api || !api.available()) return;
+    if (api.isConnected()) {
+      await api.disconnect();
+      updateSerialUi('disconnected');
+      return;
+    }
+    try {
+      await api.connect({ onLine: appendConsolaLine, onStatus: updateSerialUi });
+      showToast(t('deviceConnectedMsg'));
+    } catch (err: any) {
+      updateSerialUi('disconnected');
+      // Cancelar el diálogo nativo de puertos no es un error: sin toast.
+      if (err && err.name === 'NotFoundError') return;
+      showToast((err && err.message) || t('serialUnsupported'));
+    }
+  }
+
+  async function uploadToDevice() {
+    const api = window.MBSerial;
+    if (!api || !api.isConnected() || uploadInProgress) return;
+    const code = generatePythonCode();
+    uploadInProgress = true;
+    updateDeviceStatusText();
+    showToast(t('uploadingToast'));
+    try {
+      const ok = await api.uploadMainPy(code);
+      showToast(ok ? t('uploadOk') : t('uploadFail'));
+    } catch (_) {
+      showToast(t('uploadFail'));
+    } finally {
+      uploadInProgress = false;
+      updateDeviceStatusText();
+    }
+  }
+
+  /* Live: si hay placa conectada el programa corre en ella (la salida llega a
+     la consola); si no, la simulación del escenario sigue igual. */
+  async function runOnDeviceIfConnected(): Promise<boolean> {
+    const api = window.MBSerial;
+    if (!api || !api.isConnected()) return false;
+    showToast(t('liveOnDevice'));
+    try {
+      await api.replRun(generatePythonCode());
+    } catch (err: any) {
+      showToast((err && err.message) || t('connectYourDevice'));
+    }
+    return true;
+  }
+
+  $('#serialConnectBtn')?.addEventListener('click', connectSerial);
+  $('#uploadToDeviceBtn')?.addEventListener('click', uploadToDevice);
+
+  $('#serialConsoleBtn')?.addEventListener('click', () => {
+    if (!window.MBSerial || !window.MBSerial.isConnected()) return;
+    openModal('serialConsoleModal');
+    const out = $('#serialConsoleOut');
+    if (out) out.scrollTop = out.scrollHeight;
+    $('#serialConsoleInput')?.focus();
   });
 
-  $('#serialConnectBtn')?.addEventListener('click', () => {
-    state.serialConnected = !state.serialConnected;
-    updateDeviceStatusText();
-    showToast(state.serialConnected ? t('deviceConnectedMsg') : t('connectYourDevice'));
+  $('#serialConsoleInput')?.addEventListener('keydown', (e: any) => {
+    if (e.key !== 'Enter') return;
+    const input = e.target as HTMLInputElement;
+    const line = input.value;
+    input.value = '';
+    const api = window.MBSerial;
+    if (!api || !api.isConnected()) return;
+    api.writeLine(line).catch(() => {});
+  });
+
+  $('#serialConsoleClearBtn')?.addEventListener('click', () => {
+    const out = $('#serialConsoleOut');
+    if (out) out.textContent = '';
   });
 
   $$('[data-mode]').forEach((btn) => {
@@ -1550,8 +1700,23 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
   /* ===========================
      Toolbox & Block Flyout
      =========================== */
+  /* ¿El bloque aplica al dispositivo activo? `devices` ausente = universal.
+     Las variantes se resuelven a su familia (`esp32s3` usa los bloques `esp32`). */
+  function blockAppliesToDevice(blk) {
+    return !blk.devices || blk.devices.includes(deviceFamily(state.activeDevice));
+  }
+
+  /* La categoría entra en la paleta si aplica al dispositivo y tiene bloques.
+     Las categorías de sprite no dependen del dispositivo conectado. */
+  function categoryVisible(cat) {
+    if (state.activeTargetTab !== 'devices') return true;
+    if (cat.devices && !cat.devices.includes(deviceFamily(state.activeDevice))) return false;
+    return getBlocksForCategory(cat.id).length > 0;
+  }
+
   function getActiveCategories() {
-    const base = state.activeTargetTab === 'devices' ? DEVICE_CATEGORIES : SPRITE_CATEGORIES;
+    const base = (state.activeTargetTab === 'devices' ? DEVICE_CATEGORIES : SPRITE_CATEGORIES)
+      .filter(categoryVisible);
     const extras = state.addedExtensions.map((extId) => {
       const ext = EXTENSION_LIBRARY.find((e) => e.id === extId);
       return { id: extId, labelKey: ext ? ext.nameKey : extId, color: ext ? ext.color : '#0fbd8c', icon: 'bubble' };
@@ -1603,12 +1768,18 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     });
   }
 
+  /* Bloques de una categoría que aplican al dispositivo activo. Las extensiones
+     añadidas traen dos bloques de muestra; una categoría desconocida no tiene. */
   function getBlocksForCategory(catId) {
-    if (BLOCKS_BY_CAT[catId]) return BLOCKS_BY_CAT[catId];
-    return [
-      { id: `${catId}_1`, key: 'blkPlayNote', color: '#0fbd8c', py: `# ${catId}\ncyberpi.audio.play_music(64, 0.25)`, action: { type: 'beep', freq: 659 } },
-      { id: `${catId}_2`, key: 'blkSayHello', color: '#0fbd8c', py: `# ${catId}\nprint("Extension active")`, action: { type: 'say', text: 'Extension!' } }
-    ];
+    let list = BLOCKS_BY_CAT[catId];
+    if (!list) {
+      if (!state.addedExtensions.includes(catId)) return [];
+      list = [
+        { id: `${catId}_1`, key: 'blkPlayNote', color: '#0fbd8c', py: `# ${catId}\ncyberpi.audio.play_music(64, 0.25)`, action: { type: 'beep', freq: 659 } },
+        { id: `${catId}_2`, key: 'blkSayHello', color: '#0fbd8c', py: `# ${catId}\nprint("Extension active")`, action: { type: 'say', text: 'Extension!' } }
+      ];
+    }
+    return list.filter(blockAppliesToDevice);
   }
 
   function renderFlyout() {
@@ -1625,7 +1796,7 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     if (state.searchMode) {
       titleEl.textContent = t('search');
       const query = ($('#blockSearchInput')?.value || '').trim().toLowerCase();
-      const all = Object.values(BLOCKS_BY_CAT).flat();
+      const all = Object.values(BLOCKS_BY_CAT).flat().filter(blockAppliesToDevice);
       blocksToShow = query
         ? all.filter((b) => t(b.key).toLowerCase().includes(query))
         : all.slice(0, 12);
@@ -2063,19 +2234,38 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
         if ((e.target as Element)?.closest('.mtarget-delete-btn')) {
           if (state.addedDevices.length > 1) {
             state.addedDevices = state.addedDevices.filter((x) => x !== dev.id);
-            state.activeDevice = state.addedDevices[0];
-            const nextDev = DEVICE_LIBRARY.find((d) => d.id === state.activeDevice);
-            if (nextDev) $('#infoTargetName').textContent = nextDev.name;
-            renderDeviceList();
+            setActiveDevice(state.addedDevices[0]);
           }
           return;
         }
-        state.activeDevice = dev.id;
-        $('#infoTargetName').textContent = dev.name;
-        renderDeviceList();
+        setActiveDevice(dev.id);
       });
       col.insertBefore(card, addBtn);
     });
+  }
+
+  /* Fija el dispositivo activo: motor de codegen, paleta y vistas quedan al día.
+     Cierra el flyout si la categoría abierta ya no existe para ese dispositivo. */
+  function setActiveDevice(devId: string) {
+    if (!devId) return;
+    state.activeDevice = devId;
+    const dev = DEVICE_LIBRARY.find((d) => d.id === devId);
+    if (dev && $('#infoTargetName')) $('#infoTargetName').textContent = dev.name;
+    if (window.MBBlocks) {
+      MBBlocks.setDevice(devId);
+      /* Las opciones de los desplegables (pines) dependen de la variante de
+         placa: se reconstruyen las definiciones conservando el programa. */
+      if (MBBlocks.active()) MBBlocks.relabel(blockLabelFor);
+    }
+    if (state.activeCategory && !getActiveCategories().some((c) => c.id === state.activeCategory)) {
+      state.activeCategory = null;
+      const flyout = $('#blocklyFlyout');
+      if (flyout) flyout.hidden = true;
+    }
+    renderToolbox();
+    if (state.activeCategory || state.searchMode) renderFlyout();
+    renderDeviceList();
+    updatePythonViews();
   }
 
   function renderExtensionLibrary() {
@@ -2111,11 +2301,16 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
       { id: 'play_note', fields: { NOTE: 64 } }
     ],
     leds: [
-      { id: 'evt_start' },
-      { id: 'led_all', fields: { COLOR: '#ff5252' } },
-      { id: 'disp_print', fields: { TEXT: '¡Hola desde ESP32!' } },
-      { id: 'ctrl_wait', fields: { SECS: 1 } },
-      { id: 'led_single', fields: { COLOR: '#25cc76' } }
+      { id: 'evt_flag' },
+      { id: 'esp32_neopixel_fill', fields: { PIN: '16', N: 8, COLOR: '#ff5252' } },
+      { id: 'ctrl_forever', do: [
+        { id: 'esp32_neopixel_fill', fields: { PIN: '16', N: 8, COLOR: '#ff5252' } },
+        { id: 'ctrl_wait', fields: { SECS: 0.5 } },
+        { id: 'esp32_neopixel_fill', fields: { PIN: '16', N: 8, COLOR: '#66bb6a' } },
+        { id: 'ctrl_wait', fields: { SECS: 0.5 } },
+        { id: 'esp32_neopixel_fill', fields: { PIN: '16', N: 8, COLOR: '#42a5f5' } },
+        { id: 'ctrl_wait', fields: { SECS: 0.5 } }
+      ] }
     ],
     counter: [
       { id: 'evt_flag' },
@@ -2125,10 +2320,24 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
         fields: { TIMES: 5 },
         do: [
           { id: 'var_chg', fields: { VAR: 'contador', VALUE: 1 } },
-          { id: 'play_note', fields: { NOTE: 67 } }
+          { id: 'esp32_buzzer_tone', fields: { FREQ: 392, PIN: '17', MS: 200 } }
         ]
       },
-      { id: 'disp_print', fields: { TEXT: '¡Listo!' } }
+      { id: 'esp32_neopixel_fill', fields: { PIN: '16', N: 8, COLOR: '#25cc76' } }
+    ],
+    'esp32-wifi': [
+      { id: 'evt_flag' },
+      { id: 'esp32_wifi_connect', fields: { SSID: 'mi-red', PASS: '12345678' } },
+      { id: 'esp32_neopixel_fill', fields: { PIN: '16', N: 8, COLOR: '#25cc76' } },
+      {
+        id: 'ctrl_forever',
+        do: [
+          { id: 'esp32_pin_out', fields: { PIN: '2', LEVEL: '1' } },
+          { id: 'ctrl_wait', fields: { SECS: 1 } },
+          { id: 'esp32_pin_out', fields: { PIN: '2', LEVEL: '0' } },
+          { id: 'ctrl_wait', fields: { SECS: 1 } }
+        ]
+      }
     ]
   };
 
@@ -2228,6 +2437,7 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
       blocksByCat: BLOCKS_BY_CAT,
       labelFor: blockLabelFor,
       lang: window.__I18N_LANG || 'en',
+      device: state.activeDevice,
       onChange: () => {
         MBBlocks.refreshCount();
         updatePythonViews();

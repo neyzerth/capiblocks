@@ -83,10 +83,19 @@ Evita tocar componentes uno por uno.
   abriéndose con el Capi y el lienzo blanco.
 - **CodeMirror necesita `refresh()`** cuando su contenedor pasa de oculto a visible (pestaña Python).
 - **Playwright no pulsa elementos ocultos**: abre el modal antes de pulsar sus botones.
-- **Los tests levantan su propio servidor en `:8123`**: `playwright.config.ts` ejecuta
-  `build.mjs && serve.mjs 8123` (y reutiliza uno ya escuchando fuera de CI). Al limpiar procesos de
-  prueba, mata solo el PID que arrancaste o el del puerto 8123: un `pkill -f serve.mjs` se llevó por
-  delante el `serve.mjs` de otro worktree en `:8080`.
+- **Nada de literales `http://` en `src/`**: `check.mjs` falla si el bundle contiene una URL
+  externa. Los defaults de los bloques HTTP van sin esquema (`ejemplo.com/datos`) y el helper
+  MicroPython la quita con `url.split('://')[-1]`.
+- **Se desarrolla en Linux, se usa en Windows**: Web Serial abstrae el puerto (COM o `/dev/tty*`
+  es indistinto para la app); lo único específico del sistema es el driver USB de la placa
+  (CP210x o CH340), ya explicado en el manual dentro del modal de ayuda.
+- **Corre los tests con `CI=1` cuando haya otros worktree activos**: `playwright.config.ts`
+  levanta su servidor en `:8123` y reutiliza cualquiera que ya escuche (fuera de CI). Si otra
+  sesión del repo tiene su servidor arriba, `CI=1 pnpm exec playwright test` obliga a un puerto
+  propio y truena ruidosamente en vez de probar la app del vecino sin darse cuenta.
+- **Los tests levantan su propio servidor en `:8123`**: al limpiar procesos de prueba, mata solo
+  el PID que arrancaste o el del puerto 8123: un `pkill -f serve.mjs` se llevó por delante el
+  `serve.mjs` de otro worktree en `:8080`.
 - **Las tarjetas «+ Añadir» nacen después del binding global**: `[data-modal-open]` solo se engancha
   al cargar la página, así que `renderSpriteList()` y `renderBackdropList()` añaden su propio
   `addEventListener`. El atributo queda como hook declarativo para las pruebas.

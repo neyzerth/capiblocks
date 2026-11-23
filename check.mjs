@@ -48,8 +48,8 @@ for (const ref of new Set(refs)) {
 if (html.includes('blocklyDiv') && html.includes('app.js')) ok('hook del workspace presente');
 else bad('index.html no monta el workspace de Blockly');
 const bundle = fs.readFileSync(path.join(dist, 'app.js'), 'utf8');
-if (bundle.includes('MBBlocks') && bundle.includes('MBPythonEditor')) ok('APIs MBBLocks/MBPythonEditor en el bundle');
-else bad('app.js no expone MBBlocks/MBPythonEditor');
+if (bundle.includes('MBBlocks') && bundle.includes('MBPythonEditor') && bundle.includes('MBSerial')) ok('APIs MBBlocks/MBPythonEditor/MBSerial en el bundle');
+else bad('app.js no expone MBBlocks/MBPythonEditor/MBSerial');
 
 // 5. La marca no vuelve a decir mBlock en texto visible
 const visible = html.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<!--[\s\S]*?-->/g, '');

@@ -15,6 +15,7 @@ index.html
      ├─ locales.ts                   diccionarios es / en / zh
      ├─ i18n.ts                      window.t(), cambio de idioma, data-t
      ├─ blockly-app.ts               window.MBBlocks: bloques, Python, acciones
+     ├─ serial.ts                    window.MBSerial: Web Serial + REPL crudo
      ├─ python-editor.ts             window.MBPythonEditor: CodeMirror
      ├─ sprite-library.ts            catálogo CC0 de objetos y fondos
      └─ script.ts                    UI, estado, escena, bibliotecas, guardado, ejemplos
@@ -74,16 +75,60 @@ Al aceptar, el objeto se añade con posición escalonada (+72 px), nombre único
 
 | Método | Qué hace |
 |---|---|
-| `init({blocksByCat,labelFor,lang,onChange})` | Registra bloques y monta el workspace. |
-| `relabel(labelFor)` | Reconstruye los bloques con otro idioma conservando el programa. |
+| `init({blocksByCat,labelFor,lang,device,onChange})` | Registra bloques y monta el workspace. |
+| `relabel(labelFor)` | Reconstruye los bloques con otro idioma —o con otras opciones de campo (pines por variante)— conservando el programa. |
 | `add(id)` | Añade un bloque debajo del contenido actual. |
 | `addAt(id, clientX, clientY)` | Añade un bloque en el punto donde se suelta (arrastre). |
 | `loadProgram(steps)` | Carga un programa de ejemplo (`{id, fields?, do?[]}`). |
 | `count()` / `refreshCount()` | Número de bloques / actualiza el contador visible. |
-| `python()` | Código Python de la pila actual. |
+| `setDevice(id)` | Fija el dispositivo activo: decide el codegen de `python()`. |
+| `python()` | Código Python de la pila actual, según el dispositivo activo. |
 | `actions()` | Lista de acciones para el simulador. |
 | `serialize()` / `load(state)` | Estado del workspace para guardar/restaurar. |
 | `clear()`, `undo()`, `redo()`, `zoomIn/Out/Reset()`, `cleanUp()`, `resize()` | Controles del lienzo. |
+
+### Codegen por dispositivo
+
+Cada entrada de `BLOCKS_BY_CAT` puede declarar `esp32` (código MicroPython) y
+`devices` (lista de placas donde el bloque aparece en la paleta; ausente = universal).
+La paleta filtra categorías y bloques por `state.activeDevice`, y `MBBlocks.setDevice(id)`
+sincroniza el motor con esa elección.
+
+Con `esp32` activo, `python()` emite un encabezado propio (`# capiBlocks → MicroPython (ESP32)`),
+`import machine, time` + `from machine import Pin, PWM, ADC`, imports extra solo si el programa
+los usa (`network`, `ntptime`) y **solo los helpers** (`_capi_dht`, `_capi_distance`,
+`_capi_np_set`, `_capi_tone`, `_capi_wifi`, `_capi_http_get/post`) que necesitan los bloques
+presentes. Los sombreros de evento se vuelven `def on_flag():` / `def on_start():` y se llaman al
+final, bajo `# --- capiBlocks: arranque ---`. Los ids usados se recolectan recorriendo la cadena
+(`getNextBlock()`) y los cuerpos `DO`, así que un helper solo aparece si su bloque está en el
+lienzo. Para cualquier otro dispositivo la salida es la de siempre (`import cyberpi, event, time`
++ decoradores).
+
+Los campos desplegables de pin declaran `optionsByDevice` (`esp32` clásico y `esp32s3` tienen
+listas distintas: en la S3 los GPIO 26-37 son flash/PSRAM y no existen como pines). `fieldArgs`
+resuelve las opciones con el dispositivo activo al definir los bloques, así que `setActiveDevice`
+reconstruye las definiciones (`MBBlocks.relabel`) conservando el programa. Las variantes comparten
+codegen: el motor normaliza `esp32s3` a su familia `esp32` antes de emitir Python.
+
+### `MBSerial`
+
+`src/serial.ts` encapsula Web Serial y el protocolo REPL crudo de MicroPython; no conoce la UI:
+al conectar recibe `onLine` (cada línea de la placa) y `onStatus` (`'connecting' | 'connected' |
+'disconnected'`), que `script.ts` usa para la consola y el estado del botón.
+
+| Método | Qué hace |
+|---|---|
+| `available()` | ¿El navegador expone Web Serial? Si no, la UI desactiva Conectar con aviso. |
+| `isConnected()` | ¿Hay un puerto abierto? |
+| `connect({onLine,onStatus,baudRate})` | Pide el puerto al usuario (sin filtros) y arranca la lectura. |
+| `disconnect()` | Suelta lector/escritor y cierra el puerto. |
+| `interrupt()` | Ctrl-C: detiene el programa en la placa. |
+| `writeLine(line)` | Envía una línea desde el input de la consola. |
+| `replRun(code)` | **Live**: entra en REPL crudo, envía el código, espera `OK` y la salida. Devuelve `{ok, output, finished}`; `finished: false` cuando el programa sigue corriendo (`while True`). |
+| `uploadMainPy(code)` | **Subir**: escribe `main.py` en chunks base64 (`ubinascii.a2b_base64`, sin dependencias en la placa) y hace soft reset (Ctrl-D) para que arranque solo. |
+
+La UI de `script.ts` conecta esto a `serialConnectBtn`, `uploadToDeviceBtn`, `runBtn`/`stopBtn`
+(Live si hay placa, simulación si no) y al modal de consola serial.
 
 ### `MBPythonEditor`
 
@@ -151,7 +196,8 @@ assets/sprites, assets/backdrops ──copiar──▶ dist/assets/
 - `node check.mjs` valida archivos, referencias, ausencia de URLs externas y que el bundle exponga
   las APIs.
 - `pnpm typecheck` ejecuta `tsc --noEmit`.
-- `tests/e2e/editor.spec.js` prueba el comportamiento real en Chromium (Playwright).
+- `tests/e2e/editor.spec.js` y `tests/e2e/esp32.spec.js` prueban el comportamiento real en
+  Chromium (Playwright): bloques, arrastre, ejemplos, paleta por dispositivo y codegen.
 
 ## Reglas de diseño
 

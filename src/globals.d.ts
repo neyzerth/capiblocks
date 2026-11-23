@@ -3,6 +3,7 @@ export {};
 declare global {
   const MBBlocks: any;
   const MBPythonEditor: any;
+  const MBSerial: any;
 
   interface Window {
     __I18N_DICTS?: Record<string, Record<string, string>>;
@@ -17,6 +18,8 @@ declare global {
     CodeMirror: any;
     MBBlocks?: any;
     MBPythonEditor?: any;
+    /** Conexión Web Serial + REPL de MicroPython (src/serial.ts). */
+    MBSerial?: any;
   }
 }
 
