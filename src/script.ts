@@ -1254,7 +1254,7 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
 
     state.activeCategory = null;
     state.searchMode = false;
-    $('#blocklyFlyout').hidden = true;
+    hideElAnimated($('#blocklyFlyout'), FLYOUT_CLOSE_MS);
     renderToolbox();
   }
 
@@ -1760,16 +1760,20 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
 
       btn.innerHTML = `${iconHtml}<span class="category-label">${t(cat.labelKey)}</span>`;
       btn.addEventListener('click', () => {
-        if (state.activeCategory === cat.id && !state.searchMode && !$('#blocklyFlyout').hidden) {
+        const flyoutEl = $('#blocklyFlyout');
+        /* .closing cuenta como cerrado: un clic rápido reabre en vez de
+           quedarse en el limbo de la animación de salida. */
+        const flyoutVisible = flyoutEl && !flyoutEl.hidden && !flyoutEl.classList.contains('closing');
+        if (state.activeCategory === cat.id && !state.searchMode && flyoutVisible) {
           state.activeCategory = null;
-          $('#blocklyFlyout').hidden = true;
+          hideElAnimated(flyoutEl, FLYOUT_CLOSE_MS);
           renderToolbox();
           return;
         }
         state.searchMode = false;
         state.activeCategory = cat.id;
         $('#toolboxSearchBtn')?.classList.remove('active');
-        $('#blocklyFlyout').hidden = false;
+        showElAnimated(flyoutEl);
         renderToolbox();
         renderFlyout();
       });
@@ -1917,7 +1921,8 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     state.searchMode = !state.searchMode;
     state.activeCategory = null;
     $('#toolboxSearchBtn')?.classList.toggle('active', state.searchMode);
-    $('#blocklyFlyout').hidden = !state.searchMode;
+    if (state.searchMode) showElAnimated($('#blocklyFlyout'));
+    else hideElAnimated($('#blocklyFlyout'), FLYOUT_CLOSE_MS);
     renderToolbox();
     if (state.searchMode) {
       renderFlyout();
@@ -1930,7 +1935,7 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
   $('#flyoutCloseBtn')?.addEventListener('click', () => {
     state.activeCategory = null;
     state.searchMode = false;
-    $('#blocklyFlyout').hidden = true;
+    hideElAnimated($('#blocklyFlyout'), FLYOUT_CLOSE_MS);
     $('#toolboxSearchBtn')?.classList.remove('active');
     renderToolbox();
   });
@@ -2135,32 +2140,39 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
      Modals & Libraries
      =========================== */
   /* Cierre animado: .closing dispara la animación de salida del CSS y el
-     `hidden` se aplica cuando termina (MODAL_CLOSE_MS). Las pruebas e2e
-     usan aserciones que reintentan, así que el retraso es seguro. */
+     `hidden` se aplica cuando termina. Las pruebas e2e usan aserciones
+     que reintentan, así que el retraso es seguro. */
   const MODAL_CLOSE_MS = 190;
-  const modalCloseTimers = new WeakMap();
+  const FLYOUT_CLOSE_MS = 180;
+  const hideTimers = new WeakMap();
+
+  function hideElAnimated(el, ms) {
+    if (!el || el.hidden || el.classList.contains('closing')) return;
+    el.classList.add('closing');
+    clearTimeout(hideTimers.get(el));
+    hideTimers.set(el, setTimeout(() => {
+      el.classList.remove('closing');
+      el.hidden = true;
+      hideTimers.delete(el);
+    }, ms));
+  }
+
+  /* Reabrir a mitad del cierre: cancelar la salida pendiente. */
+  function showElAnimated(el) {
+    if (!el) return;
+    clearTimeout(hideTimers.get(el));
+    el.classList.remove('closing');
+    el.hidden = false;
+  }
 
   function closeModalEl(m) {
-    if (m.hidden || m.classList.contains('closing')) return;
-    m.classList.add('closing');
-    clearTimeout(modalCloseTimers.get(m));
-    modalCloseTimers.set(m, setTimeout(() => {
-      m.classList.remove('closing');
-      m.hidden = true;
-      modalCloseTimers.delete(m);
-    }, MODAL_CLOSE_MS));
+    hideElAnimated(m, MODAL_CLOSE_MS);
   }
 
   function openModal(id) {
     closeMenus();
     closeAllModals();
-    const el = $(`#${id}`);
-    if (el) {
-      /* Reabrir a mitad del cierre: cancelar la salida pendiente. */
-      clearTimeout(modalCloseTimers.get(el));
-      el.classList.remove('closing');
-      el.hidden = false;
-    }
+    showElAnimated($(`#${id}`));
     if (id === 'envModal') renderEnvCheck();
     if (id === 'addDeviceModal') renderDeviceLibrary();
     if (id === 'extensionModal') renderExtensionLibrary();
@@ -2290,8 +2302,7 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     }
     if (state.activeCategory && !getActiveCategories().some((c) => c.id === state.activeCategory)) {
       state.activeCategory = null;
-      const flyout = $('#blocklyFlyout');
-      if (flyout) flyout.hidden = true;
+      hideElAnimated($('#blocklyFlyout'), FLYOUT_CLOSE_MS);
     }
     renderToolbox();
     if (state.activeCategory || state.searchMode) renderFlyout();
@@ -2429,8 +2440,20 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
   });
 
   // Settings toggles
+  /* Preferencia de dots: se guarda como mblock.gridDots (1 = visibles,
+     el default) y se aplica al arrancar. */
+  try {
+    if (localStorage.getItem('mblock.gridDots') === '0') {
+      const saved = $('#toggleGridDots');
+      if (saved) saved.checked = false;
+      $('#blocksCanvas')?.classList.add('no-grid');
+    }
+  } catch (_) {}
+
   $('#toggleGridDots')?.addEventListener('change', (e) => {
-    $('#blocksCanvas')?.classList.toggle('no-grid', !e.target.checked);
+    const on = !!(e.target as HTMLInputElement)?.checked;
+    $('#blocksCanvas')?.classList.toggle('no-grid', !on);
+    try { localStorage.setItem('mblock.gridDots', on ? '1' : '0'); } catch (_) {}
   });
 
   $('#resetPrefsBtn')?.addEventListener('click', () => {
@@ -2438,6 +2461,7 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
       localStorage.removeItem('mblock.lang');
       localStorage.removeItem('mblock.privacyAgreed');
       localStorage.removeItem('mblock.lastProject');
+      localStorage.removeItem('mblock.gridDots');
     } catch (_) {}
     $('#toggleGridDots').checked = true;
     $('#blocksCanvas')?.classList.remove('no-grid');
