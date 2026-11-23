@@ -364,26 +364,12 @@
   });
 
   /* ===========================
-     Privacy Banner & Compat Tip Bar
+     Privacidad (en Ajustes) y barra de compatibilidad
      =========================== */
-  function dismissPrivacyBanner() {
-    const banner = $('#privacyBanner');
-    if (banner) banner.hidden = true;
-    const toggle = $('#togglePrivacyBar');
-    if (toggle) toggle.checked = false;
-  }
-
-  $('#agreeBtn')?.addEventListener('click', () => {
-    dismissPrivacyBanner();
-    try { localStorage.setItem('mblock.privacyAgreed', 'true'); } catch (_) {}
-  });
-
-  $('#privacyPolicyBtn')?.addEventListener('click', () => openModal('privacyModal'));
+  $('#settingsPrivacyBtn')?.addEventListener('click', () => openModal('privacyModal'));
 
   $('#privacyModalAgreeBtn')?.addEventListener('click', () => {
-    dismissPrivacyBanner();
     closeAllModals();
-    try { localStorage.setItem('mblock.privacyAgreed', 'true'); } catch (_) {}
   });
 
   $('#compatCloseBtn')?.addEventListener('click', () => {
@@ -1200,19 +1186,13 @@
     $('#compatTipBar').hidden = !e.target.checked;
   });
 
-  $('#togglePrivacyBar')?.addEventListener('change', (e) => {
-    $('#privacyBanner').hidden = !e.target.checked;
-  });
-
   $('#resetPrefsBtn')?.addEventListener('click', () => {
     try {
       localStorage.removeItem('mblock.lang');
       localStorage.removeItem('mblock.privacyAgreed');
       localStorage.removeItem('mblock.lastProject');
     } catch (_) {}
-    $('#privacyBanner').hidden = false;
     $('#compatTipBar').hidden = false;
-    $('#togglePrivacyBar').checked = true;
     $('#toggleCompatBar').checked = true;
     $('#toggleGridDots').checked = true;
     $('#blocksCanvas')?.classList.remove('no-grid');

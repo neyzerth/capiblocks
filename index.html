@@ -12,15 +12,6 @@
 </head>
 <body>
   <section class="ant-layout gui-layout">
-    <!-- Top Privacy Banner -->
-    <div class="privacy-license-bar" id="privacyBanner" role="region" aria-label="Privacy notice">
-      <div class="privacy-text" data-t="privacyText">To provide better services and personalized experiences, we may collect and analyze your usage data. Please review our privacy policy and select 'Agree'.</div>
-      <div class="privacy-btn-wrapper">
-        <button type="button" class="privacy-btn privacy-btn-policy" id="privacyPolicyBtn" data-t="privacyPolicy">Privacy Policy</button>
-        <button type="button" class="privacy-btn privacy-btn-agree" id="agreeBtn" data-t="agree">Agree</button>
-      </div>
-    </div>
-
     <!-- Main Blue Header -->
     <header class="ant-layout-header gui-header" id="appHeader">
       <ul class="header-menu left-menu" id="leftMenu" role="menu">
@@ -734,10 +725,7 @@
           <input type="checkbox" id="toggleCompatBar" checked>
           <span data-t="settingsCompatBar">Show Compatibility Banner</span>
         </label>
-        <label class="setting-toggle">
-          <input type="checkbox" id="togglePrivacyBar" checked>
-          <span data-t="settingsPrivacyBar">Show Privacy Banner</span>
-        </label>
+        <button type="button" class="settings-link" id="settingsPrivacyBtn" data-t="privacyPolicy">Privacy Policy</button>
       </div>
       <div class="modal-footer">
         <button type="button" class="modal-btn-secondary" id="resetPrefsBtn" data-t="settingsResetStorage">Reset Local Preferences</button>
