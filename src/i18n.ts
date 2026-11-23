@@ -14,6 +14,12 @@
       const saved = (localStorage.getItem('mblock.lang') || '').toLowerCase().slice(0, 2);
       if (SUPPORTED.includes(saved)) return saved;
     } catch (_) {}
+    const navLangs = (navigator.languages && navigator.languages.length
+      ? navigator.languages
+      : [navigator.language || '']).map((l) => l.toLowerCase().slice(0, 2));
+    for (const lang of navLangs) {
+      if (SUPPORTED.includes(lang)) return lang;
+    }
     return SUPPORTED.includes('en') ? 'en' : SUPPORTED[0];
   }
 
