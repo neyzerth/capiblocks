@@ -203,10 +203,10 @@ const I18N_DICTS = {
     extAiVision: "AI Vision",
     extAiVisionDesc: "Simulate color and shape recognition blocks.",
 
-    deviceHelpTitle: "How to Use CyberPi",
-    deviceHelpStep1: "Connect your CyberPi via USB-C cable and click Serial to pair.",
-    deviceHelpStep2: "Choose Live mode for instant execution or Upload mode to flash standalone Python code.",
-    deviceHelpStep3: "Without physical hardware, you can still test blocks in Live simulation right on the stage.",
+    deviceHelpTitle: "How to Use ESP32",
+    deviceHelpStep1: "Flash the MicroPython firmware onto your ESP32 once (esptool or a web flasher), then plug it in via USB. If no port shows up, install your board's USB driver (CP210x or CH340).",
+    deviceHelpStep2: "Click Serial and pick the port (on Windows it shows up as a COM port): Live runs the program instantly; Upload writes it as main.py so the board runs standalone.",
+    deviceHelpStep3: "Without a board connected, the green flag simulates your program on the stage.",
 
     // Block labels
     blkPlayUntilDone: "play [hi] until done",
@@ -479,10 +479,10 @@ const I18N_DICTS = {
     extAiVision: "Visión IA",
     extAiVisionDesc: "Simula bloques de reconocimiento de colores y formas.",
 
-    deviceHelpTitle: "Cómo usar CyberPi",
-    deviceHelpStep1: "Conecta tu CyberPi mediante cable USB-C y haz clic en Serie para emparejar.",
-    deviceHelpStep2: "Elige el modo En vivo para ejecución inmediata o Subir para cargar código Python autónomo.",
-    deviceHelpStep3: "Sin hardware físico, también puedes probar los bloques en simulación En vivo directamente en el escenario.",
+    deviceHelpTitle: "Cómo usar el ESP32",
+    deviceHelpStep1: "Graba una sola vez el firmware MicroPython en tu ESP32 (esptool o un flasheador web) y conéctalo por USB. Si el puerto no aparece, instala el driver USB de tu placa (CP210x o CH340).",
+    deviceHelpStep2: "Haz clic en Serial y elige el puerto (en Windows es un COM): Live ejecuta el programa al instante; Subir lo graba como main.py para que la placa corra sola.",
+    deviceHelpStep3: "Sin placa conectada, la bandera verde simula tu programa en el escenario.",
 
     // Block labels
     blkPlayUntilDone: "reproducir [hola] hasta terminar",
@@ -743,10 +743,10 @@ const I18N_DICTS = {
     extAiVision: "AI 视觉",
     extAiVisionDesc: "模拟颜色和形状识别积木。",
 
-    deviceHelpTitle: "如何使用 CyberPi",
-    deviceHelpStep1: "使用 USB-C 数据线连接 CyberPi，点击“串口”配对。",
-    deviceHelpStep2: "选择“在线”模式即时运行，或选择“上传”模式烧录脱机代码。",
-    deviceHelpStep3: "即使没有硬件，您也可以直接在舞台上进行在线模拟。",
+    deviceHelpTitle: "如何使用 ESP32",
+    deviceHelpStep1: "先在 ESP32 上刷入一次 MicroPython 固件（esptool 或网页烧录工具），然后用 USB 连接。如果没有出现端口，请安装板子的 USB 驱动（CP210x 或 CH340）。",
+    deviceHelpStep2: "点击串口并选择端口（Windows 中显示为 COM 端口）：在线模式立即运行程序；上传模式写入 main.py 让设备独立运行。",
+    deviceHelpStep3: "没有设备时，绿旗会在舞台上模拟运行你的程序。",
 
     blkPlayUntilDone: "播放声音 [你好] 直到结束",
     blkPlaySound: "播放声音 [你好]",

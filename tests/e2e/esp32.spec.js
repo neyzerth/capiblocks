@@ -155,3 +155,40 @@ test('el ejemplo ESP32 WiFi usa bloques reales y genera su arranque', async ({ p
   expect(py).toContain('Pin(2, Pin.OUT).value(1)');
   expect(py).toContain('on_flag()');
 });
+
+/* --- T8: el panel, el manual y los ejemplos asumen el ESP32 --- */
+
+test('el panel muestra el dispositivo activo, también al volver de Objetos', async ({ page }) => {
+  await boot(page);
+  await expect(page.locator('#infoTargetName')).toHaveText('ESP32');
+
+  await page.locator('[data-target-tab="sprites"]').click();
+  await page.locator('[data-target-tab="devices"]').click();
+  await expect(page.locator('#infoTargetName')).toHaveText('ESP32');
+});
+
+test('el manual de ayuda describe el ESP32 y no menciona CyberPi', async ({ page }) => {
+  await boot(page);
+  await page.locator('#deviceHelpBtn').click();
+  const modal = page.locator('#deviceHelpModal');
+  await expect(modal).toBeVisible();
+  await expect(modal.locator('h2')).toHaveText(/How to Use ESP32|Cómo usar el ESP32|如何使用 ESP32/);
+
+  const text = await modal.innerText();
+  expect(text).not.toContain('CyberPi');
+  expect(text).toContain('CP210x');
+  expect(text).toContain('CH340');
+  expect(text).toContain('main.py');
+});
+
+test('el ejemplo contador usa buzzer y neopixel del ESP32', async ({ page }) => {
+  await boot(page);
+  await page.locator('[data-modal-open="examplesModal"]').click();
+  await page.locator('[data-load-example="counter"]').click();
+  await expect.poll(() => page.evaluate(() => MBBlocks.count())).toBe(6);
+  const py = await page.evaluate(() => MBBlocks.python());
+  expect(py).toContain('for i in range(5):');
+  expect(py).toContain('_capi_tone(17, 392, 200)');
+  expect(py).toContain('_capi_np_set(16, 8, 37, 204, 118)');
+  expect(py).not.toContain('cyberpi');
+});

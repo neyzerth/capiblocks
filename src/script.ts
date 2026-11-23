@@ -578,8 +578,10 @@
 
     const infoName = $('#infoTargetName');
     if (infoName) {
-      if (tab === 'devices') infoName.textContent = t('cyberpi');
-      else if (tab === 'sprites') infoName.textContent = $('#spriteNameInput')?.value || t('panda');
+      if (tab === 'devices') {
+        const dev = DEVICE_LIBRARY.find((d) => d.id === state.activeDevice);
+        infoName.textContent = dev ? dev.name : t('cyberpi');
+      } else if (tab === 'sprites') infoName.textContent = $('#spriteNameInput')?.value || t('panda');
       else infoName.textContent = t('background');
     }
 
@@ -1383,10 +1385,10 @@
         fields: { TIMES: 5 },
         do: [
           { id: 'var_chg', fields: { VAR: 'contador', VALUE: 1 } },
-          { id: 'play_note', fields: { NOTE: 67 } }
+          { id: 'esp32_buzzer_tone', fields: { FREQ: 392, PIN: '17', MS: 200 } }
         ]
       },
-      { id: 'disp_print', fields: { TEXT: '¡Listo!' } }
+      { id: 'esp32_neopixel_fill', fields: { PIN: '16', N: 8, COLOR: '#25cc76' } }
     ],
     'esp32-wifi': [
       { id: 'evt_flag' },
