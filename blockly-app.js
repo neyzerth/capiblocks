@@ -353,6 +353,54 @@
       return true;
     },
 
+    /* Carga un programa de ejemplo en el lienzo: pasos en orden y `do` para anidar. */
+    loadProgram(steps) {
+      if (!workspace || !Array.isArray(steps)) return 0;
+      workspace.clear();
+      const m = workspace.getMetrics ? workspace.getMetrics() : null;
+      const startX = (m ? m.viewLeft : 0) + 48;
+      const startY = (m ? m.viewTop : 0) + 40;
+
+      const build = (list, isRoot) => {
+        let first = null;
+        let prev = null;
+        list.forEach((step) => {
+          if (!catalogById[step.id]) return;
+          const b = workspace.newBlock(typeOf(step.id));
+          if (step.fields) {
+            Object.keys(step.fields).forEach((name) => {
+              try {
+                const f = b.getField(name);
+                if (f) f.setValue(step.fields[name]);
+              } catch (_) {}
+            });
+          }
+          b.initSvg();
+          b.render();
+          if (step.do && step.do.length) {
+            const child = build(step.do, false);
+            const input = b.getInput('DO');
+            if (child && input && input.connection && child.previousConnection) {
+              input.connection.connect(child.previousConnection);
+            }
+          }
+          if (!first) {
+            first = b;
+            if (isRoot) b.moveBy(startX, startY);
+          }
+          if (prev && prev.nextConnection && b.previousConnection) {
+            prev.nextConnection.connect(b.previousConnection);
+          }
+          prev = b;
+        });
+        return first;
+      };
+
+      build(steps, true);
+      refreshCount();
+      return workspace.getAllBlocks(false).length;
+    },
+
     count() { return workspace ? workspace.getAllBlocks(false).length : 0; },
     refreshCount,
 

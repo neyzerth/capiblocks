@@ -2330,3 +2330,6 @@ body.is-dragging-block { cursor: grabbing; user-select: none; }
 }
 
 .settings-link:hover { color: var(--PRIMARY-COLOR-HOVER); }
+
+/* Confirmación de reemplazo */
+.modal-box-small { max-width: 440px; }

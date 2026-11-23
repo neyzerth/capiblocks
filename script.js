@@ -1135,38 +1135,88 @@
   }
 
   // Example programs loader
+  const EXAMPLES = {
+    panda: [
+      { id: 'evt_flag' },
+      { id: 'mov_steps' },
+      { id: 'look_say' },
+      { id: 'play_note', fields: { NOTE: 64 } }
+    ],
+    leds: [
+      { id: 'evt_start' },
+      { id: 'led_all', fields: { COLOR: '#ff5252' } },
+      { id: 'disp_print', fields: { TEXT: '¡Hola desde ESP32!' } },
+      { id: 'ctrl_wait', fields: { SECS: 1 } },
+      { id: 'led_single', fields: { COLOR: '#25cc76' } }
+    ],
+    counter: [
+      { id: 'evt_flag' },
+      { id: 'var_set', fields: { VAR: 'contador', VALUE: 1 } },
+      {
+        id: 'ctrl_repeat',
+        fields: { TIMES: 5 },
+        do: [
+          { id: 'var_chg', fields: { VAR: 'contador', VALUE: 1 } },
+          { id: 'play_note', fields: { NOTE: 67 } }
+        ]
+      },
+      { id: 'disp_print', fields: { TEXT: '¡Listo!' } }
+    ]
+  };
+
+  function workspaceHasWork() {
+    if (window.MBBlocks && MBBlocks.active()) return MBBlocks.count() > 0;
+    return state.blocks.length > 0;
+  }
+
+  function askReplace() {
+    return new Promise((resolve) => {
+      const modal = $('#replaceModal');
+      if (!modal) { resolve(true); return; }
+      const okBtn = $('#replaceOkBtn');
+      const cancelBtn = $('#replaceCancelBtn');
+      const finish = (ok) => {
+        okBtn?.removeEventListener('click', onOk);
+        cancelBtn?.removeEventListener('click', onCancel);
+        closeAllModals();
+        resolve(ok);
+      };
+      const onOk = () => finish(true);
+      const onCancel = () => finish(false);
+      okBtn?.addEventListener('click', onOk);
+      cancelBtn?.addEventListener('click', onCancel);
+      openModal('replaceModal');
+    });
+  }
+
+  function loadExampleProgram(ex) {
+    const steps = EXAMPLES[ex];
+    if (!steps) return;
+    closeAllModals();
+    if (window.MBBlocks && MBBlocks.active()) {
+      MBBlocks.loadProgram(steps);
+    } else {
+      const flat = [];
+      const walk = (list) => list.forEach((s) => {
+        flat.push({ ...(BLOCK_INDEX[s.id] || {}), uid: `${s.id}_${flat.length}` });
+        if (s.do) walk(s.do);
+      });
+      walk(steps);
+      state.blocks = flat;
+    }
+    renderWorkspaceBlocks();
+    updatePythonViews();
+    runBlocksSimulation();
+  }
+
   $$('[data-load-example]').forEach((btn) => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       const ex = btn.getAttribute('data-load-example');
-      pushUndo();
-      if (ex === 'panda') {
-        state.blocks = [
-          { ...BLOCKS_BY_CAT.events[0], uid: 'ex1_1' },
-          { ...BLOCKS_BY_CAT.motion[0], uid: 'ex1_2' },
-          { ...BLOCKS_BY_CAT.looks[0], uid: 'ex1_3' },
-          { ...BLOCKS_BY_CAT.audio[2], uid: 'ex1_4' }
-        ];
-      } else if (ex === 'leds') {
-        state.blocks = [
-          { ...BLOCKS_BY_CAT.events[2], uid: 'ex2_1' },
-          { ...BLOCKS_BY_CAT.led[0], uid: 'ex2_2' },
-          { ...BLOCKS_BY_CAT.display[0], uid: 'ex2_3' },
-          { ...BLOCKS_BY_CAT.control[0], uid: 'ex2_4' },
-          { ...BLOCKS_BY_CAT.led[1], uid: 'ex2_5' }
-        ];
-      } else {
-        state.blocks = [
-          { ...BLOCKS_BY_CAT.events[0], uid: 'ex3_1' },
-          { ...BLOCKS_BY_CAT.variables[0], uid: 'ex3_2' },
-          { ...BLOCKS_BY_CAT.control[1], uid: 'ex3_3' },
-          { ...BLOCKS_BY_CAT.variables[1], uid: 'ex3_4' },
-          { ...BLOCKS_BY_CAT.audio[3], uid: 'ex3_5' }
-        ];
+      if (workspaceHasWork()) {
+        const ok = await askReplace();
+        if (!ok) return;
       }
-      renderWorkspaceBlocks();
-      updatePythonViews();
-      closeAllModals();
-      runBlocksSimulation();
+      loadExampleProgram(ex);
     });
   });
 

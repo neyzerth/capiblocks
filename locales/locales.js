@@ -19,6 +19,10 @@ window.__I18N_DICTS = {
     backToEditor: "Back to Editor",
     openFullPolicy: "Open full privacy page",
     close: "Close",
+    cancel: "Cancel",
+    replaceTitle: "Replace program",
+    replaceBody: "This will delete what is on the canvas. Replace it with the example?",
+    replaceConfirm: "Replace",
 
     // Header
     file: "File",
@@ -256,6 +260,10 @@ window.__I18N_DICTS = {
     backToEditor: "Volver al editor",
     openFullPolicy: "Abrir página completa de privacidad",
     close: "Cerrar",
+    cancel: "Cancelar",
+    replaceTitle: "Reemplazar programa",
+    replaceBody: "Se borrará lo que tienes en el lienzo. ¿Reemplazarlo por el ejemplo?",
+    replaceConfirm: "Reemplazar",
 
     // Header
     file: "Archivo",
@@ -492,6 +500,10 @@ window.__I18N_DICTS = {
     backToEditor: "返回编辑器",
     openFullPolicy: "打开完整隐私页面",
     close: "关闭",
+    cancel: "取消",
+    replaceTitle: "替换程序",
+    replaceBody: "将清除画布中的内容。要用示例替换吗？",
+    replaceConfirm: "替换",
 
     file: "文件",
     untitled: "未命名",

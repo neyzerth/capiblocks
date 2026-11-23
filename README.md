@@ -13,6 +13,7 @@ de un servicio en línea y que se pueda corregir.
   Operadores, Variables y bloques propios.
 - Dispositivos: **ESP32** (predeterminado y fijado primero), CyberPi, mBot2, Halocode y Arduino Uno.
 - Escenario con mascota capibara, simulación de LEDs, pantalla y sonido.
+- Tres programas de ejemplo que cargan **bloques reales** en el lienzo, con aviso antes de reemplazar tu trabajo.
 - Vista de **Python** generada desde los bloques.
 - Guardar/abrir proyectos en archivo `.json`.
 - Interfaz en **español, inglés y chino** (`?lang=es`, `?lang=en`, `?lang=zh`).
