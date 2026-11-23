@@ -211,20 +211,38 @@ opciones de campo al cambiar de placa. Los ejemplos usan pines válidos en ambas
 
 ## ADR-018 · Animaciones de UI: CSS puro con cierre asíncrono
 
-**Contexto:** los modales, el toast y los submenús aparecían y desaparecían de golpe. El atributo
-`hidden` de HTML no permite animar la salida: `display:none` mata la animación al instante.
+**Contexto:** los modales, el toast, los submenús, el panel de bloques (flyout) y las pestañas del
+panel izquierdo aparecían y desaparecían de golpe. El atributo `hidden` de HTML no permite animar
+la salida: `display:none` mata la animación al instante.
 
 **Decisión:** la entrada corre sola con keyframes CSS al quitar `hidden` (volver de `display:none`
-reinicia la animación). La salida usa una clase transitoria (`.closing` en modales, `.hiding` en el
-toast) que el JS limpia y oculta cuando termina (`MODAL_CLOSE_MS` = 190 ms). Todo se desactiva con
-`prefers-reduced-motion: reduce`.
+reinicia la animación). La salida usa una clase transitoria (`.closing` en modales y flyout,
+`.hiding` en el toast) que el JS limpia y oculta cuando termina (`hideElAnimated`). Las pestañas
+del panel izquierdo solo animan la entrada: la salida instantánea mantiene el cambio inmediato.
+Todo se desactiva con `prefers-reduced-motion: reduce`.
 
 **Consecuencias:** cero dependencias y sin cambios en el HTML; el cierre deja de ser instantáneo, por
-lo que el código y las pruebas deben pasar por `closeAllModals()` y aserciones que reintentan (ver la
+lo que el código y las pruebas deben pasar por los helpers de cierre (`closeAllModals()` /
+`hideElAnimated()`) y aserciones que reintentan (ver la
 trampa en GUIA-DESARROLLO.md). **Revisar si:** alguna interacción necesita el modal oculto de forma
 síncrona.
 
-## ADR-019 · Catálogo de ejemplos tipado, SVG propios y placa declarada
+## ADR-019 · Dots del workspace: patrón de Blockly, no fondo CSS
+
+**Contexto:** los dots de la cuadrícula vivían en un `radial-gradient` del `.blocks-canvas`, pero
+el SVG de Blockly pinta su fondo opaco encima: en modo bloques nunca se veían y la casilla "Show
+Workspace Grid Dots" conmutaba una clase sin efecto visible.
+
+**Decisión:** la cuadrícula la dibuja Blockly (`grid` en las opciones de inyección: dots de
+~0.9 px cada 19.2 unidades, mismo look que el fondo CSS original), así se desplaza y escala con
+el lienzo como en mBlock. La casilla apaga el patrón tapando el rect de fondo con CSS
+(`fill !important` gana al estilo inline de Blockly) y la preferencia se guarda en
+`mblock.gridDots`, con el mismo restablecimiento que el resto de preferencias.
+
+**Consecuencias:** el `radial-gradient` queda solo como look previo a la inyección de Blockly.
+**Revisar si:** el tema cambia `workspaceBackgroundColour` (el CSS de apagado asume `#ffffff`).
+
+## ADR-020 · Catálogo de ejemplos tipado, SVG propios y placa declarada
 
 **Contexto:** el modal de ejemplos eran cuatro tarjetas estáticas en `index.html` con los pasos en una
 constante de `script.ts`. No había categorías, buscador ni imagen, y cargar un ejemplo con bloques
@@ -247,4 +265,3 @@ archivos por categoría permiten escribir contenido en paralelo sin conflictos. 
 codegen: solo garantiza que la placa activa sea la del ejemplo. La spec convierte un id de bloque
 inventado en un fallo con el nombre del ejemplo. Los `id` son estables (regla 3): se cambian los
 títulos, nunca los ids. Al ser obra propia (MIT), los SVG no añaden condiciones de terceros.
-
