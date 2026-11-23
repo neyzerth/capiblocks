@@ -10,6 +10,8 @@ pnpm dev          # desarrollo: build + servidor + recarga al guardar (puerto 80
 pnpm build        # construye dist/
 pnpm preview      # sirve dist/ ya construido
 pnpm check        # build + verificación (sale 1 si algo falta)
+pnpm test         # build + check + tests end-to-end (Playwright)
+pnpm test:e2e     # solo los tests de navegador
 
 # equivalentes sin pnpm:
 node dev.mjs [puerto] [--no-open]
@@ -54,7 +56,8 @@ gestor (pnpm/npm) solo ejecuta scripts de Node.
 
 ## Verificación antes de dar algo por hecho
 
-1. `pnpm check` en verde.
+0. `pnpm exec playwright install chromium` una vez por máquina.
+1. `pnpm test` en verde (check + 9 pruebas de navegador).
 2. Abrir `http://localhost:8080` a 1440 px: añadir dos bloques desde la paleta, arrastrar uno sobre
    otro y confirmar **una sola pila** + código Python con sangría correcta.
 3. Pulsar la bandera verde: el LED se enciende y el escenario muestra el texto.

@@ -12,7 +12,9 @@
     "build": "node build.mjs",
     "serve": "node build.mjs && node serve.mjs",
     "preview": "node serve.mjs",
-    "check": "node build.mjs && node check.mjs"
+    "check": "node build.mjs && node check.mjs",
+    "test:e2e": "playwright test",
+    "test": "node build.mjs && node check.mjs && playwright test"
   },
   "packageManager": "pnpm@12.15.0",
   "keywords": [
@@ -22,5 +24,8 @@
     "educacion",
     "espanol",
     "programacion-visual"
-  ]
+  ],
+  "devDependencies": {
+    "@playwright/test": "^1.65.1"
+  }
 }

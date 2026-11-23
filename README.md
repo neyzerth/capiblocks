@@ -34,6 +34,19 @@ pnpm check          # construye y verifica (archivos, sin URLs externas, marca, 
 Con npm: `npm run dev`, `npm run build`, `npm run preview`, `npm run check`.
 Sin gestor de paquetes: `node dev.mjs`, `node build.mjs`, `node serve.mjs`, `node check.mjs`.
 
+## Pruebas
+
+```bash
+pnpm exec playwright install chromium   # una sola vez
+pnpm test        # build + check estático + tests end-to-end
+pnpm test:e2e    # solo Playwright
+```
+
+Los tests cubren: motor activo, añadir bloques con clic, arrastre desde la paleta, encaje
+en pila, Python generado, guardar/restaurar, ejemplos con confirmación, ESP32 por defecto,
+sin scroll lateral a 390 px y cero peticiones externas. La lista completa de funcionalidades
+está en [docs/FUNCIONALIDADES.md](docs/FUNCIONALIDADES.md).
+
 También puedes abrir `dist/index.html` con doble clic: funciona igual.
 
 ## Estructura
