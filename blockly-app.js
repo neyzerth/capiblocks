@@ -331,6 +331,28 @@
       refreshCount();
     },
 
+    /* Suelta un bloque en un punto de la pantalla (arrastrar desde la paleta). */
+    addAt(id, clientX, clientY) {
+      if (!workspace || !catalogById[id]) return false;
+      const block = workspace.newBlock(typeOf(id));
+      block.initSvg();
+      block.render();
+      const svg = workspace.getParentSvg ? workspace.getParentSvg() : null;
+      const m = workspace.getMetrics ? workspace.getMetrics() : null;
+      let x = 48;
+      let y = 40;
+      if (svg && m) {
+        const r = svg.getBoundingClientRect();
+        const scale = workspace.scale || 1;
+        x = m.viewLeft + (clientX - r.left) / scale;
+        y = m.viewTop + (clientY - r.top) / scale;
+      }
+      block.moveBy(x - 20, y - 14);
+      block.select();
+      refreshCount();
+      return true;
+    },
+
     count() { return workspace ? workspace.getAllBlocks(false).length : 0; },
     refreshCount,
 

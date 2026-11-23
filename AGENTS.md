@@ -28,7 +28,8 @@ gestor (pnpm/npm) solo ejecuta scripts de Node.
 - `index.html`: estructura del IDE (header, escenario, panel de dispositivos, paleta, workspace).
 - `style.css`: tema completo. El color de acento vive en variables al inicio del archivo
   (`--HEADER-BG`, `--PRIMARY-COLOR`, `--BODY-BG`…). Rebrandear = tocar variables, no componentes.
-- `script.js`: UI y estado. `BLOCKS_BY_CAT` es **la fuente única** del catálogo de bloques
+- `script.js`: UI y estado. `attachFlyoutDrag` arrastra bloques de la paleta al lienzo
+  (`MBBlocks.addAt`); el clic sigue añadiéndolos. `BLOCKS_BY_CAT` es **la fuente única** del catálogo de bloques
   (id, color, `py`, `action`); los bloques de Blockly se generan desde ahí.
 - `blockly-app.js`: `window.MBBlocks` — definición dinámica de bloques, inyección del workspace
   (renderer `zelos`), generación de Python, acciones para el simulador, serialización y carga.
@@ -63,4 +64,3 @@ gestor (pnpm/npm) solo ejecuta scripts de Node.
 ## Pendientes conocidos
 
 - Workspace en móvil (< 768 px) está oculto por CSS: falta un panel o pestaña que lo muestre.
-- La paleta añade bloques con clic; falta arrastrarlos desde el flyout al lienzo.

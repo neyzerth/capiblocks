@@ -2300,3 +2300,18 @@ button, input, select, textarea {
 /* Wordmark unido: capiBlocks */
 .brand-wordmark { gap: 0; }
 .brand-wordmark .brand-makeblock { opacity: 0.82; }
+
+/* Arrastrar bloques desde la paleta al lienzo */
+.flyout-blocks .scratch-block { display: inline-block; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-drag: none; }
+.flyout-blocks .scratch-block .block-pill { margin-left: 5px; }
+body.is-dragging-block { cursor: grabbing; user-select: none; }
+.flyout-drag-ghost {
+  position: fixed;
+  z-index: 9999;
+  margin: 0 !important;
+  pointer-events: none;
+  opacity: 0.92;
+  transform: rotate(-1.5deg);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+}
+.blocks-canvas.drop-active { outline: 2px dashed var(--PRIMARY-COLOR); outline-offset: -6px; }

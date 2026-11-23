@@ -117,7 +117,8 @@
     { id: 'cyberpi', name: 'CyberPi', desc: 'Wi-Fi & AI single-board computer' },
     { id: 'mbot2', name: 'mBot2', desc: 'Smart educational coding robot' },
     { id: 'halocode', name: 'Halocode', desc: 'Wireless IoT board with LED ring' },
-    { id: 'arduino_uno', name: 'Arduino Uno', desc: 'Classic microcontroller board' }
+    { id: 'arduino_uno', name: 'Arduino Uno', desc: 'Classic microcontroller board' },
+    { id: 'esp32', name: 'ESP32', desc: 'Wi-Fi + Bluetooth IoT microcontroller' }
   ];
 
   const EXTENSION_LIBRARY = [
@@ -710,10 +711,88 @@
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'scratch-block' + (blk.hat ? ' hat-block' : '');
+      btn.draggable = false;
       btn.style.backgroundColor = blk.color;
       btn.innerHTML = formatBlockMarkup(t(blk.key));
-      btn.addEventListener('click', () => addBlockToWorkspace(blk));
+      attachFlyoutDrag(btn, blk);
       listEl.appendChild(btn);
+    });
+  }
+
+  /* Arrastrar un bloque de la paleta al lienzo (el clic sigue funcionando). */
+  let flyoutSuppressClick = false;
+
+  function attachFlyoutDrag(btn, blk) {
+    let press = null;
+    let ghost = null;
+    let dragging = false;
+
+    const onMove = (e) => {
+      if (!press || e.pointerId !== press.id) return;
+      const dx = e.clientX - press.x;
+      const dy = e.clientY - press.y;
+      if (!dragging && Math.hypot(dx, dy) < 7) return;
+      if (!dragging) {
+        dragging = true;
+        ghost = btn.cloneNode(true);
+        ghost.classList.add('flyout-drag-ghost');
+        ghost.style.width = `${btn.offsetWidth}px`;
+        document.body.appendChild(ghost);
+        document.body.classList.add('is-dragging-block');
+      }
+      e.preventDefault();
+      ghost.style.left = `${e.clientX - 22}px`;
+      ghost.style.top = `${e.clientY - 16}px`;
+      const over = document.elementFromPoint(e.clientX, e.clientY);
+      const onCanvas = !!(over && over.closest('#blocksCanvas'));
+      $('#blocksCanvas')?.classList.toggle('drop-active', onCanvas);
+    };
+
+    const cleanup = () => {
+      if (ghost) { ghost.remove(); ghost = null; }
+      document.body.classList.remove('is-dragging-block');
+      $('#blocksCanvas')?.classList.remove('drop-active');
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onCancel);
+      press = null;
+      dragging = false;
+    };
+
+    const onUp = (e) => {
+      if (!press || e.pointerId !== press.id) return;
+      const wasDragging = dragging;
+      const x = e.clientX;
+      const y = e.clientY;
+      cleanup();
+      if (!wasDragging) return;
+      flyoutSuppressClick = true;
+      setTimeout(() => { flyoutSuppressClick = false; }, 250);
+      const over = document.elementFromPoint(x, y);
+      if (over && over.closest('#blocksCanvas') && window.MBBlocks && MBBlocks.active()) {
+        MBBlocks.addAt(blk.id, x, y);
+        updatePythonViews();
+      }
+      e.preventDefault();
+    };
+
+    const onCancel = () => cleanup();
+
+    btn.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      press = { x: e.clientX, y: e.clientY, id: e.pointerId };
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+      window.addEventListener('pointercancel', onCancel);
+    });
+
+    btn.addEventListener('click', (e) => {
+      if (flyoutSuppressClick) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      addBlockToWorkspace(blk);
     });
   }
 
