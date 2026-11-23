@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" width="120" height="90" role="img" aria-label="Riego automático">
+  <rect width="120" height="90" fill="#26313c"/>
+  <!-- Maceta con tierra -->
+  <path d="M22 60 h30 l-4 20 h-22 z" fill="#a9b7c4" stroke="#6d7c8d" stroke-width="1.4" stroke-linejoin="round"/>
+  <rect x="19" y="54" width="36" height="7" rx="2" fill="#c9d4de" stroke="#6d7c8d" stroke-width="1.2"/>
+  <ellipse cx="37" cy="60" rx="15" ry="3" fill="#1d242b"/>
+  <!-- Planta -->
+  <path d="M37 58 V42" stroke="#25cc76" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M37 48 q-10 -2 -12 -11 q9 1 12 7 z" fill="#25cc76"/>
+  <path d="M37 51 q10 -3 13 -12 q-10 1 -13 8 z" fill="#1fae64"/>
+  <!-- Sonda de humedad clavada en la tierra -->
+  <rect x="48" y="34" width="8" height="12" rx="2" fill="#ffcf40"/>
+  <path d="M52 46 v14" stroke="#ffcf40" stroke-width="2.4" stroke-linecap="round"/>
+  <!-- Módulo relé -->
+  <rect x="70" y="8" width="42" height="26" rx="3" fill="#1d242b" stroke="#3a4552" stroke-width="1.4"/>
+  <rect x="75" y="13" width="11" height="16" rx="1.5" fill="#1eaaff"/>
+  <rect x="91" y="13" width="16" height="16" rx="2" fill="#111922" stroke="#ffcf40" stroke-width="1.3"/>
+  <path d="M95 21 h8" stroke="#25cc76" stroke-width="2" stroke-linecap="round"/>
+  <!-- Manguera del relé a la maceta -->
+  <path d="M84 34 q0 16 -22 22" fill="none" stroke="#ffcf40" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- Gotas -->
+  <g fill="#1eaaff">
+    <path d="M66 44 q4 6 0 8 q-4 -2 0 -8 z"/>
+    <path d="M74 38 q4 6 0 8 q-4 -2 0 -8 z"/>
+  </g>
+  <!-- LED de estado -->
+  <circle cx="79" cy="29" r="2.2" fill="#25cc76"/>
+</svg>

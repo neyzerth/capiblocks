@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" width="120" height="90" role="img" aria-label="Semáforo">
+  <rect width="120" height="90" fill="#26313c"/>
+  <!-- Poste -->
+  <rect x="56" y="66" width="8" height="20" rx="2" fill="#3a4552"/>
+  <rect x="44" y="80" width="32" height="5" rx="2.5" fill="#3a4552"/>
+  <!-- Carcasa -->
+  <rect x="42" y="6" width="36" height="62" rx="7" fill="#1d242b" stroke="#3a4552" stroke-width="1.6"/>
+  <!-- Luces: verde encendida, ámbar y rojo apagadas -->
+  <circle cx="60" cy="20" r="8" fill="#ff695a" opacity="0.3"/>
+  <circle cx="60" cy="20" r="5.6" fill="#7a3b39"/>
+  <circle cx="60" cy="37" r="8" fill="#ffcf40" opacity="0.3"/>
+  <circle cx="60" cy="37" r="5.6" fill="#7a6530"/>
+  <circle cx="60" cy="54" r="9" fill="#25cc76" opacity="0.3"/>
+  <circle cx="60" cy="54" r="6" fill="#25cc76"/>
+  <!-- Cables hacia los pines -->
+  <path d="M78 20 q10 6 10 18" fill="none" stroke="#ff695a" stroke-width="2"/>
+  <path d="M78 37 q14 4 14 14" fill="none" stroke="#ffcf40" stroke-width="2"/>
+  <path d="M78 54 q18 2 18 12" fill="none" stroke="#25cc76" stroke-width="2"/>
+  <circle cx="30" cy="34" r="2.4" fill="#ff695a"/>
+  <circle cx="30" cy="44" r="2.4" fill="#ffcf40"/>
+  <circle cx="30" cy="54" r="2.4" fill="#25cc76"/>
+</svg>

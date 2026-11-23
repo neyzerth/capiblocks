@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" width="120" height="90" role="img" aria-label="Variable que suma de dos en dos">
+  <rect width="120" height="90" fill="#26313c"/>
+  <!-- Placa con pantalla -->
+  <rect x="22" y="10" width="76" height="56" rx="6" fill="#1d242b" stroke="#3a4552" stroke-width="1.6"/>
+  <rect x="29" y="17" width="62" height="42" rx="3" fill="#111922"/>
+  <g font-family="ui-sans-serif, Arial, sans-serif">
+    <text x="36" y="29" font-size="8" font-weight="700" fill="#e8f0f7">puntos</text>
+    <text x="82" y="46" text-anchor="end" font-size="26" font-weight="700" fill="#25cc76">8</text>
+  </g>
+  <!-- Serie de la variable -->
+  <g font-family="ui-sans-serif, Arial, sans-serif" font-size="8" font-weight="700" fill="#e8f0f7" opacity="0.85">
+    <text x="36" y="54">2</text>
+    <text x="47" y="54">4</text>
+    <text x="58" y="54">6</text>
+  </g>
+  <!-- Operación suma -->
+  <g>
+    <circle cx="96" cy="24" r="9" fill="#ffcf40"/>
+    <path d="M92 24 h8 M96 20 v8" stroke="#1d242b" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+  <!-- Bucle de la variable -->
+  <g fill="none" stroke="#1eaaff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M24 74 h20"/>
+    <path d="M40 69 l6 5 l-6 5"/>
+    <path d="M96 74 h-22"/>
+    <path d="M80 69 l-6 5 l6 5"/>
+  </g>
+  <text x="60" y="76" text-anchor="middle" font-family="ui-sans-serif, Arial, sans-serif" font-size="9" font-weight="700" fill="#ffcf40">+2</text>
+</svg>
