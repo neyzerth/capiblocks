@@ -50,13 +50,18 @@
       { id: 'play_note', key: 'blkPlayNote', color: '#ab47bc', devices: ['cyberpi'], py: 'cyberpi.audio.play_music(60, 0.25)', action: { type: 'beep', freq: 659 } },
       { id: 'play_hz', key: 'blkPlayHz', color: '#ab47bc', devices: ['cyberpi'], py: 'cyberpi.audio.play_tone(700, 1)', action: { type: 'beep', freq: 700 } },
       { id: 'set_volume', key: 'blkSetVolume', color: '#ab47bc', devices: ['cyberpi'], py: 'cyberpi.audio.set_vol(80)' },
-      { id: 'stop_sounds', key: 'blkStopSounds', color: '#ab47bc', devices: ['cyberpi'], py: 'cyberpi.audio.stop()' }
+      { id: 'stop_sounds', key: 'blkStopSounds', color: '#ab47bc', devices: ['cyberpi'], py: 'cyberpi.audio.stop()' },
+      { id: 'esp32_buzzer_tone', key: 'blkEsp32Buzzer', color: '#ab47bc', devices: ['esp32'], esp32: '_capi_tone(PIN, FREQ, MS)' }
     ],
     led: [
       { id: 'led_all', key: 'blkLedAll', color: '#9300d8', devices: ['cyberpi'], py: 'cyberpi.led.on(255, 50, 50)', action: { type: 'led', color: '#ff5252' } },
       { id: 'led_single', key: 'blkLedSingle', color: '#9300d8', devices: ['cyberpi'], py: 'cyberpi.led.on(30, 170, 255, id=1)', action: { type: 'led', color: '#1eaaff' } },
       { id: 'led_off', key: 'blkLedOff', color: '#9300d8', devices: ['cyberpi'], py: 'cyberpi.led.off("all")', action: { type: 'led', color: 'off' } },
-      { id: 'led_bri', key: 'blkLedBrightness', color: '#9300d8', devices: ['cyberpi'], py: 'cyberpi.led.set_bri(50)' }
+      { id: 'led_bri', key: 'blkLedBrightness', color: '#9300d8', devices: ['cyberpi'], py: 'cyberpi.led.set_bri(50)' },
+      /* Salidas ESP32: tira neopixel y relé. */
+      { id: 'esp32_neopixel_fill', key: 'blkEsp32Neopixel', color: '#9300d8', devices: ['esp32'], esp32: '_capi_np_set(PIN, N, R, G, B)' },
+      { id: 'esp32_neopixel_off', key: 'blkEsp32NeoOff', color: '#9300d8', devices: ['esp32'], esp32: '_capi_np_set(PIN, N, 0, 0, 0)' },
+      { id: 'esp32_relay', key: 'blkEsp32Relay', color: '#9300d8', devices: ['esp32'], esp32: 'Pin(PIN, Pin.OUT).value(STATE)' }
     ],
     /* Pines GPIO/PWM/servo del ESP32 (MicroPython `machine.Pin`). */
     pins: [

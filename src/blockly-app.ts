@@ -65,6 +65,27 @@
         '    while e.value() == 1: pass',
         '    return time.ticks_diff(time.ticks_us(), s) * 0.01715'
       ].join('\n')
+    },
+    {
+      ids: ['esp32_neopixel_fill', 'esp32_neopixel_off'],
+      code: [
+        'def _capi_np_set(pin, n, r, g, b):',
+        '    import neopixel',
+        '    np = neopixel.NeoPixel(machine.Pin(pin), n)',
+        '    for i in range(n):',
+        '        np[i] = (r, g, b)',
+        '    np.write()'
+      ].join('\n')
+    },
+    {
+      ids: ['esp32_buzzer_tone'],
+      code: [
+        'def _capi_tone(pin, freq, ms):',
+        '    p = machine.PWM(machine.Pin(pin), int(freq))',
+        '    p.duty(512)',
+        '    time.sleep_ms(int(ms))',
+        '    p.deinit()'
+      ].join('\n')
     }
   ];
 
@@ -87,6 +108,10 @@
     esp32_read_pir: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '27' }, { name: 'VAR', type: 'text', def: 'mov' }],
     esp32_read_ldr: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_ADC), def: '32' }, { name: 'VAR', type: 'text', def: 'luz' }],
     esp32_read_button: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '4' }, { name: 'VAR', type: 'text', def: 'boton' }],
+    esp32_neopixel_fill: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '16' }, { name: 'N', type: 'number', def: 8 }, { name: 'COLOR', type: 'colour', def: '#ff5252' }],
+    esp32_neopixel_off: [{ name: 'N', type: 'number', def: 8 }, { name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '16' }],
+    esp32_buzzer_tone: [{ name: 'FREQ', type: 'number', def: 700 }, { name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '17' }, { name: 'MS', type: 'number', def: 300 }],
+    esp32_relay: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '26' }, { name: 'STATE', type: 'dropdown', options: [['ON', '1'], ['OFF', '0']] }],
     led_all: [{ name: 'COLOR', type: 'colour', def: '#ff5252' }],
     led_single: [{ name: 'COLOR', type: 'colour', def: '#1eaaff' }],
     disp_print: [{ name: 'TEXT', type: 'text', def: '¡Hola!' }],
@@ -266,6 +291,17 @@
         return `${fieldValue(block, 'VAR', 'luz')} = ADC(Pin(${fieldValue(block, 'PIN', '32')})).read()`;
       case 'esp32_read_button':
         return `${fieldValue(block, 'VAR', 'boton')} = 1 if Pin(${fieldValue(block, 'PIN', '4')}, Pin.IN, Pin.PULL_UP).value() == 0 else 0`;
+      /* --- Actuadores (ESP32): tira neopixel, buzzer y relé --- */
+      case 'esp32_neopixel_fill': {
+        const [r, g, b] = rgbFromHex(fieldValue(block, 'COLOR', '#ff5252'));
+        return `_capi_np_set(${fieldValue(block, 'PIN', '16')}, ${Number(fieldValue(block, 'N', 8)) || 0}, ${r}, ${g}, ${b})`;
+      }
+      case 'esp32_neopixel_off':
+        return `_capi_np_set(${fieldValue(block, 'PIN', '16')}, ${Number(fieldValue(block, 'N', 8)) || 0}, 0, 0, 0)`;
+      case 'esp32_buzzer_tone':
+        return `_capi_tone(${fieldValue(block, 'PIN', '17')}, ${Number(fieldValue(block, 'FREQ', 700)) || 0}, ${Number(fieldValue(block, 'MS', 300)) || 0})`;
+      case 'esp32_relay':
+        return `Pin(${fieldValue(block, 'PIN', '26')}, Pin.OUT).value(${fieldValue(block, 'STATE', '1')})`;
       case 'led_all': {
         const [r, g, b] = rgbFromHex(fieldValue(block, 'COLOR', '#ff5252'));
         return `cyberpi.led.on(${r}, ${g}, ${b})`;
@@ -400,6 +436,12 @@
         return { type: 'screen', text: '' };
       case 'ctrl_wait':
         return { type: 'wait', ms: Math.max(50, Number(fieldValue(block, 'SECS', 1)) * 450) };
+      case 'esp32_neopixel_fill':
+        return { type: 'led', color: fieldValue(block, 'COLOR', '#ff5252') };
+      case 'esp32_neopixel_off':
+        return { type: 'led', color: 'off' };
+      case 'esp32_buzzer_tone':
+        return { type: 'beep', freq: Number(fieldValue(block, 'FREQ', 700)) || 700 };
       case 'play_note': {
         const n = Number(fieldValue(block, 'NOTE', 60));
         return { type: 'beep', freq: Math.round(440 * Math.pow(2, (n - 69) / 12)) };

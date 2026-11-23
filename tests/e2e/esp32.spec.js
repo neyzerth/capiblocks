@@ -56,21 +56,21 @@ test('al cambiar a CyberPi vuelve el python de cyberpi y viceversa', async ({ pa
   expect(back).toContain('def on_flag():');
 });
 
-test('con ESP32 la paleta solo muestra las categorías del ESP32', async ({ page }) => {
+test('con ESP32 la paleta no muestra las categorías de CyberPi', async ({ page }) => {
   await boot(page);
-  await expect(page.locator('.toolbox-categories button')).toHaveCount(7);
-  await expect(page.locator('.toolbox-categories button', { hasText: /LED/ })).toHaveCount(0);
-  await expect(page.locator('.toolbox-categories button', { hasText: /Audio|音频/ })).toHaveCount(0);
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(9);
+  await expect(page.locator('.toolbox-categories button', { hasText: /Display|Pantalla|显示/ })).toHaveCount(0);
+  await expect(page.locator('.toolbox-categories button', { hasText: /Motion Sensing|Sensor de movimiento|体感/ })).toHaveCount(0);
 });
 
-test('la paleta sigue al dispositivo: CyberPi 13 categorías, ESP32 7', async ({ page }) => {
+test('la paleta sigue al dispositivo: CyberPi 13 categorías, ESP32 9', async ({ page }) => {
   await boot(page);
   await addCyberPi(page);
   await expect(page.locator('.toolbox-categories button')).toHaveCount(13);
   await expect(page.locator('.toolbox-categories button', { hasText: /LED/ })).toHaveCount(1);
 
   await page.locator('#deviceListCol .mtarget-card', { hasText: 'ESP32' }).click();
-  await expect(page.locator('.toolbox-categories button')).toHaveCount(7);
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(9);
 });
 
 /* --- T3: pines --- */
@@ -96,4 +96,20 @@ test('los sensores ESP32 emiten solo el helper que usan y leen el DHT por defect
   expect(py).toContain('    import dht');
   expect(py).toContain("temp = _capi_dht(2, 'DHT11')[0]");
   expect(py).not.toContain('def _capi_distance');
+});
+
+/* --- T5: actuadores --- */
+
+test('el bloque neopixel genera su helper y enciende la tira del escenario', async ({ page }) => {
+  await boot(page);
+  await addFromPalette(page, /LED/);
+  const py = await page.evaluate(() => MBBlocks.python());
+  expect(py).toContain('def _capi_np_set(pin, n, r, g, b):');
+  expect(py).toContain('_capi_np_set(16, 8, 255, 82, 82)');
+  expect(py).not.toContain('cyberpi');
+
+  await page.locator('#runBtn').click();
+  const strip = page.locator('#stageLedStrip');
+  await expect(strip).toBeVisible();
+  await expect(strip.locator('.led-dot').first()).toHaveCSS('background-color', 'rgb(255, 82, 82)');
 });
