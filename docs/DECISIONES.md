@@ -208,3 +208,19 @@ PIR 27, LDR 32) desaparecen: el default es la primera opción de la lista activa
 **Consecuencias:** el codegen no cambia (la API de `machine` es idéntica); solo cambian las
 opciones de campo al cambiar de placa. Los ejemplos usan pines válidos en ambas variantes
 (2, 4, 5, 16, 17, 18, 15).
+
+## ADR-018 · Animaciones de UI: CSS puro con cierre asíncrono
+
+**Contexto:** los modales, el toast y los submenús aparecían y desaparecían de golpe. El atributo
+`hidden` de HTML no permite animar la salida: `display:none` mata la animación al instante.
+
+**Decisión:** la entrada corre sola con keyframes CSS al quitar `hidden` (volver de `display:none`
+reinicia la animación). La salida usa una clase transitoria (`.closing` en modales, `.hiding` en el
+toast) que el JS limpia y oculta cuando termina (`MODAL_CLOSE_MS` = 190 ms). Todo se desactiva con
+`prefers-reduced-motion: reduce`.
+
+**Consecuencias:** cero dependencias y sin cambios en el HTML; el cierre deja de ser instantáneo, por
+lo que el código y las pruebas deben pasar por `closeAllModals()` y aserciones que reintentan (ver la
+trampa en GUIA-DESARROLLO.md). **Revisar si:** alguna interacción necesita el modal oculto de forma
+síncrona.
+
