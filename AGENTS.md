@@ -34,7 +34,7 @@ gestor (pnpm/npm) solo ejecuta scripts de Node.
   (renderer `zelos`), generación de Python, acciones para el simulador, serialización y carga.
 - `i18n.js` + `locales/locales.js`: traducciones; las etiquetas de bloques se releen al cambiar idioma
   (`MBBlocks.relabel`).
-- `build.mjs` / `serve.mjs` / `check.mjs`: build, servidor local y verificación.
+- `build.mjs` / `serve.mjs` / `dev.mjs` / `check.mjs`: build, servidor local, modo desarrollo con recarga y verificación.
 
 ## Reglas que no se rompen
 
@@ -53,7 +53,7 @@ gestor (pnpm/npm) solo ejecuta scripts de Node.
 
 ## Verificación antes de dar algo por hecho
 
-1. `npm run check` en verde.
+1. `pnpm check` en verde.
 2. Abrir `http://localhost:8080` a 1440 px: añadir dos bloques desde la paleta, arrastrar uno sobre
    otro y confirmar **una sola pila** + código Python con sangría correcta.
 3. Pulsar la bandera verde: el LED se enciende y el escenario muestra el texto.
