@@ -106,7 +106,6 @@
             <li class="submenu-item" role="menuitem" data-file-action="save-local" data-t="fileSaveLocal">Save to your computer</li>
             <li class="submenu-item" role="menuitem" data-file-action="export-py" data-t="fileExportPython">Export Python (.py)</li>
             <li class="submenu-divider phone-only" role="separator"></li>
-            <li class="submenu-item phone-only" role="menuitem" data-modal-open="feedbackModal" data-t="feedback">Feedback</li>
             <li class="submenu-item phone-only" role="menuitem" data-modal-open="settingsModal" data-t="setting">Setting</li>
           </ul>
         </li>
@@ -127,14 +126,6 @@
               <path d="M1.5 3.2C3.3 2.5 5.6 2.6 7.5 3.8v9.4c-1.8-1-4-1.2-6-.5V3.2zm13 0c-1.8-.7-4.1-.6-6 .6v9.4c1.8-1 4-1.2 6-.5V3.2z"/>
             </svg>
             <span data-t="examplePrograms">Example Programs</span>
-          </button>
-        </li>
-        <li class="menu-item menu-item-feedback" id="feedback" role="none">
-          <button type="button" class="menu-trigger" role="menuitem" data-modal-open="feedbackModal">
-            <svg class="icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
-              <path d="M2 2.5A1.5 1.5 0 0 1 3.5 1h9A1.5 1.5 0 0 1 14 2.5v7A1.5 1.5 0 0 1 12.5 11H6l-3 3v-3H3.5A1.5 1.5 0 0 1 2 9.5v-7zM5 5.2a.8.8 0 1 0 0 1.6.8.8 0 0 0 0-1.6zm3 0a.8.8 0 1 0 0 1.6.8.8 0 0 0 0-1.6zm3 0a.8.8 0 1 0 0 1.6.8.8 0 0 0 0-1.6z"/>
-            </svg>
-            <span data-t="feedback">Feedback</span>
           </button>
         </li>
         <li class="menu-item menu-item-setting" id="setting" role="none">
@@ -669,23 +660,6 @@
           </div>
         </div>
       </div>
-    </div>
-  </div>
-
-  <div class="modal-backdrop" id="feedbackModal" role="dialog" aria-modal="true" hidden>
-    <div class="modal-box">
-      <div class="modal-header">
-        <h2 data-t="feedbackTitle">Send Feedback</h2>
-        <button type="button" class="modal-close" data-modal-close aria-label="Close">×</button>
-      </div>
-      <form id="feedbackForm" class="modal-body">
-        <textarea id="feedbackText" class="modal-textarea" rows="4" required data-t-placeholder="feedbackPlaceholder"></textarea>
-        <input type="email" id="feedbackEmail" class="modal-input" data-t-placeholder="feedbackEmailPlaceholder">
-        <div class="modal-footer inline-footer">
-          <button type="button" class="modal-btn-secondary" data-modal-close data-t="close">Close</button>
-          <button type="submit" class="modal-btn-primary" data-t="feedbackSubmit">Submit Feedback</button>
-        </div>
-      </form>
     </div>
   </div>
 

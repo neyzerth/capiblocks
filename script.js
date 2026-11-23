@@ -1256,15 +1256,6 @@
     });
   });
 
-  // Feedback form
-  $('#feedbackForm')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    $('#feedbackText').value = '';
-    $('#feedbackEmail').value = '';
-    closeAllModals();
-    showToast(t('feedbackThanks'));
-  });
-
   // Settings toggles
   $('#toggleGridDots')?.addEventListener('change', (e) => {
     $('#blocksCanvas')?.classList.toggle('no-grid', !e.target.checked);
