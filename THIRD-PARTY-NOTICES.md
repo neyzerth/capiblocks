@@ -10,6 +10,13 @@
 Blockly se distribuye **sin modificaciones** dentro de `vendor/blockly/`. El código de capiBlocks
 es MIT; Blockly conserva su licencia Apache-2.0 y sus avisos de copyright.
 
+## CodeMirror
+
+- Proyecto: CodeMirror 5 — https://github.com/codemirror/codemirror5
+- Versión vendorizada: 5.65.21 (`vendor/codemirror/`)
+- Licencia: MIT. Copia en `vendor/codemirror/LICENSE`.
+- Uso: editor de Python (resaltado, números de línea, Tab) y panel de vista previa.
+
 ## Inspiración de interfaz
 
 La disposición visual (header, escenario, panel de dispositivos, paleta) está inspirada en editores

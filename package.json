@@ -26,6 +26,7 @@
     "programacion-visual"
   ],
   "devDependencies": {
-    "@playwright/test": "^1.65.1"
+    "@playwright/test": "^1.65.1",
+    "codemirror": "^5.65.21"
   }
 }

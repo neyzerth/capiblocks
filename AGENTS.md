@@ -35,6 +35,7 @@ gestor (pnpm/npm) solo ejecuta scripts de Node.
   (id, color, `py`, `action`); los bloques de Blockly se generan desde ahí.
 - `blockly-app.js`: `window.MBBlocks` — definición dinámica de bloques, inyección del workspace
   (renderer `zelos`), generación de Python, acciones para el simulador, serialización y carga.
+- `python-editor.js`: editor CodeMirror (resaltado, Tab) montado en la pestaña Python y en el panel de vista previa.
 - `i18n.js` + `locales/locales.js`: traducciones; las etiquetas de bloques se releen al cambiar idioma
   (`MBBlocks.relabel`).
 - `build.mjs` / `serve.mjs` / `dev.mjs` / `check.mjs`: build, servidor local, modo desarrollo con recarga y verificación.

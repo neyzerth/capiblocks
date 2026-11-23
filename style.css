@@ -2333,3 +2333,19 @@ body.is-dragging-block { cursor: grabbing; user-select: none; }
 
 /* Confirmación de reemplazo */
 .modal-box-small { max-width: 440px; }
+
+/* Editor de Python (CodeMirror 5) */
+.python-editor-pane .CodeMirror,
+.code-preview-drawer .CodeMirror {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+  background: #ffffff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.python-editor-pane .CodeMirror-gutters { background: #fbf7f1; border-right: 1px solid var(--BORDER-COLOR); }
+.python-editor-pane .CodeMirror-linenumber { color: #a08d7c; }
+.python-editor-pane .CodeMirror-activeline-background { background: #faf3ea; }
+.code-preview-drawer .CodeMirror { font-size: 12px; line-height: 1.5; }

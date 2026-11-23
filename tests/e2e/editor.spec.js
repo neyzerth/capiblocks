@@ -69,6 +69,23 @@ test('arrastrar un bloque sobre otro los encaja en una pila', async ({ page }) =
   await expect.poll(async () => (await topBlockRects(page)).length).toBe(1);
 });
 
+test('editor Python con resaltado de sintaxis y Tab', async ({ page }) => {
+  await boot(page);
+  await addFromPalette(page, 1);
+  await page.locator('[data-editor-mode="python"]').click();
+
+  const pane = page.locator('#pythonEditorPane');
+  await expect(pane.locator('.CodeMirror')).toBeVisible();
+  await expect(pane.locator('.cm-keyword').first()).toHaveText('import');
+  await expect(pane.locator('.CodeMirror-linenumber').first()).toBeVisible();
+
+  await pane.locator('.CodeMirror-code').click();
+  await page.keyboard.press('Control+End');
+  await page.keyboard.press('Tab');
+  const value = await page.evaluate(() => MBPythonEditor.getValue());
+  expect(value.endsWith('    ')).toBe(true);
+});
+
 test('guardar en el navegador y restaurar al recargar', async ({ page }) => {
   await boot(page);
   await addFromPalette(page, 1);

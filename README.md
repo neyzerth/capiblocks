@@ -14,7 +14,7 @@ de un servicio en línea y que se pueda corregir.
 - Dispositivos: **ESP32** (predeterminado y fijado primero), CyberPi, mBot2, Halocode y Arduino Uno.
 - Escenario con mascota capibara, simulación de LEDs, pantalla y sonido.
 - Tres programas de ejemplo que cargan **bloques reales** en el lienzo, con aviso antes de reemplazar tu trabajo.
-- Vista de **Python** generada desde los bloques.
+- Vista de **Python** generada desde los bloques, en un editor con resaltado de sintaxis, números de línea y Tab.
 - Guardar/abrir proyectos en archivo `.json`.
 - Interfaz en **español, inglés y chino** (`?lang=es`, `?lang=en`, `?lang=zh`).
 - Todo funciona desde el disco (`file://`): cero peticiones a internet.
@@ -55,7 +55,8 @@ También puedes abrir `dist/index.html` con doble clic: funciona igual.
 index.html, style.css, script.js     interfaz y lógica del IDE
 i18n.js, locales/locales.js          traducciones es / en / zh
 blockly-app.js                       puente con Blockly: bloques, Python, simulación
-vendor/blockly/                      motor Blockly (Apache-2.0) vendorizado
+python-editor.js                     editor Python (CodeMirror) vendorizado
+vendor/blockly/, vendor/codemirror/  motores vendorizados (Apache-2.0 / MIT)
 build.mjs, serve.mjs, check.mjs      construir, servir, verificar
 dist/                                salida del build (no se versiona)
 ```

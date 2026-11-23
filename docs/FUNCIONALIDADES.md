@@ -20,6 +20,7 @@ Leyenda: ✅ hecho · 🚧 en curso · ⬜ pendiente.
   Se agregan y quitan desde la biblioteca de dispositivos.
 - ✅ Bloques IoT: LEDs, matriz/pantalla, audio, sensores, LAN, IA, Wi-Fi/nube.
 - ✅ **Vista Python** generada desde la pila real, con sangría según la anidación, y exportación `.py`.
+- ✅ **Editor Python ligero** (CodeMirror): resaltado de sintaxis, números de línea, Tab/Shift-Tab, autocompletado de paréntesis y copiar/ejecutar.
 - ⬜ Generación de código específico por placa (MicroPython/Arduino) y conexión real al hardware.
 
 ## 3. Simulación

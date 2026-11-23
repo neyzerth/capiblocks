@@ -19,7 +19,8 @@ const siteFiles = [
   'i18n.js',
   'favicon.ico',
   'favicon.svg',
-  'blockly-app.js'
+  'blockly-app.js',
+  'python-editor.js'
 ];
 
 fs.rmSync(out, { recursive: true, force: true });
@@ -39,6 +40,20 @@ console.log('copiado blockly.min.js (vendor/blockly)');
 fs.cpSync(path.join(vendor, 'media'), path.join(out, 'blockly-media'), { recursive: true });
 fs.copyFileSync(path.join(vendor, 'LICENSE'), path.join(out, 'blockly-media', 'LICENSE'));
 console.log('copiado blockly-media');
+
+// CodeMirror (vendor/codemirror) con nombres planos
+const cmVendor = path.join(root, 'vendor', 'codemirror');
+const cmFiles = [
+  ['codemirror.js', 'codemirror.js'],
+  ['codemirror.css', 'codemirror.css'],
+  ['python.js', 'codemirror-python.js'],
+  ['closebrackets.js', 'codemirror-closebrackets.js'],
+  ['matchbrackets.js', 'codemirror-matchbrackets.js']
+];
+for (const [from, to] of cmFiles) {
+  fs.copyFileSync(path.join(cmVendor, from), path.join(out, to));
+  console.log('copiado', to);
+}
 
 for (const page of ['index.html', 'privacy.html']) {
   if (!fs.existsSync(path.join(out, page))) throw new Error(`falta ${page} en dist/`);

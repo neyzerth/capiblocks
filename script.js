@@ -973,6 +973,11 @@
 
   function updatePythonViews() {
     const code = generatePythonCode();
+    if (window.MBPythonEditor) {
+      MBPythonEditor.setValue(code);
+      MBPythonEditor.setPreview(code);
+      return;
+    }
     const pre = $('#codePreviewPre');
     if (pre) pre.textContent = code;
     const ta = $('#pythonTextarea');
@@ -993,6 +998,7 @@
       });
       $('#pythonEditorPane').hidden = mode !== 'python';
       if (mode === 'blocks' && window.MBBlocks) MBBlocks.resize();
+      if (mode === 'python' && window.MBPythonEditor) MBPythonEditor.refresh();
       updatePythonViews();
     });
   });
@@ -1002,6 +1008,7 @@
     if (!drawer) return;
     drawer.hidden = !drawer.hidden;
     updatePythonViews();
+    if (window.MBPythonEditor) MBPythonEditor.refresh();
   });
 
   $('#closePreviewBtn')?.addEventListener('click', () => {
@@ -1009,7 +1016,7 @@
   });
 
   function copyPythonText(btn) {
-    const code = $('#pythonTextarea')?.value || generatePythonCode();
+    const code = (window.MBPythonEditor ? MBPythonEditor.getValue() : $('#pythonTextarea')?.value) || generatePythonCode();
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(code).catch(() => {});
     }
@@ -1309,6 +1316,10 @@
         updatePythonViews();
       }
     });
+  }
+  if (window.MBPythonEditor) {
+    MBPythonEditor.mount($('#pythonTextarea'));
+    MBPythonEditor.mountPreview($('#codePreviewPre'));
   }
   renderDeviceList();
   restoreLastProject();
