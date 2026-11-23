@@ -45,6 +45,8 @@ Leyenda: ✅ hecho · 🚧 en curso · ⬜ pendiente.
 - ✅ Responsive a 1440/768; sin scroll lateral a 390 px.
 - 🚧 Workspace utilizable en teléfono (< 768 px): hoy la paleta se ve, el lienzo se oculta.
 - ✅ Privacidad: sin telemetría; la política vive en Ajustes, no estorba en la vista.
+- ✅ Aviso de compatibilidad como icono en la barra de navegación (abre el estado del entorno);
+  sin barra inferior permanente.
 
 ## 6. Calidad
 

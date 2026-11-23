@@ -2349,3 +2349,16 @@ body.is-dragging-block { cursor: grabbing; user-select: none; }
 .python-editor-pane .CodeMirror-linenumber { color: #a08d7c; }
 .python-editor-pane .CodeMirror-activeline-background { background: #faf3ea; }
 .code-preview-drawer .CodeMirror { font-size: 12px; line-height: 1.5; }
+
+/* Estado del entorno en la barra de navegación */
+.menu-item-env .menu-trigger { position: relative; }
+.env-dot {
+  position: absolute;
+  top: 7px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--WARN-ORANGE);
+  box-shadow: 0 0 0 2px var(--HEADER-BG);
+}

@@ -255,6 +255,7 @@
       renderDeviceLibrary();
       renderExtensionLibrary();
       renderEnvCheck();
+      updateEnvBadge();
       updateDeviceStatusText();
       updatePythonViews();
     });
@@ -399,13 +400,6 @@
 
   $('#privacyModalAgreeBtn')?.addEventListener('click', () => {
     closeAllModals();
-  });
-
-  $('#compatCloseBtn')?.addEventListener('click', () => {
-    const bar = $('#compatTipBar');
-    if (bar) bar.hidden = true;
-    const toggle = $('#toggleCompatBar');
-    if (toggle) toggle.checked = false;
   });
 
   /* ===========================
@@ -1060,16 +1054,26 @@
     });
   });
 
-  function renderEnvCheck() {
-    const list = $('#envCheckList');
-    if (!list) return;
-    const checks = [
-      { label: t('envWebGL'), ok: true },
-      { label: t('envStorage'), ok: typeof window.localStorage !== 'undefined' },
-      { label: t('envAudio'), ok: Boolean(window.AudioContext || window.webkitAudioContext) },
+  function getEnvChecks() {
+    return [
+      { label: t('envWebGL'), ok: true, critical: true },
+      { label: t('envStorage'), ok: typeof window.localStorage !== 'undefined', critical: true },
+      { label: t('envAudio'), ok: Boolean(window.AudioContext || window.webkitAudioContext), critical: true },
       { label: t('envSerial'), ok: 'serial' in navigator },
       { label: t('envBluetooth'), ok: 'bluetooth' in navigator }
     ];
+  }
+
+  function updateEnvBadge() {
+    const dot = $('#envStatusDot');
+    if (!dot) return;
+    dot.hidden = !getEnvChecks().some((c) => c.critical && !c.ok);
+  }
+
+  function renderEnvCheck() {
+    const list = $('#envCheckList');
+    if (!list) return;
+    const checks = getEnvChecks();
     list.innerHTML = checks.map((c) => `
       <li class="env-check-item">
         <span>${c.label}</span>
@@ -1261,18 +1265,12 @@
     $('#blocksCanvas')?.classList.toggle('no-grid', !e.target.checked);
   });
 
-  $('#toggleCompatBar')?.addEventListener('change', (e) => {
-    $('#compatTipBar').hidden = !e.target.checked;
-  });
-
   $('#resetPrefsBtn')?.addEventListener('click', () => {
     try {
       localStorage.removeItem('mblock.lang');
       localStorage.removeItem('mblock.privacyAgreed');
       localStorage.removeItem('mblock.lastProject');
     } catch (_) {}
-    $('#compatTipBar').hidden = false;
-    $('#toggleCompatBar').checked = true;
     $('#toggleGridDots').checked = true;
     $('#blocksCanvas')?.classList.remove('no-grid');
     if (window.__I18N_SET) window.__I18N_SET('en');
@@ -1312,6 +1310,7 @@
     MBPythonEditor.mount($('#pythonTextarea'));
     MBPythonEditor.mountPreview($('#codePreviewPre'));
   }
+  updateEnvBadge();
   renderDeviceList();
   restoreLastProject();
   renderWorkspaceBlocks();

@@ -131,6 +131,14 @@ test('ESP32 es el dispositivo fijado y CyberPi se puede añadir', async ({ page 
   await expect(page.locator('#deviceListCol .mtarget-card .mtarget-name')).toHaveText(['ESP32', 'CyberPi']);
 });
 
+test('el aviso de compatibilidad vive en la barra de navegación', async ({ page }) => {
+  await boot(page);
+  await expect(page.locator('#compatTipBar')).toHaveCount(0);
+  await page.locator('#envStatus button').click();
+  await expect(page.locator('#envModal')).toBeVisible();
+  await expect(page.locator('#envCheckList li')).toHaveCount(5);
+});
+
 test('no hay scroll lateral a 390 px', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
