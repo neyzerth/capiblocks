@@ -8,6 +8,20 @@
 (function () {
   /** Tiempo máximo por defecto que se espera una respuesta de la placa. */
   const REPLY_TIMEOUT_MS = 15000;
+  /** Bytes de código fuente que viajan en cada `exec` de la subida. */
+  const UPLOAD_CHUNK = 768;
+  /** Tiempo máximo por chunk durante la subida (la placa escribe a flash). */
+  const UPLOAD_TIMEOUT_MS = 8000;
+
+  /** Resultado de `replRun`. */
+  interface ReplResult {
+    /** El código se envió y la placa lo aceptó. */
+    ok: boolean;
+    /** Salida del programa hasta que terminó (vacía si sigue corriendo). */
+    output: string;
+    /** true si el programa finito terminó; false si quedó en ejecución. */
+    finished: boolean;
+  }
 
   let port: any = null;
   let reader: any = null;
@@ -20,6 +34,8 @@
   let waitTimer: any = null;
   let lineHandler: ((line: string) => void) | null = null;
   let statusHandler: ((s: string) => void) | null = null;
+  /** Líneas recogidas mientras se mide la salida de un programa Live. */
+  let capture: string[] | null = null;
 
   /** Notifica el estado de la conexión ('connecting' | 'connected' | 'disconnected'). */
   function fireStatus(s: string) {
@@ -28,6 +44,7 @@
 
   /** Entrega una línea de salida de la placa a quien escuche la consola. */
   function fireLine(line: string) {
+    if (capture) capture.push(line);
     if (lineHandler) lineHandler(line);
   }
 
@@ -127,6 +144,13 @@
     return writeBytes(new TextEncoder().encode(s));
   }
 
+  /** Codifica bytes en base64 con btoa (disponible con target es2020). */
+  function base64FromBytes(slice: Uint8Array): string {
+    let bin = '';
+    for (let i = 0; i < slice.length; i++) bin += String.fromCharCode(slice[i]);
+    return btoa(bin);
+  }
+
   /**
    * Abre el puerto elegido por el usuario (Web Serial) y arranca la lectura.
    * Resuelve `true` si queda conectado; rechaza con un mensaje legible si el
@@ -201,6 +225,86 @@
     await writeBytes(new Uint8Array([2]));
   }
 
+  /**
+   * Live: ejecuta el código por REPL crudo (no se guarda en la placa).
+   * `finished` es false cuando el programa sigue corriendo (p. ej. `while True`)
+   * y por eso no llegó el fin de ejecución; en ese caso NO se sale del REPL
+   * crudo para que su salida siga llegando a la consola.
+   */
+  async function replRun(code: string): Promise<ReplResult> {
+    if (!port || !writer) throw new Error('serial no conectado');
+    await interrupt();
+    await writeText('\r\n');
+    await interrupt();
+    await enterRaw();
+    try {
+      await writeText(code);
+      await writeBytes(new Uint8Array([4])); // EOT: acepta el código
+      await waitFor('OK', 3000); // la placa responde OK antes de ejecutar
+    } catch (err) {
+      // Si no aceptó el código, no dejar el REPL en modo crudo.
+      try {
+        await exitRaw();
+      } catch (_) {}
+      throw err;
+    }
+    let out = '';
+    try {
+      out = await waitFor('\x04>', 2500); // término = el programa finito terminó
+    } catch (_) {
+      return { ok: true, output: '', finished: false }; // while True: sigue corriendo
+    }
+    await exitRaw();
+    const clean = out.replace('OK', '').replace(/\x04/g, '').replace(/\r/g, '').trim();
+    return { ok: true, output: clean, finished: true };
+  }
+
+  /**
+   * Upload: escribe `main.py` por chunks base64 y reinicia la placa (Ctrl-D).
+   * El primer chunk abre el archivo ('wb') y los siguientes lo añaden ('ab');
+   * cada chunk es un `exec` crudo independiente que espera `\x04>`.
+   * Resuelve `true` cuando la placa se reinició y rechaza si un chunk falla.
+   */
+  async function uploadMainPy(code: string): Promise<boolean> {
+    if (!port || !writer) throw new Error('serial no conectado');
+    await interrupt();
+    await interrupt();
+    await enterRaw();
+    try {
+      const bytes = new TextEncoder().encode(code);
+      for (let i = 0; i < bytes.length || i === 0; i += UPLOAD_CHUNK) {
+        const slice = bytes.subarray(i, i + UPLOAD_CHUNK);
+        const b64 = base64FromBytes(slice);
+        // ubinascii viene en el firmware oficial: sin dependencias en la placa.
+        const exec =
+          i === 0
+            ? "import ubinascii\nwith open('main.py','wb') as _f: _f.write(ubinascii.a2b_base64('" +
+              b64 +
+              "'))\n"
+            : "with open('main.py','ab') as _f: _f.write(ubinascii.a2b_base64('" +
+              b64 +
+              "'))\n";
+        await writeText(exec);
+        await writeBytes(new Uint8Array([4]));
+        await waitFor('\x04>', UPLOAD_TIMEOUT_MS);
+      }
+      await exitRaw();
+    } catch (err) {
+      // Nunca dejar la placa atrapada en el REPL crudo tras un fallo.
+      try {
+        await exitRaw();
+      } catch (_) {}
+      throw err;
+    }
+    await writeText('\x04'); // Ctrl-D: soft reset → corre main.py
+    try {
+      await waitFor('>>>', 3000);
+    } catch (_) {
+      // El reinicio puede tardar más que la espera: no es un fallo de subida.
+    }
+    return true;
+  }
+
   window.MBSerial = {
     /** ¿El navegador expone Web Serial? */
     available() {
@@ -213,7 +317,10 @@
     connect,
     disconnect,
     interrupt,
-    writeLine
-    /* replRun y uploadMainPy llegan en T10 */
+    writeLine,
+    /** Live: ejecuta el código por REPL crudo. */
+    replRun,
+    /** Upload: escribe main.py y reinicia la placa. */
+    uploadMainPy
   };
 })();

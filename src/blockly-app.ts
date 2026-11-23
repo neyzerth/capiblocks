@@ -13,6 +13,34 @@
   let entries: any[] = [];
   let onChange: (() => void) | null = null;
   let lang = 'en';
+  /* Dispositivo activo para el codegen; la UI lo sincroniza con `setDevice`. */
+  let device = 'esp32';
+
+  /* Imports extra que el preámbulo ESP32 añade solo si el programa los usa.
+     El catálogo puede declararlos en `entry.imports`; este mapa cubre los
+     bloques base para que el motor no dependa de cada entrada. */
+  const ESP32_IMPORTS: Record<string, string[]> = {
+    esp32_wifi_connect: ['network'],
+    esp32_wifi_is_up: ['network'],
+    esp32_http_get: ['network'],
+    esp32_http_post: ['network'],
+    esp32_ntp_sync: ['ntptime']
+  };
+  const ESP32_IMPORT_ORDER = ['network', 'ntptime'];
+  const ESP32_IMPORT_CODE: Record<string, string> = {
+    network: 'import network',
+    ntptime: 'import ntptime'
+  };
+
+  /* Sombreros que en ESP32 se vuelven funciones llamadas al arrancar. */
+  const ESP32_START_HATS: Record<string, string> = {
+    evt_flag: 'on_flag',
+    evt_start: 'on_start'
+  };
+
+  /* Helpers de MicroPython: se emiten solo los que usan los bloques presentes.
+     `ids` son los bloques que disparan el helper (los llena el catálogo). */
+  const HELPERS: { ids: string[]; code: string }[] = [];
 
   /* Blocks whose label placeholders become editable fields. */
   const FIELD_SPECS: Record<string, any[]> = {
@@ -148,7 +176,7 @@
     const id = idOf(block.type);
     const entry = catalogById[id];
     if (!entry) return 'pass';
-    let py = entry.py || 'pass';
+    let py = (device === 'esp32' && entry.esp32) ? entry.esp32 : (entry.py || 'pass');
     switch (id) {
       case 'led_all': {
         const [r, g, b] = rgbFromHex(fieldValue(block, 'COLOR', '#ff5252'));
@@ -203,6 +231,69 @@
       }
       b = b.getNextBlock();
     }
+  }
+
+  /* ids de todos los bloques del programa: sombreros, cadenas y cuerpos DO. */
+  function collectUsedIds() {
+    const used = new Set<string>();
+    const walk = (block) => {
+      let b = block;
+      let guard = 0;
+      while (b && guard < 400) {
+        guard += 1;
+        used.add(idOf(b.type));
+        statementChildren(b).forEach(walk);
+        b = b.getNextBlock();
+      }
+    };
+    if (workspace) workspace.getTopBlocks(true).forEach(walk);
+    return used;
+  }
+
+  /* Programa MicroPython para ESP32: preámbulo con imports/helpers usados,
+     cuerpo y llamada a los sombreros de evento al final. */
+  function pythonEsp32() {
+    const lines = [
+      '# capiBlocks → MicroPython (ESP32)',
+      'import machine, time',
+      'from machine import Pin, PWM, ADC'
+    ];
+    const used = collectUsedIds();
+
+    const extraImports = new Set<string>();
+    used.forEach((id) => {
+      const entry = catalogById[id];
+      const declared = (entry && Array.isArray(entry.imports)) ? entry.imports : [];
+      declared.forEach((name) => extraImports.add(name));
+      (ESP32_IMPORTS[id] || []).forEach((name) => extraImports.add(name));
+    });
+    ESP32_IMPORT_ORDER.forEach((name) => {
+      const code = ESP32_IMPORT_CODE[name];
+      if (code && extraImports.has(name)) lines.push(code);
+    });
+    lines.push('');
+
+    /* Solo los helpers que el programa usa, en orden de declaración. */
+    HELPERS.forEach((helper) => {
+      if (!helper.ids.some((id) => used.has(id))) return;
+      lines.push(helper.code);
+      lines.push('');
+    });
+
+    const tops = workspace ? workspace.getTopBlocks(true) : [];
+    tops.forEach((b) => emitChain(b, '', lines));
+    if (tops.length) lines.push('');
+
+    /* Arranque: una llamada por sombrero de evento, sin repetir. */
+    const calls: string[] = [];
+    tops.forEach((b) => {
+      const fn = ESP32_START_HATS[idOf(b.type)];
+      if (fn && calls.indexOf(fn) === -1) calls.push(fn);
+    });
+    lines.push('# --- capiBlocks: arranque ---');
+    if (calls.length) calls.forEach((fn) => lines.push(fn + '()'));
+    else lines.push('pass');
+    return lines.join('\n');
   }
 
   function actionFor(block) {
@@ -281,11 +372,15 @@
 /** ¿El workspace está montado y listo? */
     active() { return !!workspace; },
 
+/** Fija el dispositivo activo (codegen y paleta). */
+    setDevice(id) { device = id || 'esp32'; },
+
 /** Registra los bloques del catálogo y monta Blockly en #blocklyDiv. */
     init(opts) {
       if (workspace) return;
       labelFor = opts.labelFor || labelFor;
       lang = opts.lang || lang;
+      device = opts.device || device;
       catalogById = {};
       entries = [];
       Object.keys(opts.blocksByCat || {}).forEach((cat) => {
@@ -413,6 +508,7 @@
 
 /** Código Python generado desde la pila actual. */
     python() {
+      if (device === 'esp32') return pythonEsp32();
       const header = lang === 'es'
         ? '# Código Python generado desde los bloques'
         : lang === 'zh'

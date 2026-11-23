@@ -81,9 +81,9 @@
       { id: 'iot_send', key: 'blkIotSend', color: '#a6d200', py: 'cyberpi.cloud.broadcast("status", "ok")' }
     ],
     events: [
-      { id: 'evt_flag', key: 'blkEvtFlag', color: '#ffbf00', hat: true, py: '@event.start\ndef on_start():' },
+      { id: 'evt_flag', key: 'blkEvtFlag', color: '#ffbf00', hat: true, py: '@event.start\ndef on_start():', esp32: 'def on_flag():' },
       { id: 'evt_key', key: 'blkEvtKey', color: '#ffbf00', hat: true, py: '@event.is_press("space")\ndef on_key():' },
-      { id: 'evt_start', key: 'blkEvtStart', color: '#ffbf00', hat: true, py: '@event.start\ndef on_cyberpi_start():' }
+      { id: 'evt_start', key: 'blkEvtStart', color: '#ffbf00', hat: true, py: '@event.start\ndef on_cyberpi_start():', esp32: 'def on_start():' }
     ],
     control: [
       { id: 'ctrl_wait', key: 'blkCtrlWait', color: '#ffab19', py: 'time.sleep(1)', action: { type: 'wait', ms: 450 } },
@@ -325,9 +325,7 @@
     if (p.name) syncProjectName(p.name, '');
     if (p.device && DEVICE_LIBRARY.some((d) => d.id === p.device)) {
       if (!state.addedDevices.includes(p.device)) state.addedDevices.unshift(p.device);
-      state.activeDevice = p.device;
-      const dev = DEVICE_LIBRARY.find((d) => d.id === p.device);
-      if (dev && $('#infoTargetName')) $('#infoTargetName').textContent = dev.name;
+      setActiveDevice(p.device);
     }
     if (p.blocks && p.blocks.engine === 'blockly' && window.MBBlocks && MBBlocks.active()) {
       MBBlocks.load(p.blocks.state);
@@ -1141,19 +1139,33 @@
         if ((e.target as Element)?.closest('.mtarget-delete-btn')) {
           if (state.addedDevices.length > 1) {
             state.addedDevices = state.addedDevices.filter((x) => x !== dev.id);
-            state.activeDevice = state.addedDevices[0];
-            const nextDev = DEVICE_LIBRARY.find((d) => d.id === state.activeDevice);
-            if (nextDev) $('#infoTargetName').textContent = nextDev.name;
-            renderDeviceList();
+            setActiveDevice(state.addedDevices[0]);
           }
           return;
         }
-        state.activeDevice = dev.id;
-        $('#infoTargetName').textContent = dev.name;
-        renderDeviceList();
+        setActiveDevice(dev.id);
       });
       col.insertBefore(card, addBtn);
     });
+  }
+
+  /* Fija el dispositivo activo: motor de codegen, paleta y vistas quedan al día.
+     Cierra el flyout si la categoría abierta ya no existe para ese dispositivo. */
+  function setActiveDevice(devId: string) {
+    if (!devId) return;
+    state.activeDevice = devId;
+    const dev = DEVICE_LIBRARY.find((d) => d.id === devId);
+    if (dev && $('#infoTargetName')) $('#infoTargetName').textContent = dev.name;
+    if (window.MBBlocks) MBBlocks.setDevice(devId);
+    if (state.activeCategory && !getActiveCategories().some((c) => c.id === state.activeCategory)) {
+      state.activeCategory = null;
+      const flyout = $('#blocklyFlyout');
+      if (flyout) flyout.hidden = true;
+    }
+    renderToolbox();
+    if (state.activeCategory || state.searchMode) renderFlyout();
+    renderDeviceList();
+    updatePythonViews();
   }
 
   function renderExtensionLibrary() {
@@ -1306,6 +1318,7 @@
       blocksByCat: BLOCKS_BY_CAT,
       labelFor: blockLabelFor,
       lang: window.__I18N_LANG || 'en',
+      device: state.activeDevice,
       onChange: () => {
         MBBlocks.refreshCount();
         updatePythonViews();
