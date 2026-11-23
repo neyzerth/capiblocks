@@ -25,6 +25,7 @@
   };
 
   window.MBPythonEditor = {
+/** Monta el editor editable sobre el textarea de la pestaña Python. */
     mount(textarea) {
       if (main || !textarea) return false;
       main = CodeMirror.fromTextArea(textarea, Object.assign({}, base, {
@@ -34,6 +35,7 @@
       return true;
     },
 
+/** Monta una instancia de solo lectura para el panel de vista previa. */
     mountPreview(el) {
       if (preview || !el) return false;
       preview = CodeMirror(el, Object.assign({}, base, {
@@ -43,25 +45,30 @@
       return true;
     },
 
+/** Reemplaza el código del editor principal. */
     setValue(value) {
       if (main && main.getValue() !== value) main.setValue(value);
     },
 
+/** Código actual del editor (o del textarea si no hay CodeMirror). */
     getValue() {
       if (main) return main.getValue();
       const ta = document.getElementById('pythonTextarea') as HTMLTextAreaElement | null;
       return ta ? ta.value : '';
     },
 
+/** Actualiza el código del panel de vista previa. */
     setPreview(value) {
       if (preview && preview.getValue() !== value) preview.setValue(value);
     },
 
+/** Recalcula el layout (llamar al mostrar el contenedor). */
     refresh() {
       if (main) setTimeout(() => main.refresh(), 0);
       if (preview) setTimeout(() => preview.refresh(), 0);
     },
 
+/** Enfoca el editor. */
     focus() {
       if (main) main.focus();
     }

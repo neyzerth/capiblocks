@@ -1,3 +1,4 @@
+/** Diccionarios de la interfaz: es, en y zh (clave → texto). */
 const I18N_DICTS = {
   en: {
     pageTitle: "capiBlocks Block-Based IDE- Coding for Beginners",

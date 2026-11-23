@@ -45,8 +45,18 @@ pnpm test:e2e    # solo Playwright
 
 Los tests cubren: motor activo, añadir bloques con clic, arrastre desde la paleta, encaje
 en pila, Python generado, guardar/restaurar, ejemplos con confirmación, ESP32 por defecto,
-sin scroll lateral a 390 px y cero peticiones externas. La lista completa de funcionalidades
-está en [docs/FUNCIONALIDADES.md](docs/FUNCIONALIDADES.md).
+sin scroll lateral a 390 px y cero peticiones externas.
+
+## Documentación
+
+- [Funcionalidades](docs/FUNCIONALIDADES.md) — qué debe hacer la app, con estado de cada punto.
+- [Arquitectura](docs/ARQUITECTURA.md) — capas, flujo de datos, APIs de `MBBlocks`/`MBPythonEditor`
+  y formato de proyecto.
+- [Guía de desarrollo](docs/GUIA-DESARROLLO.md) — comandos, recetas (bloques, dispositivos,
+  idiomas, ejemplos) y trampas conocidas.
+- [Decisiones de diseño](docs/DECISIONES.md) — por qué Blockly, CodeMirror, TypeScript sin
+  framework y MIT.
+- [AGENTS.md](AGENTS.md) — instrucciones para agentes de código.
 
 También puedes abrir `dist/index.html` con doble clic: funciona igual.
 
@@ -70,7 +80,7 @@ dist/                                salida del build (no se versiona)
 - [ ] Workspace utilizable en teléfono (hoy se oculta en < 768 px).
 - [x] Arrastrar bloques desde la paleta al lienzo (el clic sigue disponible).
 - [ ] Más bloques IoT y ejemplos para clase.
-- [ ] Despliegue automático en GitHub Pages.
+- [x] Despliegue automático en GitHub Pages.
 
 ## Licencia
 

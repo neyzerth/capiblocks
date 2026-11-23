@@ -1,3 +1,7 @@
+/**
+ * i18n mínimo: diccionarios en window.__I18N_DICTS, traducción por data-t y
+ * cambio de idioma con evento `i18n:change`.
+ */
 (() => {
   const DICTS: Record<string, Record<string, string>> = window.__I18N_DICTS || {};
   const SUPPORTED = Object.keys(DICTS).length ? Object.keys(DICTS) : ['en'];
@@ -16,6 +20,7 @@
   let currentLang = detectInitialLang();
   let currentDict: Record<string, string> = DICTS[currentLang] || DICTS.en || {};
 
+  /** Traduce una clave; cae al inglés y luego al fallback. */
   function t(key: string, fallback?: string): string {
     if (Object.prototype.hasOwnProperty.call(currentDict, key)) {
       return currentDict[key];

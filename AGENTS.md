@@ -42,6 +42,14 @@ gestor (pnpm/npm) solo ejecuta scripts de Node.
   (`MBBlocks.relabel`).
 - `build.mjs` / `serve.mjs` / `dev.mjs` / `check.mjs`: build (esbuild), servidor local, modo desarrollo con recarga y verificación.
 
+## Documentación
+
+- `docs/ARQUITECTURA.md` describe capas, flujo y APIs públicas; actualízala al cambiar
+  `MBBlocks`, `MBPythonEditor` o el formato de guardado.
+- `docs/FUNCIONALIDADES.md` es la lista de lo que debe funcionar; marca los puntos al implementar.
+- `docs/GUIA-DESARROLLO.md` tiene recetas y trampas; añade una trampa nueva cuando la descubras.
+- `docs/DECISIONES.md` registra el porqué de las elecciones técnicas.
+
 ## Reglas que no se rompen
 
 1. **Cero recursos externos.** Nada de CDNs, fuentes web ni APIs remotas: el sitio debe funcionar

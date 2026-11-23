@@ -278,8 +278,10 @@
   }
 
   window.MBBlocks = {
+/** ¿El workspace está montado y listo? */
     active() { return !!workspace; },
 
+/** Registra los bloques del catálogo y monta Blockly en #blocklyDiv. */
     init(opts) {
       if (workspace) return;
       labelFor = opts.labelFor || labelFor;
@@ -302,6 +304,7 @@
     },
 
     /* Rebuild blocks with new labels, keeping the program. */
+/** Reconstruye los bloques con otro idioma conservando el programa. */
     relabel(nextLabelFor) {
       if (!workspace) return;
       const state = B.serialization.workspaces.save(workspace);
@@ -317,6 +320,7 @@
       refreshCount();
     },
 
+/** Añade un bloque debajo del contenido actual (clic en la paleta). */
     add(id) {
       if (!workspace || !catalogById[id]) return;
       const block = workspace.newBlock(typeOf(id));
@@ -332,6 +336,7 @@
     },
 
     /* Suelta un bloque en un punto de la pantalla (arrastrar desde la paleta). */
+/** Añade un bloque en el punto de la pantalla donde se suelta (arrastre). */
     addAt(id, clientX, clientY) {
       if (!workspace || !catalogById[id]) return false;
       const block = workspace.newBlock(typeOf(id));
@@ -354,6 +359,7 @@
     },
 
     /* Carga un programa de ejemplo en el lienzo: pasos en orden y `do` para anidar. */
+/** Carga un programa de ejemplo: pasos en orden y `do` para anidar. */
     loadProgram(steps) {
       if (!workspace || !Array.isArray(steps)) return 0;
       workspace.clear();
@@ -401,9 +407,11 @@
       return workspace.getAllBlocks(false).length;
     },
 
+/** Número de bloques en el workspace. */
     count() { return workspace ? workspace.getAllBlocks(false).length : 0; },
     refreshCount,
 
+/** Código Python generado desde la pila actual. */
     python() {
       const header = lang === 'es'
         ? '# Código Python generado desde los bloques'
@@ -423,6 +431,7 @@
       return lines.join('\n');
     },
 
+/** Acciones para el simulador del escenario (LED, pantalla, sonido, movimiento). */
     actions() {
       const out = [];
       if (!workspace) return out;
@@ -431,8 +440,10 @@
       return out;
     },
 
+/** Estado serializable del workspace para guardar el proyecto. */
     serialize() { return workspace ? B.serialization.workspaces.save(workspace) : null; },
 
+/** Reemplaza el workspace con un estado serializado. */
     load(state) {
       if (!workspace || !state) return;
       workspace.clear();
@@ -440,13 +451,21 @@
       refreshCount();
     },
 
+/** Vacía el workspace. */
     clear() { if (workspace) { workspace.clear(); refreshCount(); } },
+/** Deshace el último cambio. */
     undo() { if (workspace) workspace.undo(false); },
+/** Rehace el último cambio deshecho. */
     redo() { if (workspace) workspace.undo(true); },
+/** Acerca la vista. */
     zoomIn() { if (workspace) workspace.zoomCenter(1); },
+/** Aleja la vista. */
     zoomOut() { if (workspace) workspace.zoomCenter(-1); },
+/** Restablece escala y posición. */
     zoomReset() { if (workspace) { workspace.setScale(0.9); workspace.scrollCenter(); } },
+/** Reordena los bloques sueltos. */
     cleanUp() { if (workspace) workspace.cleanUp(); },
+/** Recalcula el tamaño tras mostrar el contenedor. */
     resize() { if (workspace && B.svgResize) B.svgResize(workspace); }
   };
 })();

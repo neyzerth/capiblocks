@@ -1,3 +1,8 @@
+/**
+ * UI del IDE: menús, dispositivos, paleta, ejemplos, guardado y simulación.
+ * El catálogo BLOCKS_BY_CAT es la fuente única de los bloques; el workspace de
+ * Blockly es la fuente de verdad del programa (window.MBBlocks).
+ */
 (() => {
   const $ = (sel: string, root: ParentNode = document): any => root.querySelector(sel);
   const $$ = (sel: string, root: ParentNode = document): any[] => Array.from(root.querySelectorAll(sel));
