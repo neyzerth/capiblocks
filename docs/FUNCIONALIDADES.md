@@ -27,12 +27,24 @@ Leyenda: ✅ hecho · 🚧 en curso · ⬜ pendiente.
 
 - ✅ Escenario con mascota capibara: LEDs, pantalla, sonido, movimiento, giro, fondos.
 - ✅ Ejecutar (bandera verde) y detener; los bloques repetidos se limitan para no colgar la página.
+- ✅ **Varios objetos en escena**: lista dinámica con miniatura y nombre, selección, borrado (nunca
+  el último) y tarjeta «+ Añadir»; los bloques y las propiedades actúan sobre el objeto activo.
+- ✅ **Biblioteca de objetos**: 24 piezas con buscador (sin acentos), píldoras de categoría, doble
+  clic para añadir y subida de PNG/SVG propios («Mis objetos»).
+- ✅ **Pestaña Fondo**: lista de miniaturas, contador de disfraces y biblioteca con 4 presets CSS y
+  8 imágenes; «siguiente fondo» recorre los fondos del proyecto.
+- ⬜ Editor de pintura (el botón «Pintar» está deshabilitado).
+- ⬜ Botones Disfraces y Sonidos del objeto y del escenario.
+- ⬜ Subida de fondos propios.
 - ⬜ Sensores simulados con controles (luz, botón, distancia).
 
 ## 4. Proyectos
 
-- ✅ **Guardar en el navegador** y **restaurar al recargar** (nombre, dispositivo y bloques).
-- ✅ Guardar/abrir proyecto en archivo `.json` y exportar Python.
+- ✅ **Guardar en el navegador** y **restaurar al recargar** (nombre, dispositivo, bloques, objetos
+  y fondos).
+- ✅ Guardar/abrir proyecto en archivo `.json` (incluye objetos y fondos) y exportar Python.
+- ✅ Si un objeto subido hace que el proyecto pase de 2 MB, el guardado local omite los subidos y
+  avisa; el `.json` los conserva.
 - ✅ **Nuevo proyecto** limpia el guardado (no resucita el anterior).
 - ✅ Tres programas de ejemplo con **bloques reales**; si hay trabajo en el lienzo,
   se pide confirmación antes de reemplazarlo.
@@ -52,5 +64,5 @@ Leyenda: ✅ hecho · 🚧 en curso · ⬜ pendiente.
 
 - ✅ Código en **TypeScript** estricto (`pnpm typecheck`) y verificación del build (`node check.mjs`).
 - ✅ Tests end-to-end con **Playwright** (`pnpm test:e2e`): bloques, arrastre, Python,
-  guardado/restauración, ejemplos, ESP32 y layout móvil.
+  guardado/restauración, objetos y fondos, ejemplos, ESP32 y layout móvil.
 - ⬜ Tests unitarios de utilidades puras (sin DOM).
