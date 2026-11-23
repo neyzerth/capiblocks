@@ -2064,6 +2064,13 @@ button, input, select, textarea {
   color: var(--TEXT-SECONDARY-COLOR);
 }
 
+/* Biblioteca de dispositivos: cuadrícula de dos columnas, como el modal de ejemplos. */
+#deviceLibraryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
 /* Biblioteca de dispositivos: ilustración de la placa + nombre, descripción y
    botón. Mismo vocabulario que .example-card--program (miniatura + cuerpo). */
 .device-card {
@@ -2954,7 +2961,11 @@ body.is-dragging-block { cursor: grabbing; user-select: none; }
     width: 92px;
   }
 
-  /* Tarjetas de dispositivos: miniatura más estrecha en pantallas pequeñas. */
+  /* Tarjetas de dispositivos: una columna y miniatura más estrecha en pantallas pequeñas. */
+  #deviceLibraryGrid {
+    grid-template-columns: 1fr;
+  }
+
   .device-card {
     grid-template-columns: 92px minmax(0, 1fr);
   }
