@@ -43,6 +43,8 @@ test('cada ejemplo carga bloques, genera Python y tiene su miniatura', async ({ 
 
     const py = await page.evaluate(() => window.MBBlocks.python());
     expect(py.length, `ejemplo ${ex.id} no generó Python`).toBeGreaterThan(0);
+    /* Interpolación rota: un campo sin valor filtraría undefined/NaN al código. */
+    expect(py, `ejemplo ${ex.id} filtró undefined/NaN en el Python`).not.toMatch(/undefined|NaN/);
 
     // Miniatura servida por HTTP (no file://) con contenido real.
     const ok = await page.evaluate((src) => new Promise((resolve) => {
