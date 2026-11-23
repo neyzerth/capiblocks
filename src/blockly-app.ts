@@ -42,8 +42,20 @@
      `ids` son los bloques que disparan el helper (los llena el catálogo). */
   const HELPERS: { ids: string[]; code: string }[] = [];
 
+  /* Pines del ESP32 para los desplegables: [etiqueta, valor] con etiqueta = número. */
+  const PINS_DIGITAL = ['2', '4', '5', '12', '13', '14', '15', '16', '17', '18', '19', '21', '22', '23', '25', '26', '27', '32', '33'];
+  /* Solo entradas ADC (GPIO 34-39 no tienen pull-up ni salida). */
+  const PINS_ADC = ['32', '33', '34', '35', '36', '39'];
+  const pinOptions = (list: string[]) => list.map((p) => [p, p]);
+
   /* Blocks whose label placeholders become editable fields. */
   const FIELD_SPECS: Record<string, any[]> = {
+    esp32_pin_out: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL) }, { name: 'LEVEL', type: 'dropdown', options: [['ALTO', '1'], ['BAJO', '0']] }],
+    esp32_pin_read: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL) }, { name: 'VAR', type: 'text', def: 'estado' }],
+    esp32_pin_analog: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_ADC) }, { name: 'VAR', type: 'text', def: 'valor' }],
+    esp32_pwm_set: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL) }, { name: 'DUTY', type: 'number', def: 50 }],
+    esp32_pwm_stop: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL) }],
+    esp32_servo_angle: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL) }, { name: 'ANGLE', type: 'number', def: 90 }],
     led_all: [{ name: 'COLOR', type: 'colour', def: '#ff5252' }],
     led_single: [{ name: 'COLOR', type: 'colour', def: '#1eaaff' }],
     disp_print: [{ name: 'TEXT', type: 'text', def: '¡Hola!' }],
@@ -78,15 +90,24 @@
     });
   }
 
+  /* Los campos se colocan en el orden en que aparecen los [PLACEHOLDER] de la
+     etiqueta traducida: `args0` sigue los %n, y el orden de los huecos cambia
+     entre idiomas (zh coloca [PIN] antes que [WHAT]). Si el texto del hueco no
+     coincide con el nombre de un campo, se toma el siguiente por posición. */
   function messageFor(entry) {
-    let label = String(labelFor(entry.id) || entry.id);
+    const label = String(labelFor(entry.id) || entry.id);
     const specs = FIELD_SPECS[entry.id] || [];
-    let n = 0;
-    label = label.replace(/\[[^\]]*\]/g, (m) => {
-      n += 1;
-      return specs[n - 1] ? '%' + n : '';
+    const ordered: any[] = [];
+    let index = 0;
+    const message = label.replace(/\[([^\]]*)\]/g, (_match, name) => {
+      let spec = specs.filter((s) => s.name === name)[0];
+      if (!spec) spec = specs[index];
+      index += 1;
+      if (!spec) return '';
+      ordered.push(spec);
+      return '%' + ordered.length;
     });
-    return { message: label.trim(), specs: specs.slice(0, n) };
+    return { message: message.trim(), specs: ordered };
   }
 
   function defineBlocks() {
@@ -180,6 +201,23 @@
     if (!entry) return 'pass';
     let py = (device === 'esp32' && entry.esp32) ? entry.esp32 : (entry.py || 'pass');
     switch (id) {
+      /* --- Pines (ESP32): GPIO, PWM y servo --- */
+      case 'esp32_pin_out':
+        return `Pin(${fieldValue(block, 'PIN', '2')}, Pin.OUT).value(${fieldValue(block, 'LEVEL', '1')})`;
+      case 'esp32_pin_read':
+        return `${fieldValue(block, 'VAR', 'estado')} = Pin(${fieldValue(block, 'PIN', '2')}, Pin.IN).value()`;
+      case 'esp32_pin_analog':
+        return `${fieldValue(block, 'VAR', 'valor')} = ADC(Pin(${fieldValue(block, 'PIN', '32')})).read()`;
+      case 'esp32_pwm_set': {
+        const duty = Math.max(0, Math.min(100, Number(fieldValue(block, 'DUTY', 50)) || 0));
+        return `PWM(Pin(${fieldValue(block, 'PIN', '2')}), 1000).duty(int(${duty} * 10.23))`;
+      }
+      case 'esp32_pwm_stop':
+        return `PWM(Pin(${fieldValue(block, 'PIN', '2')}), 1000).deinit()`;
+      case 'esp32_servo_angle': {
+        const angle = Number(fieldValue(block, 'ANGLE', 90)) || 0;
+        return `PWM(Pin(${fieldValue(block, 'PIN', '2')}), 50).duty(int(25.6 + ${angle} * 0.568))`;
+      }
       case 'led_all': {
         const [r, g, b] = rgbFromHex(fieldValue(block, 'COLOR', '#ff5252'));
         return `cyberpi.led.on(${r}, ${g}, ${b})`;

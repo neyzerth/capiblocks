@@ -56,19 +56,31 @@ test('al cambiar a CyberPi vuelve el python de cyberpi y viceversa', async ({ pa
   expect(back).toContain('def on_flag():');
 });
 
-test('con ESP32 la paleta solo muestra las categorías universales', async ({ page }) => {
+test('con ESP32 la paleta solo muestra las categorías del ESP32', async ({ page }) => {
   await boot(page);
-  await expect(page.locator('.toolbox-categories button')).toHaveCount(5);
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(6);
   await expect(page.locator('.toolbox-categories button', { hasText: /LED/ })).toHaveCount(0);
   await expect(page.locator('.toolbox-categories button', { hasText: /Audio|音频/ })).toHaveCount(0);
 });
 
-test('la paleta sigue al dispositivo: CyberPi 13 categorías, ESP32 5', async ({ page }) => {
+test('la paleta sigue al dispositivo: CyberPi 13 categorías, ESP32 6', async ({ page }) => {
   await boot(page);
   await addCyberPi(page);
   await expect(page.locator('.toolbox-categories button')).toHaveCount(13);
   await expect(page.locator('.toolbox-categories button', { hasText: /LED/ })).toHaveCount(1);
 
   await page.locator('#deviceListCol .mtarget-card', { hasText: 'ESP32' }).click();
-  await expect(page.locator('.toolbox-categories button')).toHaveCount(5);
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(6);
+});
+
+/* --- T3: pines --- */
+
+test('los bloques de pines generan GPIO y PWM con sus valores por defecto', async ({ page }) => {
+  await boot(page);
+  await addFromPalette(page, /Pins|Pines|引脚/);
+  await addFromPalette(page, /Pins|Pines|引脚/, 5); // servo
+  const py = await page.evaluate(() => MBBlocks.python());
+  expect(py).toContain('from machine import Pin, PWM, ADC');
+  expect(py).toContain('Pin(2, Pin.OUT).value(1)');
+  expect(py).toContain('PWM(Pin(2), 50).duty(int(25.6 + 90 * 0.568))');
 });

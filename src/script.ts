@@ -58,6 +58,15 @@
       { id: 'led_off', key: 'blkLedOff', color: '#9300d8', devices: ['cyberpi'], py: 'cyberpi.led.off("all")', action: { type: 'led', color: 'off' } },
       { id: 'led_bri', key: 'blkLedBrightness', color: '#9300d8', devices: ['cyberpi'], py: 'cyberpi.led.set_bri(50)' }
     ],
+    /* Pines GPIO/PWM/servo del ESP32 (MicroPython `machine.Pin`). */
+    pins: [
+      { id: 'esp32_pin_out', key: 'blkEsp32PinOut', color: '#4c97ff', devices: ['esp32'], esp32: 'Pin(PIN, Pin.OUT).value(LEVEL)' },
+      { id: 'esp32_pin_read', key: 'blkEsp32PinRead', color: '#4c97ff', devices: ['esp32'], esp32: 'VAR = Pin(PIN, Pin.IN).value()' },
+      { id: 'esp32_pin_analog', key: 'blkEsp32PinAnalog', color: '#4c97ff', devices: ['esp32'], esp32: 'VAR = ADC(Pin(PIN)).read()' },
+      { id: 'esp32_pwm_set', key: 'blkEsp32PwmSet', color: '#4c97ff', devices: ['esp32'], esp32: 'PWM(Pin(PIN), 1000).duty(int(DUTY * 10.23))' },
+      { id: 'esp32_pwm_stop', key: 'blkEsp32PwmStop', color: '#4c97ff', devices: ['esp32'], esp32: 'PWM(Pin(PIN), 1000).deinit()' },
+      { id: 'esp32_servo_angle', key: 'blkEsp32Servo', color: '#4c97ff', devices: ['esp32'], esp32: 'PWM(Pin(PIN), 50).duty(int(25.6 + ANGLE * 0.568))' }
+    ],
     display: [
       { id: 'disp_print', key: 'blkDisplayPrint', color: '#6739b6', devices: ['cyberpi'], py: 'cyberpi.console.println("Hello mBlock!")', action: { type: 'screen', text: 'Hello mBlock!' } },
       { id: 'disp_clear', key: 'blkDisplayClear', color: '#6739b6', devices: ['cyberpi'], py: 'cyberpi.console.clear()', action: { type: 'screen', text: '' } },

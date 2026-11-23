@@ -31,7 +31,7 @@ async function topBlockRects(page) {
 test('carga la app con el motor de bloques activo', async ({ page }) => {
   await boot(page);
   await expect(page).toHaveTitle(/capiBlocks/);
-  await expect(page.locator('.toolbox-categories button')).toHaveCount(5);
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(6);
   await expect(page.locator('#blocklyDiv svg.blocklySvg')).toBeVisible();
 });
 
@@ -63,8 +63,8 @@ test('arrastrar un bloque desde la paleta al lienzo', async ({ page }) => {
 
 test('arrastrar un bloque sobre otro los encaja en una pila', async ({ page }) => {
   await boot(page);
-  await addFromPalette(page, 1, 0);
-  await addFromPalette(page, 1, 1);
+  await addFromPalette(page, 2, 0);
+  await addFromPalette(page, 2, 1);
   await expect.poll(async () => (await topBlockRects(page)).length).toBe(2);
 
   const [first, second] = (await topBlockRects(page)).sort((a, b) => a.y - b.y);
@@ -145,7 +145,7 @@ test('ESP32 es el dispositivo fijado y CyberPi se puede añadir', async ({ page 
   await page.locator('#deviceListCol .mtarget-card', { hasText: 'CyberPi' }).click();
   await expect(page.locator('.toolbox-categories button')).toHaveCount(13);
   await page.locator('#deviceListCol .mtarget-card', { hasText: 'ESP32' }).click();
-  await expect(page.locator('.toolbox-categories button')).toHaveCount(5);
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(6);
 });
 
 test('el aviso de compatibilidad vive en la barra de navegación', async ({ page }) => {
@@ -159,7 +159,7 @@ test('el aviso de compatibilidad vive en la barra de navegación', async ({ page
 test('no hay scroll lateral a 390 px', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
-  await expect(page.locator('.toolbox-categories button')).toHaveCount(5);
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(6);
   const overflow = await page.evaluate(() => document.scrollingElement.scrollWidth > window.innerWidth + 1);
   expect(overflow).toBe(false);
 });
