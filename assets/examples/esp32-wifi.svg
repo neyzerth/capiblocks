@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" width="120" height="90" role="img" aria-label="ESP32 conectado por WiFi">
+  <rect width="120" height="90" fill="#26313c"/>
+  <!-- Módulo metálico con antena -->
+  <rect x="45" y="12" width="30" height="17" rx="2" fill="#c9d4de" stroke="#6d7c8d" stroke-width="1.2"/>
+  <path d="M50 12 V6 h4 v4 h4 V6 h4 v4 h4 V6 h4 v6" fill="none" stroke="#e8f0f7" stroke-width="1.6" stroke-linejoin="round"/>
+  <!-- Placa -->
+  <rect x="28" y="32" width="64" height="50" rx="6" fill="#1d242b" stroke="#3a4552" stroke-width="1.6"/>
+  <circle cx="40" cy="42" r="2.4" fill="#ff695a"/>
+  <circle cx="48" cy="42" r="2.4" fill="#ffcf40"/>
+  <!-- LED encendido por el ejemplo -->
+  <circle cx="41" cy="70" r="6" fill="#25cc76" opacity="0.3"/>
+  <circle cx="41" cy="70" r="3.4" fill="#25cc76"/>
+  <!-- Símbolo WiFi -->
+  <g fill="none" stroke="#1eaaff" stroke-width="2.8" stroke-linecap="round">
+    <path d="M64 66 Q72 59.5 80 66"/>
+    <path d="M60.5 61 Q72 51.5 83.5 61"/>
+    <path d="M57 56 Q72 43.5 87 56"/>
+  </g>
+  <circle cx="72" cy="71" r="2.8" fill="#1eaaff"/>
+</svg>

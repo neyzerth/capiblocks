@@ -18,6 +18,10 @@ index.html
      ├─ serial.ts                    window.MBSerial: Web Serial + REPL crudo
      ├─ python-editor.ts             window.MBPythonEditor: CodeMirror
      ├─ sprite-library.ts            catálogo CC0 de objetos y fondos
+     ├─ examples.ts                  catálogo de programas de ejemplo (fuente única)
+     │   ├─ examples-iot.ts          datos de la categoría IoT
+     │   ├─ examples-escenario.ts    datos de la categoría Escenario
+     │   └─ examples-basicos.ts      datos de la categoría Básicos
      └─ script.ts                    UI, estado, escena, bibliotecas, guardado, ejemplos
 ```
 
@@ -69,6 +73,38 @@ Dos modales comparten la plantilla `.library-modal`:
 
 Al aceptar, el objeto se añade con posición escalonada (+72 px), nombre único y queda seleccionado.
 
+## Programas de ejemplo
+
+El catálogo vive en `src/examples.ts`, que fija el contrato y concatena los datos (mismo patrón que
+`sprite-library.ts`):
+
+- `Example` declara `{ id, name, desc, cat, thumb, device?, steps }`. `id` es **estable** (lo usan
+  los specs y los cuatro ids originales —`panda`, `leds`, `counter`, `esp32-wifi`— se conservan);
+  `thumb` es una ruta relativa `assets/examples/<id>.svg`; `steps` es una lista de
+  `ExampleStep` (`{ id, fields?, do?[] }`) que alimenta `MBBlocks.loadProgram`.
+- `EXAMPLE_CATEGORIES` define las píldoras del modal (`iot`, `escenario`, `basico`) con su
+  `labelKey` i18n: solo el chrome del modal se traduce; `name`/`desc` van en español directo, como
+  los nombres de objetos y fondos.
+- `EXAMPLES` concatena `EXAMPLES_IOT`, `EXAMPLES_ESCENARIO` y `EXAMPLES_BASICOS`, un archivo de
+  datos por categoría (`examples-iot.ts`, `examples-escenario.ts`, `examples-basicos.ts`) para que
+  la edición de contenido toque archivos disjuntos.
+- `device` nombra la placa que el ejemplo necesita (id de `DEVICE_LIBRARY`) cuando usa bloques
+  exclusivos de una familia.
+
+En `script.ts`, `renderExamples()` pinta las pestañas, el buscador (con `normalizeSearchText`, que
+ignora acentos) y una `.example-card` por ejemplo: miniatura `<img loading="lazy">`, botón Cargar
+(`data-load-example`, que conservan los specs viejos) y doble clic. El grid se reconstruye en cada
+render, así que los listeners se pegan **por tarjeta**, no en el arranque.
+
+`loadExampleProgram(id, { force })` es el único camino de carga: pide confirmación con `askReplace`
+si el lienzo tiene trabajo (salvo `force`), cierra los modales, llama a `applyExampleDevice(ex)` —que
+añade la placa declarada a `state.addedDevices` y la activa con `setActiveDevice`, para que el codegen
+salga con la familia correcta—, monta la pila (`MBBlocks.loadProgram(ex.steps)`), actualiza el Python
+y lanza la simulación. Devuelve `false` si el usuario cancela.
+
+`window.MBExamples = { list, load }` expone el catálogo y la carga sin confirmación para las pruebas
+de navegador.
+
 ## API pública en `window`
 
 ### `MBBlocks`
@@ -109,6 +145,11 @@ listas distintas: en la S3 los GPIO 26-37 son flash/PSRAM y no existen como pine
 resuelve las opciones con el dispositivo activo al definir los bloques, así que `setActiveDevice`
 reconstruye las definiciones (`MBBlocks.relabel`) conservando el programa. Las variantes comparten
 codegen: el motor normaliza `esp32s3` a su familia `esp32` antes de emitir Python.
+
+`DEVICE_LIBRARY` (`script.ts`) declara `{ id, name, desc, file }`: `file` es
+`assets/devices/<id>.svg`, con el id estable como nombre de archivo (una placa nueva = un SVG nuevo).
+`renderDeviceLibrary()` pinta tarjetas `.device-card` con `<img>` en el modal y `renderDeviceList()`
+usa la misma ilustración en el panel lateral; si faltara el archivo, cae a `DEVICE_THUMB_FALLBACK`.
 
 ### `MBSerial`
 
@@ -155,6 +196,19 @@ La UI de `script.ts` conecta esto a `serialConnectBtn`, `uploadToDeviceBtn`, `ru
 | `add(id)` / `set(id)` | Añade un fondo al proyecto (sin duplicar) / activa uno. |
 | `render()` | Repinta la lista de fondos. |
 
+### `MBExamples`
+
+Ventana de pruebas `window.MBExamples` (definida al final de `script.ts`, tras
+`loadExampleProgram`).
+
+| Método | Qué hace |
+|---|---|
+| `list()` | Devuelve `EXAMPLES` completo (id, name, desc, cat, thumb, device, steps). |
+| `load(id, opts?)` | Carga el ejemplo con `loadExampleProgram`; `{ force: true }` omite la confirmación. Devuelve una promesa con `true`/`false`. |
+
+`tests/e2e/examples.spec.js` la usa para recorrer **todo** el catálogo: cada ejemplo debe dejar
+bloques, generar Python y tener la miniatura cargada (`naturalWidth > 0`).
+
 ## Formato de proyecto guardado
 
 ```json
@@ -189,7 +243,7 @@ La UI de `script.ts` conecta esto a `serialConnectBtn`, `uploadToDeviceBtn`, `ru
 src/*.ts ──esbuild──▶ dist/app.js, dist/i18n.js
 index.html, style.css, privacy.html, favicons ──copiar──▶ dist/
 vendor/blockly, vendor/codemirror ──copiar──▶ dist/
-assets/sprites, assets/backdrops ──copiar──▶ dist/assets/
+assets/sprites, assets/backdrops, assets/devices, assets/examples ──copiar──▶ dist/assets/
 ```
 
 - `node build.mjs` reconstruye `dist/` (requiere `pnpm install` una vez).
@@ -198,6 +252,7 @@ assets/sprites, assets/backdrops ──copiar──▶ dist/assets/
 - `pnpm typecheck` ejecuta `tsc --noEmit`.
 - `tests/e2e/editor.spec.js` y `tests/e2e/esp32.spec.js` prueban el comportamiento real en
   Chromium (Playwright): bloques, arrastre, ejemplos, paleta por dispositivo y codegen.
+  `tests/e2e/examples.spec.js` recorre el catálogo de ejemplos completo (data-driven).
 
 ## Reglas de diseño
 
@@ -209,5 +264,5 @@ assets/sprites, assets/backdrops ──copiar──▶ dist/assets/
    editar variables, no componentes.
 5. **La fuente de verdad del programa es el workspace** de Blockly, no `state.blocks` (que solo se
    usa como respaldo cuando no hay motor).
-6. **IDs del catálogo estables**: `SPRITE_LIBRARY` y `BACKDROP_LIBRARY` se guardan en los proyectos;
-   renombrar un id rompe partidas guardadas.
+6. **IDs del catálogo estables**: `SPRITE_LIBRARY`, `BACKDROP_LIBRARY` y `EXAMPLES` se guardan o se
+   referencian por id; renombrar un id rompe partidas guardadas y specs.

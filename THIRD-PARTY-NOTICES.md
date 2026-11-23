@@ -87,5 +87,16 @@ Notas de composición:
   licencia CC0 cubre también el resultado; no hay material de otra procedencia.
 - `party` es un gráfico original del proyecto (MIT, como el resto del código), no un asset descargado.
 
+## Ilustraciones de dispositivos y ejemplos — obra original (MIT)
+
+- `assets/devices/*.svg` (6 placas: CyberPi, mBot2, Halocode, Arduino Uno, ESP32 y ESP32-S3) y
+  `assets/examples/*.svg` (las 14 miniaturas del catálogo de ejemplos) son **SVG originales**,
+  dibujados para capiBlocks. No proceden de Kenney, Scratch, Pixabay ni de ninguna otra biblioteca:
+  no hay arte de terceros que atribuir.
+- Licencia: **MIT**, la misma del código del proyecto (ver `LICENSE`).
+- El capibara de las miniaturas de escenario se reutiliza del SVG aprobado del proyecto (regla 4 de
+  `AGENTS.md`), escalado con `<g transform>`; no se redibuja ni se sustituye por arte externo.
+- Todas son rutas locales (`assets/...`): ni fuentes web ni imágenes remotas.
+
 No se han usado assets de Scratch (CC BY-SA), Pixabay ni de ninguna fuente con atribución
 obligatoria. No se incluye ninguna mascota capibara alternativa: las imágenes de arriba son objetos.

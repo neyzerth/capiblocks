@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" width="120" height="90" role="img" aria-label="Halocode">
+  <rect width="120" height="90" fill="#26313c"/>
+  <!-- Placa redonda -->
+  <circle cx="60" cy="45" r="33" fill="#1eaaff" stroke="#0d5a86" stroke-width="1.6"/>
+  <!-- Anillo LED de 12 puntos -->
+  <g>
+    <circle cx="81" cy="45" r="4.4" fill="#25cc76" opacity="0.25"/>
+    <circle cx="78.2" cy="55.5" r="4.4" fill="#ffcf40" opacity="0.25"/>
+    <circle cx="70.5" cy="63.2" r="4.4" fill="#ff695a" opacity="0.25"/>
+    <circle cx="60" cy="66" r="4.4" fill="#e8f0f7" opacity="0.25"/>
+    <circle cx="49.5" cy="63.2" r="4.4" fill="#25cc76" opacity="0.25"/>
+    <circle cx="41.8" cy="55.5" r="4.4" fill="#ffcf40" opacity="0.25"/>
+    <circle cx="39" cy="45" r="4.4" fill="#ff695a" opacity="0.25"/>
+    <circle cx="41.8" cy="34.5" r="4.4" fill="#e8f0f7" opacity="0.25"/>
+    <circle cx="49.5" cy="26.8" r="4.4" fill="#25cc76" opacity="0.25"/>
+    <circle cx="60" cy="24" r="4.4" fill="#ffcf40" opacity="0.25"/>
+    <circle cx="70.5" cy="26.8" r="4.4" fill="#ff695a" opacity="0.25"/>
+    <circle cx="78.2" cy="34.5" r="4.4" fill="#e8f0f7" opacity="0.25"/>
+  </g>
+  <g>
+    <circle cx="81" cy="45" r="2.6" fill="#25cc76"/>
+    <circle cx="78.2" cy="55.5" r="2.6" fill="#ffcf40"/>
+    <circle cx="70.5" cy="63.2" r="2.6" fill="#ff695a"/>
+    <circle cx="60" cy="66" r="2.6" fill="#e8f0f7"/>
+    <circle cx="49.5" cy="63.2" r="2.6" fill="#25cc76"/>
+    <circle cx="41.8" cy="55.5" r="2.6" fill="#ffcf40"/>
+    <circle cx="39" cy="45" r="2.6" fill="#ff695a"/>
+    <circle cx="41.8" cy="34.5" r="2.6" fill="#e8f0f7"/>
+    <circle cx="49.5" cy="26.8" r="2.6" fill="#25cc76"/>
+    <circle cx="60" cy="24" r="2.6" fill="#ffcf40"/>
+    <circle cx="70.5" cy="26.8" r="2.6" fill="#ff695a"/>
+    <circle cx="78.2" cy="34.5" r="2.6" fill="#e8f0f7"/>
+  </g>
+  <!-- Microcontrolador central -->
+  <rect x="51" y="36" width="18" height="18" rx="2" fill="#c9d4de" stroke="#6d7c8d" stroke-width="1.2"/>
+  <g fill="#8d9aa7">
+    <rect x="54" y="33" width="2" height="3"/>
+    <rect x="59" y="33" width="2" height="3"/>
+    <rect x="64" y="33" width="2" height="3"/>
+    <rect x="54" y="54" width="2" height="3"/>
+    <rect x="59" y="54" width="2" height="3"/>
+    <rect x="64" y="54" width="2" height="3"/>
+  </g>
+  <!-- Conector USB-C en el borde inferior -->
+  <rect x="53" y="74" width="14" height="7" rx="3" fill="#c9d4de" stroke="#6d7c8d" stroke-width="1.2"/>
+  <rect x="55.5" y="76.5" width="9" height="2" rx="1" fill="#111922"/>
+</svg>

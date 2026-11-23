@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" width="120" height="90" role="img" aria-label="Bucle contador">
+  <rect width="120" height="90" fill="#26313c"/>
+  <!-- Placa con pantalla -->
+  <rect x="26" y="12" width="68" height="56" rx="6" fill="#1d242b" stroke="#3a4552" stroke-width="1.6"/>
+  <rect x="33" y="19" width="54" height="34" rx="3" fill="#111922"/>
+  <text x="60" y="44" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="24" font-weight="700" fill="#25cc76">5</text>
+  <!-- Flechas del bucle -->
+  <g fill="none" stroke="#1eaaff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 74 h30"/>
+    <path d="M46 69 l6 5 l-6 5"/>
+    <path d="M98 74 h-30"/>
+    <path d="M74 69 l-6 5 l6 5"/>
+  </g>
+  <!-- Botones de la placa -->
+  <circle cx="38" cy="61" r="2.4" fill="#ff695a"/>
+  <circle cx="48" cy="61" r="2.4" fill="#ffcf40"/>
+  <circle cx="82" cy="61" r="2.4" fill="#25cc76"/>
+</svg>

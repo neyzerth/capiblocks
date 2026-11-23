@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" width="120" height="90" role="img" aria-label="Contador de pulsaciones">
+  <rect width="120" height="90" fill="#26313c"/>
+  <!-- Placa con pantalla -->
+  <rect x="22" y="10" width="76" height="60" rx="6" fill="#1d242b" stroke="#3a4552" stroke-width="1.6"/>
+  <rect x="30" y="17" width="60" height="32" rx="3" fill="#111922"/>
+  <text x="60" y="42" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="24" font-weight="700" fill="#25cc76">7</text>
+  <!-- Botón A pulsado (ondas del toque) -->
+  <circle cx="40" cy="58" r="10" fill="none" stroke="#1eaaff" stroke-width="1.4" opacity="0.35"/>
+  <circle cx="40" cy="58" r="7.5" fill="none" stroke="#1eaaff" stroke-width="1.6" opacity="0.6"/>
+  <circle cx="40" cy="58" r="4.6" fill="#1eaaff"/>
+  <!-- Resto de botones y LED -->
+  <circle cx="62" cy="58" r="4" fill="#3a4552"/>
+  <circle cx="78" cy="58" r="4" fill="#3a4552"/>
+  <circle cx="88" cy="26" r="2.6" fill="#ff695a"/>
+</svg>

@@ -1,4 +1,5 @@
 import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_LIBRARY, BACKDROP_CATEGORIES } from './sprite-library';
+import { EXAMPLES, EXAMPLE_CATEGORIES, type Example } from './examples';
 
 /**
  * UI del IDE: menús, dispositivos, paleta, ejemplos, guardado y simulación.
@@ -151,13 +152,15 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     ]
   };
 
+  /* `file` apunta a la ilustración local de la placa; el nombre del archivo es
+     el id (estable, regla 3), así que una placa nueva = un SVG con su id. */
   const DEVICE_LIBRARY = [
-    { id: 'cyberpi', name: 'CyberPi', desc: 'Wi-Fi & AI single-board computer' },
-    { id: 'mbot2', name: 'mBot2', desc: 'Smart educational coding robot' },
-    { id: 'halocode', name: 'Halocode', desc: 'Wireless IoT board with LED ring' },
-    { id: 'arduino_uno', name: 'Arduino Uno', desc: 'Classic microcontroller board' },
-    { id: 'esp32', name: 'ESP32', desc: 'Wi-Fi + Bluetooth IoT microcontroller' },
-    { id: 'esp32s3', name: 'ESP32-S3', desc: 'Wi-Fi + BLE board with PSRAM' }
+    { id: 'cyberpi', name: 'CyberPi', desc: 'Wi-Fi & AI single-board computer', file: 'assets/devices/cyberpi.svg' },
+    { id: 'mbot2', name: 'mBot2', desc: 'Smart educational coding robot', file: 'assets/devices/mbot2.svg' },
+    { id: 'halocode', name: 'Halocode', desc: 'Wireless IoT board with LED ring', file: 'assets/devices/halocode.svg' },
+    { id: 'arduino_uno', name: 'Arduino Uno', desc: 'Classic microcontroller board', file: 'assets/devices/arduino_uno.svg' },
+    { id: 'esp32', name: 'ESP32', desc: 'Wi-Fi + Bluetooth IoT microcontroller', file: 'assets/devices/esp32.svg' },
+    { id: 'esp32s3', name: 'ESP32-S3', desc: 'Wi-Fi + BLE board with PSRAM', file: 'assets/devices/esp32s3.svg' }
   ];
 
   /* Variantes que comparten bloques y codegen con su familia (los nombres de
@@ -2176,6 +2179,10 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     if (id === 'envModal') renderEnvCheck();
     if (id === 'addDeviceModal') renderDeviceLibrary();
     if (id === 'extensionModal') renderExtensionLibrary();
+    if (id === 'examplesModal') {
+      resetExamplesModal();
+      renderExamples();
+    }
   }
 
   function closeAllModals() {
@@ -2224,6 +2231,17 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     `).join('');
   }
 
+  /* Mini ilustración de reserva para ids que ya no están en el catálogo
+     (proyectos muy antiguos): rejilla genérica 4:3, nunca una caja rota. */
+  const DEVICE_THUMB_FALLBACK = '<svg viewBox="0 0 120 90" aria-hidden="true">'
+    + '<rect width="120" height="90" fill="#26313c"/>'
+    + '<rect x="26" y="18" width="68" height="54" rx="5" fill="#1d242b" stroke="#3a4552" stroke-width="2"/>'
+    + '<rect x="44" y="30" width="32" height="14" rx="2" fill="#111922"/>'
+    + '<rect x="50" y="34" width="20" height="6" rx="1" fill="#1eaaff" opacity="0.7"/>'
+    + '<circle cx="44" cy="58" r="3" fill="#ff695a"/>'
+    + '<circle cx="56" cy="58" r="3" fill="#25cc76"/>'
+    + '</svg>';
+
   function renderDeviceLibrary() {
     const grid = $('#deviceLibraryGrid');
     if (!grid) return;
@@ -2231,11 +2249,19 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     DEVICE_LIBRARY.forEach((dev) => {
       const added = state.addedDevices.includes(dev.id);
       const card = document.createElement('div');
-      card.className = 'example-card';
+      card.className = 'device-card';
+      card.setAttribute('data-device-id', dev.id);
       card.innerHTML = `
-        <h3>${dev.name}</h3>
-        <p>${dev.desc}</p>
-        <button type="button" class="${added ? 'modal-btn-secondary' : 'modal-btn-primary'}">${added ? t('addedBtn') : t('addBtn')}</button>
+        <div class="device-thumb">
+          <img src="${dev.file}" alt="${dev.name}" draggable="false">
+        </div>
+        <div class="device-body">
+          <h3>${dev.name}</h3>
+          <p>${dev.desc}</p>
+          <div class="device-actions">
+            <button type="button" class="${added ? 'modal-btn-secondary' : 'modal-btn-primary'}">${added ? t('addedBtn') : t('addBtn')}</button>
+          </div>
+        </div>
       `;
       card.querySelector('button')?.addEventListener('click', () => {
         if (!added) {
@@ -2255,21 +2281,15 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     $$('.mtarget-card', col).forEach((el) => el.remove());
 
     state.addedDevices.forEach((devId) => {
-      const dev = DEVICE_LIBRARY.find((d) => d.id === devId) || { id: devId, name: devId };
+      const dev = DEVICE_LIBRARY.find((d) => d.id === devId) || { id: devId, name: devId, desc: '', file: '' };
       const card = document.createElement('div');
       card.className = 'mtarget-card' + (state.activeDevice === dev.id ? ' selected' : '');
       card.innerHTML = `
         <button type="button" class="mtarget-delete-btn" aria-label="Remove ${dev.name}">×</button>
         <div class="mtarget-thumb">
-          <svg viewBox="0 0 64 42" width="46" height="30" role="img" aria-label="${dev.name}">
-            <rect x="4" y="4" width="56" height="34" rx="5" fill="#3a4552" stroke="#1d242b" stroke-width="1.5"/>
-            <rect x="22" y="10" width="20" height="16" rx="2" fill="#111922"/>
-            <rect x="25" y="13" width="14" height="10" rx="1" fill="#1eaaff" opacity="0.75"/>
-            <circle cx="13" cy="21" r="4.5" fill="#1d242b" stroke="#6d7c8d" stroke-width="1"/>
-            <circle cx="51" cy="16" r="2.6" fill="#ff695a"/>
-            <circle cx="51" cy="25" r="2.6" fill="#25cc76"/>
-            <rect x="19" y="30" width="26" height="3" rx="1.5" fill="#63b3ed"/>
-          </svg>
+          ${dev.file
+            ? `<img class="device-thumb-img" src="${dev.file}" alt="${dev.name}" draggable="false">`
+            : DEVICE_THUMB_FALLBACK}
         </div>
         <p class="mtarget-name">${dev.name}</p>
       `;
@@ -2334,54 +2354,112 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     });
   }
 
-  // Example programs loader
-  const EXAMPLES = {
-    panda: [
-      { id: 'evt_flag' },
-      { id: 'mov_steps' },
-      { id: 'look_say' },
-      { id: 'play_note', fields: { NOTE: 64 } }
-    ],
-    leds: [
-      { id: 'evt_flag' },
-      { id: 'esp32_neopixel_fill', fields: { PIN: '16', N: 8, COLOR: '#ff5252' } },
-      { id: 'ctrl_forever', do: [
-        { id: 'esp32_neopixel_fill', fields: { PIN: '16', N: 8, COLOR: '#ff5252' } },
-        { id: 'ctrl_wait', fields: { SECS: 0.5 } },
-        { id: 'esp32_neopixel_fill', fields: { PIN: '16', N: 8, COLOR: '#66bb6a' } },
-        { id: 'ctrl_wait', fields: { SECS: 0.5 } },
-        { id: 'esp32_neopixel_fill', fields: { PIN: '16', N: 8, COLOR: '#42a5f5' } },
-        { id: 'ctrl_wait', fields: { SECS: 0.5 } }
-      ] }
-    ],
-    counter: [
-      { id: 'evt_flag' },
-      { id: 'var_set', fields: { VAR: 'contador', VALUE: 1 } },
-      {
-        id: 'ctrl_repeat',
-        fields: { TIMES: 5 },
-        do: [
-          { id: 'var_chg', fields: { VAR: 'contador', VALUE: 1 } },
-          { id: 'esp32_buzzer_tone', fields: { FREQ: 392, PIN: '17', MS: 200 } }
-        ]
-      },
-      { id: 'esp32_neopixel_fill', fields: { PIN: '16', N: 8, COLOR: '#25cc76' } }
-    ],
-    'esp32-wifi': [
-      { id: 'evt_flag' },
-      { id: 'esp32_wifi_connect', fields: { SSID: 'mi-red', PASS: '12345678' } },
-      { id: 'esp32_neopixel_fill', fields: { PIN: '16', N: 8, COLOR: '#25cc76' } },
-      {
-        id: 'ctrl_forever',
-        do: [
-          { id: 'esp32_pin_out', fields: { PIN: '2', LEVEL: '1' } },
-          { id: 'ctrl_wait', fields: { SECS: 1 } },
-          { id: 'esp32_pin_out', fields: { PIN: '2', LEVEL: '0' } },
-          { id: 'ctrl_wait', fields: { SECS: 1 } }
-        ]
-      }
-    ]
-  };
+  /* ===========================
+     Programas de ejemplo (modal)
+     =========================== */
+
+  /* Estado efímero del modal: categoría y búsqueda. Se reinicia al abrir. */
+  const examplesModalState = { cat: 'all', query: '' };
+
+  function resetExamplesModal() {
+    examplesModalState.cat = 'all';
+    examplesModalState.query = '';
+    const search = $('#examplesSearch');
+    if (search) search.value = '';
+  }
+
+  /* Pinta pestañas, buscador y tarjetas con el filtro actual. Los listeners se
+     pegan POR TARJETA: el grid se crea en cada render (trampa conocida). */
+  function renderExamples() {
+    const modal = $('#examplesModal');
+    if (!modal) return;
+
+    const tabs = $('#exampleCats', modal);
+    if (tabs) {
+      tabs.innerHTML = '';
+      const pills: Array<{ id: string; label: string }> = [{ id: 'all', label: t('catAll') }].concat(
+        EXAMPLE_CATEGORIES.map((cat) => ({ id: cat.id, label: t(cat.labelKey) }))
+      );
+      pills.forEach((pill) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const active = examplesModalState.cat === pill.id;
+        btn.className = 'library-tab' + (active ? ' active' : '');
+        btn.setAttribute('role', 'tab');
+        btn.setAttribute('aria-selected', active ? 'true' : 'false');
+        btn.setAttribute('data-example-cat', pill.id);
+        btn.textContent = pill.label;
+        btn.addEventListener('click', () => {
+          examplesModalState.cat = pill.id;
+          renderExamples();
+        });
+        tabs.appendChild(btn);
+      });
+    }
+
+    const search = $('#examplesSearch', modal);
+    if (search && search.value !== examplesModalState.query) search.value = examplesModalState.query;
+
+    const grid = $('#examplesGrid', modal);
+    const empty = $('#examplesEmpty', modal);
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const query = normalizeSearchText(examplesModalState.query);
+    const items = EXAMPLES.filter((ex) => {
+      if (examplesModalState.cat !== 'all' && ex.cat !== examplesModalState.cat) return false;
+      if (!query) return true;
+      return normalizeSearchText(`${ex.name} ${ex.desc}`).includes(query);
+    });
+
+    items.forEach((ex) => {
+      const card = document.createElement('div');
+      card.className = 'example-card example-card--program';
+      card.setAttribute('data-example-id', ex.id);
+
+      const thumb = document.createElement('div');
+      thumb.className = 'example-thumb';
+      const img = document.createElement('img');
+      img.src = ex.thumb;
+      img.alt = '';
+      img.draggable = false;
+      img.loading = 'lazy';
+      thumb.appendChild(img);
+
+      const body = document.createElement('div');
+      body.className = 'example-body';
+      const title = document.createElement('h3');
+      title.textContent = ex.name;
+      const desc = document.createElement('p');
+      desc.textContent = ex.desc;
+      const actions = document.createElement('div');
+      actions.className = 'example-actions';
+      const load = document.createElement('button');
+      load.type = 'button';
+      load.className = 'modal-btn-primary';
+      /* Atributo conservado: los specs antiguos localizan el botón por id. */
+      load.setAttribute('data-load-example', ex.id);
+      load.textContent = t('loadExample');
+      load.addEventListener('click', (e) => {
+        e.stopPropagation();
+        void loadExampleProgram(ex.id);
+      });
+      actions.appendChild(load);
+
+      body.appendChild(title);
+      body.appendChild(desc);
+      body.appendChild(actions);
+      card.appendChild(thumb);
+      card.appendChild(body);
+      /* Doble clic en la tarjeta = cargar, como en la biblioteca de objetos. */
+      card.addEventListener('dblclick', () => { void loadExampleProgram(ex.id); });
+      grid.appendChild(card);
+    });
+
+    const hasItems = items.length > 0;
+    grid.hidden = !hasItems;
+    if (empty) empty.hidden = hasItems;
+  }
 
   function workspaceHasWork() {
     if (window.MBBlocks && MBBlocks.active()) return MBBlocks.count() > 0;
@@ -2408,36 +2486,56 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
     });
   }
 
-  function loadExampleProgram(ex) {
-    const steps = EXAMPLES[ex];
-    if (!steps) return;
+  /* Añade y activa la placa declarada por el ejemplo antes de montar la pila:
+     los bloques `esp32_*` deben generarse con el codegen de su familia. */
+  function applyExampleDevice(ex: Example) {
+    if (!ex.device) return;
+    if (!state.addedDevices.includes(ex.device)) {
+      state.addedDevices.push(ex.device);
+      renderDeviceList();
+    }
+    if (state.activeDevice !== ex.device) setActiveDevice(ex.device);
+  }
+
+  /* Carga un ejemplo del catálogo: confirmación (salvo opts.force), placa,
+     pila, Python y simulación. Devuelve false si el usuario cancela. */
+  async function loadExampleProgram(id: string, opts: { force?: boolean } = {}): Promise<boolean> {
+    const ex = EXAMPLES.find((item) => item.id === id);
+    if (!ex) return false;
+    if (!opts.force && workspaceHasWork()) {
+      const ok = await askReplace();
+      if (!ok) return false;
+    }
     closeAllModals();
+    applyExampleDevice(ex);
     if (window.MBBlocks && MBBlocks.active()) {
-      MBBlocks.loadProgram(steps);
+      MBBlocks.loadProgram(ex.steps);
     } else {
       const flat: any[] = [];
       const walk = (list) => list.forEach((s) => {
         flat.push({ ...(BLOCK_INDEX[s.id] || {}), uid: `${s.id}_${flat.length}` });
         if (s.do) walk(s.do);
       });
-      walk(steps);
+      walk(ex.steps);
       state.blocks = flat;
     }
     renderWorkspaceBlocks();
     updatePythonViews();
     runBlocksSimulation();
+    return true;
   }
 
-  $$('[data-load-example]').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      const ex = btn.getAttribute('data-load-example');
-      if (workspaceHasWork()) {
-        const ok = await askReplace();
-        if (!ok) return;
-      }
-      loadExampleProgram(ex);
-    });
+  /* Buscador del modal (el input es estático; el grid se repinta aquí). */
+  $('#examplesSearch')?.addEventListener('input', (e) => {
+    examplesModalState.query = e.target.value;
+    renderExamples();
   });
+
+  /* Ventana de pruebas: catálogo y carga sin confirmación (specs e2e). */
+  window.MBExamples = {
+    list: () => EXAMPLES,
+    load: (id: string, opts?: { force?: boolean }) => loadExampleProgram(id, opts)
+  };
 
   // Settings toggles
   /* Preferencia de dots: se guarda como mblock.gridDots (1 = visibles,

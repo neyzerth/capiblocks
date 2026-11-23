@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" width="120" height="90" role="img" aria-label="Publica en la nube">
+  <rect width="120" height="90" fill="#26313c"/>
+  <!-- Nube -->
+  <path d="M40 40 a12 12 0 0 1 3 -23 a15 15 0 0 1 27 -3 a11 11 0 0 1 12 10 a10 10 0 0 1 -2 16 z" fill="#c9d4de"/>
+  <!-- Flecha de subida -->
+  <g stroke="#1eaaff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M61 44 V26"/>
+    <path d="M54 33 l7 -7 l7 7"/>
+  </g>
+  <!-- WiFi de la placa -->
+  <g fill="none" stroke="#25cc76" stroke-width="2.6" stroke-linecap="round">
+    <path d="M44 68 q10 -8 20 0"/>
+    <path d="M39 62 q15 -12 30 0"/>
+  </g>
+  <circle cx="54" cy="75" r="2.8" fill="#25cc76"/>
+  <!-- Placa -->
+  <rect x="72" y="52" width="34" height="30" rx="4" fill="#1d242b" stroke="#3a4552" stroke-width="1.6"/>
+  <rect x="82" y="56" width="14" height="10" rx="1.5" fill="#c9d4de" stroke="#6d7c8d" stroke-width="1.2"/>
+  <circle cx="78" cy="74" r="2.4" fill="#ff695a"/>
+  <circle cx="88" cy="74" r="2.4" fill="#ffcf40"/>
+  <rect x="96" y="70" width="6" height="8" rx="1.5" fill="#1eaaff"/>
+  <!-- Paquetes de datos -->
+  <circle cx="74" cy="40" r="3" fill="#ffcf40"/>
+  <circle cx="88" cy="34" r="2.4" fill="#ff695a"/>
+</svg>

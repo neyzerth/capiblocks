@@ -620,34 +620,29 @@
     </div>
   </div>
 
-  <div class="modal-backdrop" id="examplesModal" role="dialog" aria-modal="true" hidden>
-    <div class="modal-box">
-      <div class="modal-header">
-        <h2 data-t="examplesTitle">Example Programs</h2>
-        <button type="button" class="modal-close" data-modal-close aria-label="Close">×</button>
+  <!-- Programas de ejemplo: mismo patrón que la biblioteca de objetos (buscador,
+       pestañas de categoría y grid con miniatura); el grid lo llena renderExamples(). -->
+  <div class="modal-backdrop" id="examplesModal" role="dialog" aria-modal="true" aria-labelledby="examplesTitle" hidden>
+    <div class="modal-box modal-box-library">
+      <div class="library-header">
+        <h2 id="examplesTitle" data-t="examplesTitle">Example Programs</h2>
+        <div class="library-header-actions">
+          <button type="button" class="modal-close" data-modal-close aria-label="Close" data-t-aria="close">×</button>
+        </div>
       </div>
-      <div class="modal-body">
-        <div class="cards-grid">
-          <div class="example-card">
-            <h3 data-t="example1Name">Panda Dance & Greeting</h3>
-            <p data-t="example1Desc"></p>
-            <button type="button" class="modal-btn-primary" data-load-example="panda" data-t="loadExample">Load Example</button>
-          </div>
-          <div class="example-card">
-            <h3 data-t="example2Name">ESP32: Rainbow LEDs</h3>
-            <p data-t="example2Desc"></p>
-            <button type="button" class="modal-btn-primary" data-load-example="leds" data-t="loadExample">Load Example</button>
-          </div>
-          <div class="example-card">
-            <h3 data-t="example3Name">Interactive Counter Loop</h3>
-            <p data-t="example3Desc"></p>
-            <button type="button" class="modal-btn-primary" data-load-example="counter" data-t="loadExample">Load Example</button>
-          </div>
-          <div class="example-card">
-            <h3 data-t="exEsp32WifiName">ESP32: WiFi + LED</h3>
-            <p data-t="exEsp32WifiDesc"></p>
-            <button type="button" class="modal-btn-primary" data-load-example="esp32-wifi" data-t="loadExample">Load Example</button>
-          </div>
+      <div class="library-toolbar">
+        <div class="library-tabs" id="exampleCats" role="tablist"></div>
+        <input type="search" id="examplesSearch" class="library-search" data-t-placeholder="searchExamples" data-t-aria="searchExamples">
+      </div>
+      <div class="library-scroll">
+        <div class="examples-grid" id="examplesGrid"></div>
+        <div class="library-empty" id="examplesEmpty" hidden>
+          <svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <rect x="7" y="10" width="34" height="28" rx="3"/>
+            <circle cx="18" cy="20" r="3.5"/>
+            <path d="M9 33l9-9 6 6 5-4 9 8" stroke-linejoin="round"/>
+          </svg>
+          <p data-t="noResults">No results found. Try another keyword.</p>
         </div>
       </div>
     </div>
@@ -697,14 +692,14 @@
   </div>
 
   <div class="modal-backdrop" id="addDeviceModal" role="dialog" aria-modal="true" hidden>
-    <div class="modal-box">
+    <div class="modal-box modal-box-library">
       <div class="modal-header">
         <h2 data-t="addDeviceTitle">Device Library</h2>
         <button type="button" class="modal-close" data-modal-close aria-label="Close">×</button>
       </div>
       <div class="modal-body">
         <p data-t="addDeviceNote">Select a device to add to your workspace:</p>
-        <div class="cards-grid" id="deviceLibraryGrid"></div>
+        <div id="deviceLibraryGrid"></div>
       </div>
     </div>
   </div>

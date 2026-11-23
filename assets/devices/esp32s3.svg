@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" width="120" height="90" role="img" aria-label="ESP32-S3">
+  <rect width="120" height="90" fill="#26313c"/>
+  <!-- Placa ancha (vista superior) -->
+  <rect x="16" y="22" width="88" height="54" rx="5" fill="#1d242b" stroke="#3a4552" stroke-width="1.6"/>
+  <!-- Regletas de pines, dentro de la placa -->
+  <rect x="22" y="25" width="76" height="8" rx="2" fill="#111922"/>
+  <rect x="22" y="65" width="76" height="8" rx="2" fill="#111922"/>
+  <g fill="#ffcf40">
+    <circle cx="28" cy="29" r="1.8"/>
+    <circle cx="39" cy="29" r="1.8"/>
+    <circle cx="50" cy="29" r="1.8"/>
+    <circle cx="61" cy="29" r="1.8"/>
+    <circle cx="72" cy="29" r="1.8"/>
+    <circle cx="83" cy="29" r="1.8"/>
+    <circle cx="94" cy="29" r="1.8"/>
+    <circle cx="28" cy="69" r="1.8"/>
+    <circle cx="39" cy="69" r="1.8"/>
+    <circle cx="50" cy="69" r="1.8"/>
+    <circle cx="61" cy="69" r="1.8"/>
+    <circle cx="72" cy="69" r="1.8"/>
+    <circle cx="83" cy="69" r="1.8"/>
+    <circle cx="94" cy="69" r="1.8"/>
+  </g>
+  <!-- Zona de antena al extremo izquierdo -->
+  <rect x="19" y="37" width="8" height="24" fill="#26313c"/>
+  <path d="M23 40 h4 v5 h-4 v5 h4 v5 h-4" fill="none" stroke="#ffcf40" stroke-width="1.3" stroke-linejoin="round"/>
+  <!-- Módulo RF -->
+  <rect x="28" y="36" width="20" height="26" rx="2" fill="#c9d4de" stroke="#6d7c8d" stroke-width="1.2"/>
+  <rect x="32" y="41" width="12" height="16" rx="1" fill="#a9b7c4"/>
+  <!-- PSRAM y flash -->
+  <rect x="53" y="37" width="13" height="10" rx="1.5" fill="#111922"/>
+  <rect x="53" y="50" width="13" height="10" rx="1.5" fill="#111922"/>
+  <!-- LED RGB -->
+  <circle cx="74" cy="44" r="5" fill="#25cc76" opacity="0.3"/>
+  <circle cx="74" cy="44" r="2.8" fill="#25cc76"/>
+  <!-- Pulsadores BOOT / RST -->
+  <rect x="68" y="55" width="8" height="5" rx="1.5" fill="#3a4552"/>
+  <rect x="80" y="55" width="8" height="5" rx="1.5" fill="#3a4552"/>
+  <!-- Dos puertos USB-C en el borde derecho -->
+  <rect x="98" y="33" width="11" height="9" rx="3" fill="#c9d4de" stroke="#6d7c8d" stroke-width="1.2"/>
+  <rect x="100" y="35.5" width="7" height="4" rx="1.5" fill="#111922"/>
+  <rect x="98" y="46" width="11" height="9" rx="3" fill="#c9d4de" stroke="#6d7c8d" stroke-width="1.2"/>
+  <rect x="100" y="48.5" width="7" height="4" rx="1.5" fill="#111922"/>
+</svg>

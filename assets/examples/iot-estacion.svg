@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" width="120" height="90" role="img" aria-label="Mini estación del clima">
+  <rect width="120" height="90" fill="#26313c"/>
+  <!-- Termómetro -->
+  <rect x="20" y="10" width="14" height="48" rx="7" fill="#1d242b" stroke="#3a4552" stroke-width="1.6"/>
+  <rect x="25.5" y="16" width="3" height="36" rx="1.5" fill="#ff695a"/>
+  <circle cx="27" cy="64" r="10" fill="#ff695a"/>
+  <g stroke="#e8f0f7" stroke-width="1.6" stroke-linecap="round">
+    <path d="M37 20 h5"/>
+    <path d="M37 30 h5"/>
+    <path d="M37 40 h3"/>
+  </g>
+  <!-- Gota de humedad -->
+  <path d="M66 20 q12 17 0 24 q-12 -7 0 -24 z" fill="#1eaaff"/>
+  <path d="M62 34 q4 3 1 6" fill="none" stroke="#e8f0f7" stroke-width="1.6" stroke-linecap="round" opacity="0.7"/>
+  <!-- WiFi de la estación -->
+  <g fill="none" stroke="#25cc76" stroke-width="2.6" stroke-linecap="round">
+    <path d="M82 62 q10 -8 20 0"/>
+    <path d="M77 55 q15 -13 30 0"/>
+  </g>
+  <circle cx="92" cy="69" r="2.8" fill="#25cc76"/>
+  <!-- Pantalla con la gráfica de las lecturas -->
+  <rect x="44" y="64" width="28" height="18" rx="3" fill="#111922" stroke="#3a4552" stroke-width="1.4"/>
+  <path d="M49 78 l5 -6 l4 4 l5 -7 l5 5" fill="none" stroke="#25cc76" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" width="120" height="90" role="img" aria-label="Capi bailando en bucle">
+  <!-- Escenario -->
+  <rect width="120" height="90" fill="#26313c"/>
+  <circle cx="52" cy="50" r="34" fill="#e8f0f7" opacity="0.05"/>
+  <rect y="74" width="120" height="16" fill="#1d242b"/>
+  <!-- Flecha de bucle alrededor de Capi -->
+  <g fill="none" stroke="#1eaaff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 60 q-6 -22 16 -30"/>
+    <path d="M34 27 l5 3 l-3 5"/>
+    <path d="M86 60 q6 -22 -16 -30"/>
+    <path d="M74 27 l-5 3 l3 5"/>
+  </g>
+  <!-- Mascota capibara reutilizada del escenario (regla 4), escalada con transform -->
+  <g transform="translate(28 25) scale(0.48)">
+    <ellipse cx="50" cy="112" rx="31" ry="4.5" fill="#e6e6e6"/>
+    <!-- Orejas -->
+    <circle cx="33" cy="27" r="9" fill="#a87e62" stroke="#4a2415" stroke-width="2.2"/>
+    <circle cx="67" cy="27" r="9" fill="#a87e62" stroke="#4a2415" stroke-width="2.2"/>
+    <circle cx="33" cy="27" r="3.6" fill="#94674e"/>
+    <circle cx="67" cy="27" r="3.6" fill="#94674e"/>
+    <!-- Cuerpo -->
+    <path d="M50 17 C64 17 74 26 76 40 C78 55 81 72 81 86 C81 97 69 103 50 103 C31 103 19 97 19 86 C19 72 22 55 24 40 C26 26 36 17 50 17 Z" fill="#e0b389" stroke="#4a2415" stroke-width="2.4" stroke-linejoin="round"/>
+    <!-- Patas traseras -->
+    <path d="M28 96 q7 -3 12 0 q2 5 -5 6 q-9 0 -7 -6 Z" fill="#8e6650" stroke="#4a2415" stroke-width="1.8"/>
+    <path d="M72 96 q-7 -3 -12 0 q-2 5 5 6 q9 0 7 -6 Z" fill="#8e6650" stroke="#4a2415" stroke-width="1.8"/>
+    <!-- Patitas delanteras -->
+    <ellipse cx="30" cy="82" rx="5.5" ry="7.5" fill="#9a7560" stroke="#4a2415" stroke-width="1.8" transform="rotate(12 30 82)"/>
+    <ellipse cx="70" cy="82" rx="5.5" ry="7.5" fill="#9a7560" stroke="#4a2415" stroke-width="1.8" transform="rotate(-12 70 82)"/>
+    <!-- Hocico -->
+    <rect x="35" y="47" width="30" height="25" rx="12.5" fill="#a67c60" stroke="#4a2415" stroke-width="2"/>
+    <!-- Mejillas -->
+    <circle cx="27.5" cy="60" r="5.5" fill="#f3a08a"/>
+    <circle cx="72.5" cy="60" r="5.5" fill="#f3a08a"/>
+    <!-- Ojos somnolientos -->
+    <path d="M34 45 h8" stroke="#4a2415" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <path d="M58 45 h8" stroke="#4a2415" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <!-- Nariz y boca -->
+    <path d="M45 53 q2 -1.6 4 0" fill="none" stroke="#4a2415" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M51 53 q2 -1.6 4 0" fill="none" stroke="#4a2415" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M50 56 v7" stroke="#4a2415" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M50 63 q-4 3 -6 2 M50 63 q4 3 6 2" fill="none" stroke="#4a2415" stroke-width="1.8" stroke-linecap="round"/>
+  </g>
+  <!-- Notas musicales -->
+  <g fill="#ffcf40">
+    <ellipse cx="16" cy="34" rx="4" ry="3" transform="rotate(-20 16 34)"/>
+    <rect x="18.6" y="19" width="1.9" height="15" rx="0.9"/>
+    <path d="M20.5 19 q6.6 2.8 4.8 9.6 q-1.9 -4.8 -4.8 -5.8 Z"/>
+    <ellipse cx="104" cy="52" rx="3.4" ry="2.6" transform="rotate(-20 104 52)"/>
+    <rect x="106.4" y="41" width="1.7" height="11" rx="0.8"/>
+    <path d="M108.1 41 q5.8 2.4 4.2 8.2 q-1.6 -4.1 -4.2 -5 Z"/>
+  </g>
+  <!-- Cambio de fondo -->
+  <g>
+    <rect x="98" y="64" width="16" height="12" rx="2" fill="#1eaaff"/>
+    <rect x="102" y="60" width="16" height="12" rx="2" fill="#25cc76" opacity="0.85"/>
+  </g>
+</svg>
