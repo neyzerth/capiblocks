@@ -36,8 +36,9 @@ También puede abrirse `dist/index.html` directamente (`file://`).
 
 ### Añadir un dispositivo
 
-`DEVICE_LIBRARY` en `src/script.ts`: `{ id, name, desc }`. Aparece en la biblioteca
-(Añadir dispositivo) y se puede fijar como activo.
+`DEVICE_LIBRARY` en `src/script.ts`: `{ id, name, desc, file }`, con
+`file: 'assets/devices/<id>.svg'`. El nombre del archivo es el id (estable, regla 3): para una placa
+nueva, crea el SVG con ese nombre y la entrada aparece en la biblioteca y en el panel lateral.
 
 ### Añadir un objeto o un fondo a la biblioteca
 
@@ -57,9 +58,16 @@ También puede abrirse `dist/index.html` directamente (`file://`).
 
 ### Añadir un programa de ejemplo
 
-1. Define los pasos en `EXAMPLES` (`src/script.ts`): `{ id, fields?, do?[] }`.
-2. Agrega una tarjeta con `data-load-example="<clave>"` en el modal de ejemplos (`index.html`).
-3. Los ejemplos piden confirmación si el lienzo ya tiene bloques.
+1. Añade una entrada al archivo de su categoría: `src/examples-iot.ts`, `src/examples-escenario.ts`
+   o `src/examples-basicos.ts` (`{ id, name, desc, cat, thumb, device?, steps }`). Los pasos son
+   `{ id, fields?, do?[] }` y cada `id` debe existir en `BLOCKS_BY_CAT`.
+2. Usa un **id nuevo** (los ids son estables: renombrar rompe specs y referencias). El título se
+   cambia en `name`.
+3. Si usa bloques exclusivos de una placa (`devices: [...]` en el bloque), declara `device` con su
+   id de `DEVICE_LIBRARY`; al cargar se añade y se activa.
+4. Crea la miniatura `assets/examples/<id>.svg`. `node check.mjs` confirma que no hay URLs externas
+   y `pnpm test` (spec data-driven) carga el ejemplo y valida su miniatura.
+5. Los ejemplos piden confirmación si el lienzo ya tiene bloques.
 
 ### Cambiar el color de acento
 
@@ -96,9 +104,19 @@ Evita tocar componentes uno por uno.
 - **Los tests levantan su propio servidor en `:8123`**: al limpiar procesos de prueba, mata solo
   el PID que arrancaste o el del puerto 8123: un `pkill -f serve.mjs` se llevó por delante el
   `serve.mjs` de otro worktree en `:8080`.
-- **Las tarjetas «+ Añadir» nacen después del binding global**: `[data-modal-open]` solo se engancha
-  al cargar la página, así que `renderSpriteList()` y `renderBackdropList()` añaden su propio
-  `addEventListener`. El atributo queda como hook declarativo para las pruebas.
+- **Las tarjetas dinámicas nacen después del binding global**: `[data-modal-open]` solo se engancha
+  al cargar la página, así que `renderSpriteList()`, `renderBackdropList()` y `renderExamples()`
+  añaden su propio `addEventListener` en cada render; un listener único al arranque no ve las
+  tarjetas «+ Añadir» ni las `.example-card` del modal de ejemplos. Los atributos
+  (`data-load-example`, `data-example-cat`, `data-example-id`) quedan como hooks declarativos para
+  las pruebas.
+- **Las miniaturas del modal llevan `loading="lazy"`**: justo después de abrirlo, `img.complete` y
+  `naturalWidth` pueden seguir a 0. Aserta con `expect.poll` (o espera a
+  `img.complete && img.naturalWidth > 0`); una comprobación inmediata con `toBe(true)` es
+  intermitente.
+- **`toHaveAttribute` con un array de regex no es un «alguno de»**: si el locator resuelve varias
+  tarjetas, Playwright aborta por *strict mode violation* antes de evaluar el atributo. Comprueba
+  una tarjeta por locator (`locator(...).nth(i)`) o lee los atributos con `evaluateAll`.
 - **GitHub Pages cachea 10 minutos** (`max-age=600`): usa Ctrl+Shift+R tras desplegar.
 - **pnpm 12** exige `allowBuilds` en `pnpm-workspace.yaml` para el postinstall de esbuild.
 - **El cierre de modales es asíncrono (~190 ms)**: `closeAllModals()` anima la salida con la

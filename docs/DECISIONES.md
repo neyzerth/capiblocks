@@ -224,3 +224,27 @@ lo que el código y las pruebas deben pasar por `closeAllModals()` y aserciones 
 trampa en GUIA-DESARROLLO.md). **Revisar si:** alguna interacción necesita el modal oculto de forma
 síncrona.
 
+## ADR-019 · Catálogo de ejemplos tipado, SVG propios y placa declarada
+
+**Contexto:** el modal de ejemplos eran cuatro tarjetas estáticas en `index.html` con los pasos en una
+constante de `script.ts`. No había categorías, buscador ni imagen, y cargar un ejemplo con bloques
+`esp32_*` estando activa otra placa generaba código incoherente.
+
+**Alternativas:** mantener los datos en `script.ts` y las tarjetas en HTML (cada ejemplo nuevo obliga
+a tocar markup y traducciones), un JSON cargado con `fetch` (rompe `file://` y la regla de cero
+recursos externos), o un catálogo tipado en TS como el de objetos y fondos.
+
+**Decisión:** catálogo tipado en `src/examples.ts` como fuente única —`Example`, `ExampleStep`,
+`EXAMPLE_CATEGORIES`, `EXAMPLES`— que concatena un archivo de datos por categoría
+(`examples-iot.ts`, `examples-escenario.ts`, `examples-basicos.ts`). `name`/`desc` van en español
+directo, igual que los nombres de objetos y fondos; solo el chrome del modal pasa por claves i18n.
+Miniaturas e ilustraciones son SVG **originales** en `assets/`. Cada ejemplo que necesita una placa
+concreta declara `device`, y al cargarlo se añade y se activa. Una spec data-driven recorre **todo**
+el catálogo como red de seguridad.
+
+**Consecuencias:** añadir un ejemplo es añadir una entrada y un SVG, sin tocar HTML ni i18n; los
+archivos por categoría permiten escribir contenido en paralelo sin conflictos. `device` no cambia el
+codegen: solo garantiza que la placa activa sea la del ejemplo. La spec convierte un id de bloque
+inventado en un fallo con el nombre del ejemplo. Los `id` son estables (regla 3): se cambian los
+títulos, nunca los ids. Al ser obra propia (MIT), los SVG no añaden condiciones de terceros.
+
