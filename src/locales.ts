@@ -63,8 +63,6 @@ const I18N_DICTS = {
     panda: "Capi",
 
     // Device panel
-    switchToMlink: "Switch to mLink",
-    switchToWeb: "Switch to Web Serial",
     connection: "Connection",
     bluetooth: "Bluetooth",
     serial: "Serial",
@@ -75,8 +73,20 @@ const I18N_DICTS = {
     upload: "Upload",
     live: "Live",
     connectYourDevice: "Connect your device",
-    deviceConnectedMsg: "CyberPi connected (simulated)",
+    deviceConnectedMsg: "Device connected",
     howToUseDevice: "How to use device?",
+
+    // Serial (Web Serial)
+    serialUnsupported: "This browser does not support Web Serial — use desktop Chrome, Edge or Opera",
+    serialConnecting: "Connecting…",
+    uploadToDevice: "Upload to device",
+    uploadingToast: "Uploading to device…",
+    uploadOk: "Program uploaded; device rebooted",
+    uploadFail: "Could not upload the program",
+    consoleTitle: "Serial console",
+    consoleHint: "Device output. Type and press Enter to send.",
+    consoleClear: "Clear",
+    liveOnDevice: "Running on device",
 
     // Sprites & Background panels
     spriteName: "Sprite",
@@ -327,8 +337,6 @@ const I18N_DICTS = {
     panda: "Capi",
 
     // Device panel
-    switchToMlink: "Cambiar a mLink",
-    switchToWeb: "Cambiar a Serie Web",
     connection: "Conexión",
     bluetooth: "Bluetooth",
     serial: "Serie",
@@ -339,8 +347,20 @@ const I18N_DICTS = {
     upload: "Subir",
     live: "En vivo",
     connectYourDevice: "Conecta tu dispositivo",
-    deviceConnectedMsg: "CyberPi conectado (simulado)",
+    deviceConnectedMsg: "Placa conectada",
     howToUseDevice: "¿Cómo usar el dispositivo?",
+
+    // Serial (Web Serial)
+    serialUnsupported: "Este navegador no soporta Web Serial — usa Chrome, Edge u Opera de escritorio",
+    serialConnecting: "Conectando…",
+    uploadToDevice: "Subir a la placa",
+    uploadingToast: "Subiendo a la placa…",
+    uploadOk: "Programa subido; la placa se reinició",
+    uploadFail: "No se pudo subir el programa",
+    consoleTitle: "Consola serial",
+    consoleHint: "Salida de la placa. Escribe y Enter para enviar.",
+    consoleClear: "Limpiar",
+    liveOnDevice: "Ejecutando en la placa",
 
     // Sprites & Background panels
     spriteName: "Objeto",
@@ -585,8 +605,6 @@ const I18N_DICTS = {
     cyberpi: "童芯派",
     panda: "水豚",
 
-    switchToMlink: "切换至 mLink",
-    switchToWeb: "切换至网页串口",
     connection: "连接",
     bluetooth: "蓝牙",
     serial: "串口",
@@ -597,8 +615,19 @@ const I18N_DICTS = {
     upload: "上传",
     live: "在线",
     connectYourDevice: "连接你的设备",
-    deviceConnectedMsg: "CyberPi 已连接（模拟）",
+    deviceConnectedMsg: "设备已连接",
     howToUseDevice: "如何使用设备？",
+
+    serialUnsupported: "此浏览器不支持 Web Serial — 请使用桌面版 Chrome、Edge 或 Opera",
+    serialConnecting: "连接中…",
+    uploadToDevice: "上传到设备",
+    uploadingToast: "正在上传到设备…",
+    uploadOk: "程序已上传；设备已重启",
+    uploadFail: "上传失败",
+    consoleTitle: "串口控制台",
+    consoleHint: "设备输出。输入后按回车发送。",
+    consoleClear: "清空",
+    liveOnDevice: "正在设备上运行",
 
     spriteName: "角色",
     show: "显示",

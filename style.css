@@ -837,23 +837,6 @@ button, input, select, textarea {
   overflow-y: auto;
 }
 
-.switch-mlink-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 0;
-  border: none;
-  background: transparent;
-  color: var(--PRIMARY-COLOR);
-  font-size: 12px;
-  cursor: pointer;
-  text-align: left;
-}
-
-.switch-mlink-btn:hover {
-  text-decoration: underline;
-}
-
 .info-section-label {
   margin-top: 12px;
   font-size: 12px;
@@ -885,6 +868,36 @@ button, input, select, textarea {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin-top: 8px;
+}
+
+.web-link-btn.upload-btn {
+  grid-column: 1 / -1;
+  height: 44px;
+  flex-direction: row;
+  gap: 8px;
+}
+
+.serial-console-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 2px 0;
+  border: none;
+  background: transparent;
+  color: var(--PRIMARY-COLOR);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.serial-console-link:hover:not([disabled]) {
+  text-decoration: underline;
+}
+
+.serial-console-link[disabled] {
+  color: var(--DISABLED-COLOR);
+  cursor: not-allowed;
 }
 
 .web-link-btn {
@@ -1835,6 +1848,55 @@ button, input, select, textarea {
 .inline-footer {
   padding: 12px 0 0;
   border-top: none;
+}
+
+/* Consola serial: alto fijo, monoespaciada y desplazable. */
+.console-box {
+  max-width: 640px;
+}
+
+.console-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.console-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--TEXT-SECONDARY-COLOR);
+}
+
+.serial-console-out {
+  margin: 0;
+  height: 260px;
+  padding: 10px 12px;
+  overflow-y: auto;
+  border: 1px solid var(--COMPONENT-BORDER-COLOR);
+  border-radius: 4px;
+  background: #10151b;
+  color: #d7e2ec;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.serial-console-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--COMPONENT-BORDER-COLOR);
+  border-radius: 4px;
+  background: var(--WHITE-COLOR);
+  color: var(--TEXT-COLOR);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 13px;
+}
+
+.serial-console-input:focus {
+  outline: none;
+  border-color: var(--PRIMARY-COLOR);
 }
 
 .modal-link {

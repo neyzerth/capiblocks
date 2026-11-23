@@ -176,8 +176,6 @@
     searchMode: false,
     editorMode: 'blocks',
     deviceMode: 'live',
-    usingMlink: false,
-    serialConnected: false,
     zoom: 1,
     blocks: [],
     undoStack: [],
@@ -527,8 +525,14 @@
     });
   }
 
-  $('#runBtn')?.addEventListener('click', runBlocksSimulation);
+  $('#runBtn')?.addEventListener('click', async () => {
+    if (await runOnDeviceIfConnected()) return;
+    runBlocksSimulation();
+  });
   $('#stopBtn')?.addEventListener('click', () => {
+    if (window.MBSerial && window.MBSerial.isConnected()) {
+      window.MBSerial.interrupt().catch(() => {});
+    }
     stopExecution();
     state.sprite = { x: 0, y: 0, size: 100, dir: 90, visible: true, hue: 0 };
     if ($('#spriteXInput')) $('#spriteXInput').value = 0;
@@ -589,35 +593,143 @@
     btn.addEventListener('click', () => switchTargetTab(btn.getAttribute('data-target-tab')));
   });
 
-  // Device controls
+  /* ===========================
+     Serial (Web Serial) — conectar, subir, Live y consola
+     =========================== */
+  /** Líneas que conserva la consola antes de tirar las más viejas. */
+  const CONSOLE_MAX_LINES = 500;
+  /** Último estado notificado por MBSerial ('connecting'|'connected'|'disconnected'). */
+  let serialStatus = 'disconnected';
+  let uploadInProgress = false;
+
+  /** Añade una línea de la placa a la consola: tope de 500 y autoscroll. */
+  function appendConsolaLine(line: string) {
+    const out = $('#serialConsoleOut');
+    if (!out) return;
+    const next = out.textContent ? `${out.textContent}\n${line}` : line;
+    const lines = next.split('\n');
+    out.textContent = lines.length > CONSOLE_MAX_LINES
+      ? lines.slice(lines.length - CONSOLE_MAX_LINES).join('\n')
+      : next;
+    out.scrollTop = out.scrollHeight;
+  }
+
+  /** Refresca los controles seriales según el último estado y el soporte del navegador. */
   function updateDeviceStatusText() {
+    const api = window.MBSerial;
+    const supported = !!(api && api.available());
+    const connected = !!(supported && api.isConnected());
     const statusText = $('#deviceStatusText');
     const serialBtn = $('#serialConnectBtn');
     const serialLabel = $('#serialConnectLabel');
-    if (statusText) {
-      statusText.textContent = state.serialConnected ? t('deviceConnectedMsg') : t('connectYourDevice');
-    }
+    const uploadBtn = $('#uploadToDeviceBtn');
+    const consoleBtn = $('#serialConsoleBtn');
+
     if (serialBtn) {
-      serialBtn.classList.toggle('connected', state.serialConnected);
+      serialBtn.disabled = !supported;
+      serialBtn.title = supported ? '' : t('serialUnsupported');
+      serialBtn.classList.toggle('connected', connected);
+      serialBtn.setAttribute('aria-pressed', connected ? 'true' : 'false');
     }
     if (serialLabel) {
-      serialLabel.textContent = state.serialConnected ? t('connected') : t('serial');
+      serialLabel.textContent = connected
+        ? t('connected')
+        : serialStatus === 'connecting' ? t('serialConnecting') : t('serial');
     }
-    const mlinkText = $('#switchMlinkText');
-    if (mlinkText) {
-      mlinkText.textContent = state.usingMlink ? t('switchToWeb') : t('switchToMlink');
+    if (statusText) {
+      statusText.textContent = connected ? t('deviceConnectedMsg') : t('connectYourDevice');
+    }
+    if (uploadBtn) {
+      uploadBtn.disabled = !connected || uploadInProgress;
+      uploadBtn.title = connected ? t('uploadToDevice') : t('connectYourDevice');
+    }
+    if (consoleBtn) {
+      consoleBtn.disabled = !connected;
+      consoleBtn.title = connected ? t('consoleTitle') : t('connectYourDevice');
     }
   }
 
-  $('#switchMlinkBtn')?.addEventListener('click', () => {
-    state.usingMlink = !state.usingMlink;
+  /** Callback de MBSerial.connect(): guarda el estado y repinta la UI. */
+  function updateSerialUi(status: string) {
+    serialStatus = status;
     updateDeviceStatusText();
+  }
+
+  async function connectSerial() {
+    const api = window.MBSerial;
+    if (!api || !api.available()) return;
+    if (api.isConnected()) {
+      await api.disconnect();
+      updateSerialUi('disconnected');
+      return;
+    }
+    try {
+      await api.connect({ onLine: appendConsolaLine, onStatus: updateSerialUi });
+      showToast(t('deviceConnectedMsg'));
+    } catch (err: any) {
+      updateSerialUi('disconnected');
+      // Cancelar el diálogo nativo de puertos no es un error: sin toast.
+      if (err && err.name === 'NotFoundError') return;
+      showToast((err && err.message) || t('serialUnsupported'));
+    }
+  }
+
+  async function uploadToDevice() {
+    const api = window.MBSerial;
+    if (!api || !api.isConnected() || uploadInProgress) return;
+    const code = generatePythonCode();
+    uploadInProgress = true;
+    updateDeviceStatusText();
+    showToast(t('uploadingToast'));
+    try {
+      const ok = await api.uploadMainPy(code);
+      showToast(ok ? t('uploadOk') : t('uploadFail'));
+    } catch (_) {
+      showToast(t('uploadFail'));
+    } finally {
+      uploadInProgress = false;
+      updateDeviceStatusText();
+    }
+  }
+
+  /* Live: si hay placa conectada el programa corre en ella (la salida llega a
+     la consola); si no, la simulación del escenario sigue igual. */
+  async function runOnDeviceIfConnected(): Promise<boolean> {
+    const api = window.MBSerial;
+    if (!api || !api.isConnected()) return false;
+    showToast(t('liveOnDevice'));
+    try {
+      await api.replRun(generatePythonCode());
+    } catch (err: any) {
+      showToast((err && err.message) || t('connectYourDevice'));
+    }
+    return true;
+  }
+
+  $('#serialConnectBtn')?.addEventListener('click', connectSerial);
+  $('#uploadToDeviceBtn')?.addEventListener('click', uploadToDevice);
+
+  $('#serialConsoleBtn')?.addEventListener('click', () => {
+    if (!window.MBSerial || !window.MBSerial.isConnected()) return;
+    openModal('serialConsoleModal');
+    const out = $('#serialConsoleOut');
+    if (out) out.scrollTop = out.scrollHeight;
+    $('#serialConsoleInput')?.focus();
   });
 
-  $('#serialConnectBtn')?.addEventListener('click', () => {
-    state.serialConnected = !state.serialConnected;
-    updateDeviceStatusText();
-    showToast(state.serialConnected ? t('deviceConnectedMsg') : t('connectYourDevice'));
+  $('#serialConsoleInput')?.addEventListener('keydown', (e: any) => {
+    if (e.key !== 'Enter') return;
+    const input = e.target as HTMLInputElement;
+    const line = input.value;
+    input.value = '';
+    const api = window.MBSerial;
+    if (!api || !api.isConnected()) return;
+    api.writeLine(line).catch(() => {});
+  });
+
+  $('#serialConsoleClearBtn')?.addEventListener('click', () => {
+    const out = $('#serialConsoleOut');
+    if (out) out.textContent = '';
   });
 
   $$('[data-mode]').forEach((btn) => {
