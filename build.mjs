@@ -23,6 +23,11 @@ for (const rel of siteFiles) {
   console.log('copiado', rel);
 }
 
+// Assets CC0 de las bibliotecas (sprites y fondos). Los ids/rutas del catálogo
+// (src/sprite-library.ts) son relativos a dist/, así que se copian tal cual.
+fs.cpSync(path.join(root, 'assets'), path.join(out, 'assets'), { recursive: true });
+console.log('copiado assets/');
+
 // App completa (locales + i18n + motor + editor + UI) y bundle solo de i18n para privacy.html
 await esbuild({
   entryPoints: [path.join(root, 'src', 'app.ts')],
