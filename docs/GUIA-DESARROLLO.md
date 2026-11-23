@@ -71,6 +71,12 @@ Evita tocar componentes uno por uno.
   formato viejo (arreglo plano).
 - **CodeMirror necesita `refresh()`** cuando su contenedor pasa de oculto a visible (pestaña Python).
 - **Playwright no pulsa elementos ocultos**: abre el modal antes de pulsar sus botones.
+- **Nada de literales `http://` en `src/`**: `check.mjs` falla si el bundle contiene una URL
+  externa. Los defaults de los bloques HTTP van sin esquema (`ejemplo.com/datos`) y el helper
+  MicroPython la quita con `url.split('://')[-1]`.
+- **Se desarrolla en Linux, se usa en Windows**: Web Serial abstrae el puerto (COM o `/dev/tty*`
+  es indistinto para la app); lo único específico del sistema es el driver USB de la placa
+  (CP210x o CH340), ya explicado en el manual dentro del modal de ayuda.
 - **GitHub Pages cachea 10 minutos** (`max-age=600`): usa Ctrl+Shift+R tras desplegar.
 - **pnpm 12** exige `allowBuilds` en `pnpm-workspace.yaml` para el postinstall de esbuild.
 

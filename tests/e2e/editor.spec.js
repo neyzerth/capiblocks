@@ -124,14 +124,17 @@ test('los ejemplos cargan bloques reales y piden confirmación antes de reemplaz
   await boot(page);
   await openExamples();
   await page.locator('[data-load-example="leds"]').click();
-  await expect.poll(() => page.evaluate(() => MBBlocks.count())).toBe(5);
-  expect(await page.evaluate(() => MBBlocks.python())).toContain('¡Hola desde ESP32!');
+  await expect.poll(() => page.evaluate(() => MBBlocks.count())).toBe(9);
+  const py = await page.evaluate(() => MBBlocks.python());
+  expect(py).toContain('while True:');
+  expect(py).toContain('_capi_np_set(16, 8, 255, 82, 82)');
+  expect(py).not.toContain('¡Hola desde ESP32!');
 
   await openExamples();
   await page.locator('[data-load-example="counter"]').click();
   await expect(page.locator('#replaceModal')).toBeVisible();
   await page.locator('#replaceCancelBtn').click();
-  await expect.poll(() => page.evaluate(() => MBBlocks.count())).toBe(5);
+  await expect.poll(() => page.evaluate(() => MBBlocks.count())).toBe(9);
 
   await openExamples();
   await page.locator('[data-load-example="counter"]').click();

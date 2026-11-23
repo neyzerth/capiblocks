@@ -21,7 +21,11 @@ Leyenda: ✅ hecho · 🚧 en curso · ⬜ pendiente.
 - ✅ Bloques IoT: LEDs, matriz/pantalla, audio, sensores, LAN, IA, Wi-Fi/nube.
 - ✅ **Vista Python** generada desde la pila real, con sangría según la anidación, y exportación `.py`.
 - ✅ **Editor Python ligero** (CodeMirror): resaltado de sintaxis, números de línea, Tab/Shift-Tab, autocompletado de paréntesis y copiar/ejecutar.
-- ⬜ Generación de código específico por placa (MicroPython/Arduino) y conexión real al hardware.
+- ✅ **Generación de código específico por placa (MicroPython)**: con ESP32 activo el código usa
+  `machine`/`neopixel`/`network` y solo los helpers que el programa necesita.
+- ✅ **Conexión real al hardware por Web Serial**: Live ejecuta el programa en la placa y Subir
+  graba `main.py` para que arranque sola; consola serial en la UI.
+- ⬜ Flasheo inicial de MicroPython desde el navegador (esptool-js) — fase 3.
 
 ## 3. Simulación
 
@@ -34,7 +38,7 @@ Leyenda: ✅ hecho · 🚧 en curso · ⬜ pendiente.
 - ✅ **Guardar en el navegador** y **restaurar al recargar** (nombre, dispositivo y bloques).
 - ✅ Guardar/abrir proyecto en archivo `.json` y exportar Python.
 - ✅ **Nuevo proyecto** limpia el guardado (no resucita el anterior).
-- ✅ Tres programas de ejemplo con **bloques reales**; si hay trabajo en el lienzo,
+- ✅ Cuatro programas de ejemplo con **bloques reales**; si hay trabajo en el lienzo,
   se pide confirmación antes de reemplazarlo.
 - ⬜ Lista de proyectos recientes (hoy se reabre solo el último).
 

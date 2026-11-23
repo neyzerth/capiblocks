@@ -1364,11 +1364,16 @@
       { id: 'play_note', fields: { NOTE: 64 } }
     ],
     leds: [
-      { id: 'evt_start' },
-      { id: 'led_all', fields: { COLOR: '#ff5252' } },
-      { id: 'disp_print', fields: { TEXT: '¡Hola desde ESP32!' } },
-      { id: 'ctrl_wait', fields: { SECS: 1 } },
-      { id: 'led_single', fields: { COLOR: '#25cc76' } }
+      { id: 'evt_flag' },
+      { id: 'esp32_neopixel_fill', fields: { PIN: '16', N: 8, COLOR: '#ff5252' } },
+      { id: 'ctrl_forever', do: [
+        { id: 'esp32_neopixel_fill', fields: { PIN: '16', N: 8, COLOR: '#ff5252' } },
+        { id: 'ctrl_wait', fields: { SECS: 0.5 } },
+        { id: 'esp32_neopixel_fill', fields: { PIN: '16', N: 8, COLOR: '#66bb6a' } },
+        { id: 'ctrl_wait', fields: { SECS: 0.5 } },
+        { id: 'esp32_neopixel_fill', fields: { PIN: '16', N: 8, COLOR: '#42a5f5' } },
+        { id: 'ctrl_wait', fields: { SECS: 0.5 } }
+      ] }
     ],
     counter: [
       { id: 'evt_flag' },
@@ -1382,6 +1387,20 @@
         ]
       },
       { id: 'disp_print', fields: { TEXT: '¡Listo!' } }
+    ],
+    'esp32-wifi': [
+      { id: 'evt_flag' },
+      { id: 'esp32_wifi_connect', fields: { SSID: 'mi-red', PASS: '12345678' } },
+      { id: 'esp32_neopixel_fill', fields: { PIN: '16', N: 8, COLOR: '#25cc76' } },
+      {
+        id: 'ctrl_forever',
+        do: [
+          { id: 'esp32_pin_out', fields: { PIN: '2', LEVEL: '1' } },
+          { id: 'ctrl_wait', fields: { SECS: 1 } },
+          { id: 'esp32_pin_out', fields: { PIN: '2', LEVEL: '0' } },
+          { id: 'ctrl_wait', fields: { SECS: 1 } }
+        ]
+      }
     ]
   };
 

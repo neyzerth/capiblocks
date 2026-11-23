@@ -155,6 +155,52 @@
   const PINS_ADC = ['32', '33', '34', '35', '36', '39'];
   const pinOptions = (list: string[]) => list.map((p) => [p, p]);
 
+  /* Blockly 13 sacó `field_colour` del núcleo (ahora es un plugin), así que un
+     `field_colour` en args0 se descartaba en silencio y el bloque perdía su
+     campo de color. Se registra un campo propio: texto hexadecimal editable con
+     el fondo pintado del color actual. */
+  class ColourField extends B.FieldTextInput {
+    constructor(value?: string) {
+      super(value || '#ff5252');
+    }
+
+    static fromJson(options: any): ColourField {
+      return new ColourField(options && options.colour);
+    }
+
+    initView(): void {
+      super.initView();
+      this.updateSwatch();
+    }
+
+    /* eslint-disable-next-line camelcase */
+    doValueUpdate_(newValue: string): void {
+      super.doValueUpdate_(newValue);
+      this.updateSwatch();
+    }
+
+    /* eslint-disable-next-line camelcase */
+    doClassValidation_(newValue: any): string | null {
+      const v = String(newValue == null ? '' : newValue).trim();
+      return /^#?[0-9a-f]{6}$/i.test(v) ? v : null;
+    }
+
+    /** Pinta el fondo del texto con el color actual (el hex sigue siendo editable). */
+    updateSwatch(): void {
+      /* getTextElement() lanza si el bloque aún no tiene vista (construcción). */
+      let el: any = null;
+      try { el = this.getTextElement(); } catch (_) { return; }
+      if (!el) return;
+      const [r, g, b] = rgbFromHex(this.getValue());
+      el.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+      el.style.fill = '#ffffff';
+    }
+  }
+
+  if (B.registry && B.registry.Type && !B.registry.hasItem(B.registry.Type.FIELD, 'field_colour')) {
+    B.registry.register(B.registry.Type.FIELD, 'field_colour', ColourField);
+  }
+
   /* Blocks whose label placeholders become editable fields. */
   const FIELD_SPECS: Record<string, any[]> = {
     esp32_pin_out: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL) }, { name: 'LEVEL', type: 'dropdown', options: [['ALTO', '1'], ['BAJO', '0']] }],

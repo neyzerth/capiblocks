@@ -12,11 +12,12 @@ index.html
  ├─ blockly.min.js (vendor)          motor de bloques (global Blockly)
  ├─ codemirror*.js (vendor)          editor de código (global CodeMirror)
  └─ app.js                           bundle generado por esbuild
-     ├─ locales.ts                   diccionarios es / en / zh
-     ├─ i18n.ts                      window.t(), cambio de idioma, data-t
-     ├─ blockly-app.ts               window.MBBlocks: bloques, Python, acciones
-     ├─ python-editor.ts             window.MBPythonEditor: CodeMirror
-     └─ script.ts                    UI, estado, eventos, guardado, ejemplos
+    ├─ locales.ts                   diccionarios es / en / zh
+    ├─ i18n.ts                      window.t(), cambio de idioma, data-t
+    ├─ blockly-app.ts               window.MBBlocks: bloques, Python, acciones
+    ├─ serial.ts                    window.MBSerial: Web Serial + REPL crudo
+    ├─ python-editor.ts             window.MBPythonEditor: CodeMirror
+    └─ script.ts                    UI, estado, eventos, guardado, ejemplos
 ```
 
 `privacy.html` carga solo `i18n.js` (bundle reducido de locales + i18n) y su propio script inline.
@@ -55,12 +56,38 @@ index.html
 
 Cada entrada de `BLOCKS_BY_CAT` puede declarar `esp32` (código MicroPython) y
 `devices` (lista de placas donde el bloque aparece en la paleta; ausente = universal).
-Con `esp32` activo, `python()` emite un encabezado propio, `import machine, time` +
-`from machine import Pin, PWM, ADC`, imports extra solo si el programa los usa
-(`network`, `ntptime`) y los helpers de los bloques presentes; los sombreros de evento
-se vuelven `def on_flag():` / `def on_start():` y se llaman al final, bajo
-`# --- capiBlocks: arranque ---`. Para cualquier otro dispositivo la salida es la de
-siempre (`import cyberpi, event, time` + decoradores).
+La paleta filtra categorías y bloques por `state.activeDevice`, y `MBBlocks.setDevice(id)`
+sincroniza el motor con esa elección.
+
+Con `esp32` activo, `python()` emite un encabezado propio (`# capiBlocks → MicroPython (ESP32)`),
+`import machine, time` + `from machine import Pin, PWM, ADC`, imports extra solo si el programa
+los usa (`network`, `ntptime`) y **solo los helpers** (`_capi_dht`, `_capi_distance`,
+`_capi_np_set`, `_capi_tone`, `_capi_wifi`, `_capi_http_get/post`) que necesitan los bloques
+presentes. Los sombreros de evento se vuelven `def on_flag():` / `def on_start():` y se llaman al
+final, bajo `# --- capiBlocks: arranque ---`. Los ids usados se recolectan recorriendo la cadena
+(`getNextBlock()`) y los cuerpos `DO`, así que un helper solo aparece si su bloque está en el
+lienzo. Para cualquier otro dispositivo la salida es la de siempre (`import cyberpi, event, time`
++ decoradores).
+
+### `MBSerial`
+
+`src/serial.ts` encapsula Web Serial y el protocolo REPL crudo de MicroPython; no conoce la UI:
+al conectar recibe `onLine` (cada línea de la placa) y `onStatus` (`'connecting' | 'connected' |
+'disconnected'`), que `script.ts` usa para la consola y el estado del botón.
+
+| Método | Qué hace |
+|---|---|
+| `available()` | ¿El navegador expone Web Serial? Si no, la UI desactiva Conectar con aviso. |
+| `isConnected()` | ¿Hay un puerto abierto? |
+| `connect({onLine,onStatus,baudRate})` | Pide el puerto al usuario (sin filtros) y arranca la lectura. |
+| `disconnect()` | Suelta lector/escritor y cierra el puerto. |
+| `interrupt()` | Ctrl-C: detiene el programa en la placa. |
+| `writeLine(line)` | Envía una línea desde el input de la consola. |
+| `replRun(code)` | **Live**: entra en REPL crudo, envía el código, espera `OK` y la salida. Devuelve `{ok, output, finished}`; `finished: false` cuando el programa sigue corriendo (`while True`). |
+| `uploadMainPy(code)` | **Subir**: escribe `main.py` en chunks base64 (`ubinascii.a2b_base64`, sin dependencias en la placa) y hace soft reset (Ctrl-D) para que arranque solo. |
+
+La UI de `script.ts` conecta esto a `serialConnectBtn`, `uploadToDeviceBtn`, `runBtn`/`stopBtn`
+(Live si hay placa, simulación si no) y al modal de consola serial.
 
 ### `MBPythonEditor`
 
@@ -93,7 +120,8 @@ vendor/blockly, vendor/codemirror ──copiar──▶ dist/
 - `node check.mjs` valida archivos, referencias, ausencia de URLs externas y que el bundle exponga
   las APIs.
 - `pnpm typecheck` ejecuta `tsc --noEmit`.
-- `tests/e2e/editor.spec.js` prueba el comportamiento real en Chromium (Playwright).
+- `tests/e2e/editor.spec.js` y `tests/e2e/esp32.spec.js` prueban el comportamiento real en
+  Chromium (Playwright): bloques, arrastre, ejemplos, paleta por dispositivo y codegen.
 
 ## Reglas de diseño
 

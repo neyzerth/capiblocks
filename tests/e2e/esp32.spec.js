@@ -140,3 +140,18 @@ test('el bloque de deep sleep va en Control y usa milisegundos', async ({ page }
   await addFromPalette(page, /Control|控制/, 4);
   expect(await page.evaluate(() => MBBlocks.python())).toContain('machine.deepsleep(int(60 * 1000))');
 });
+
+/* --- T7: ejemplo ESP32 que conecta WiFi y parpadea un pin --- */
+
+test('el ejemplo ESP32 WiFi usa bloques reales y genera su arranque', async ({ page }) => {
+  await boot(page);
+  await page.locator('[data-modal-open="examplesModal"]').click();
+  await page.locator('[data-load-example="esp32-wifi"]').click();
+  await expect.poll(() => page.evaluate(() => MBBlocks.count())).toBe(8);
+  const py = await page.evaluate(() => MBBlocks.python());
+  expect(py).toContain('_capi_wifi("mi-red", "12345678")');
+  expect(py).toContain('_capi_np_set(16, 8, 37, 204, 118)');
+  expect(py).toContain('while True:');
+  expect(py).toContain('Pin(2, Pin.OUT).value(1)');
+  expect(py).toContain('on_flag()');
+});
