@@ -154,8 +154,15 @@
     { id: 'mbot2', name: 'mBot2', desc: 'Smart educational coding robot' },
     { id: 'halocode', name: 'Halocode', desc: 'Wireless IoT board with LED ring' },
     { id: 'arduino_uno', name: 'Arduino Uno', desc: 'Classic microcontroller board' },
-    { id: 'esp32', name: 'ESP32', desc: 'Wi-Fi + Bluetooth IoT microcontroller' }
+    { id: 'esp32', name: 'ESP32', desc: 'Wi-Fi + Bluetooth IoT microcontroller' },
+    { id: 'esp32s3', name: 'ESP32-S3', desc: 'Wi-Fi + BLE board with PSRAM' }
   ];
+
+  /* Variantes que comparten bloques y codegen con su familia (los nombres de
+     DEVICE_LIBRARY se muestran tal cual, sin traducir). */
+  const DEVICE_FAMILY: Record<string, string> = { esp32s3: 'esp32' };
+  /** Familia del dispositivo: `esp32s3` → `esp32`; el resto, su propio id. */
+  const deviceFamily = (id: string): string => DEVICE_FAMILY[id] || id;
 
   const EXTENSION_LIBRARY = [
     { id: 'ext_music', nameKey: 'extMusic', descKey: 'extMusicDesc', color: '#0fbd8c' },
@@ -771,16 +778,17 @@
   /* ===========================
      Toolbox & Block Flyout
      =========================== */
-  /* ¿El bloque aplica al dispositivo activo? `devices` ausente = universal. */
+  /* ¿El bloque aplica al dispositivo activo? `devices` ausente = universal.
+     Las variantes se resuelven a su familia (`esp32s3` usa los bloques `esp32`). */
   function blockAppliesToDevice(blk) {
-    return !blk.devices || blk.devices.includes(state.activeDevice);
+    return !blk.devices || blk.devices.includes(deviceFamily(state.activeDevice));
   }
 
   /* La categoría entra en la paleta si aplica al dispositivo y tiene bloques.
      Las categorías de sprite no dependen del dispositivo conectado. */
   function categoryVisible(cat) {
     if (state.activeTargetTab !== 'devices') return true;
-    if (cat.devices && !cat.devices.includes(state.activeDevice)) return false;
+    if (cat.devices && !cat.devices.includes(deviceFamily(state.activeDevice))) return false;
     return getBlocksForCategory(cat.id).length > 0;
   }
 
@@ -1321,7 +1329,12 @@
     state.activeDevice = devId;
     const dev = DEVICE_LIBRARY.find((d) => d.id === devId);
     if (dev && $('#infoTargetName')) $('#infoTargetName').textContent = dev.name;
-    if (window.MBBlocks) MBBlocks.setDevice(devId);
+    if (window.MBBlocks) {
+      MBBlocks.setDevice(devId);
+      /* Las opciones de los desplegables (pines) dependen de la variante de
+         placa: se reconstruyen las definiciones conservando el programa. */
+      if (MBBlocks.active()) MBBlocks.relabel(blockLabelFor);
+    }
     if (state.activeCategory && !getActiveCategories().some((c) => c.id === state.activeCategory)) {
       state.activeCategory = null;
       const flyout = $('#blocklyFlyout');

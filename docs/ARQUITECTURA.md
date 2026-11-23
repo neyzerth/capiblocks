@@ -41,7 +41,7 @@ index.html
 | Método | Qué hace |
 |---|---|
 | `init({blocksByCat,labelFor,lang,device,onChange})` | Registra bloques y monta el workspace. |
-| `relabel(labelFor)` | Reconstruye los bloques con otro idioma conservando el programa. |
+| `relabel(labelFor)` | Reconstruye los bloques con otro idioma —o con otras opciones de campo (pines por variante)— conservando el programa. |
 | `add(id)` | Añade un bloque debajo del contenido actual. |
 | `addAt(id, clientX, clientY)` | Añade un bloque en el punto donde se suelta (arrastre). |
 | `loadProgram(steps)` | Carga un programa de ejemplo (`{id, fields?, do?[]}`). |
@@ -68,6 +68,12 @@ final, bajo `# --- capiBlocks: arranque ---`. Los ids usados se recolectan recor
 (`getNextBlock()`) y los cuerpos `DO`, así que un helper solo aparece si su bloque está en el
 lienzo. Para cualquier otro dispositivo la salida es la de siempre (`import cyberpi, event, time`
 + decoradores).
+
+Los campos desplegables de pin declaran `optionsByDevice` (`esp32` clásico y `esp32s3` tienen
+listas distintas: en la S3 los GPIO 26-37 son flash/PSRAM y no existen como pines). `fieldArgs`
+resuelve las opciones con el dispositivo activo al definir los bloques, así que `setActiveDevice`
+reconstruye las definiciones (`MBBlocks.relabel`) conservando el programa. Las variantes comparten
+codegen: el motor normaliza `esp32s3` a su familia `esp32` antes de emitir Python.
 
 ### `MBSerial`
 

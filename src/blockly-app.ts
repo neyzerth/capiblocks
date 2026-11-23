@@ -15,6 +15,13 @@
   let lang = 'en';
   /* Dispositivo activo para el codegen; la UI lo sincroniza con `setDevice`. */
   let device = 'esp32';
+  /* Variantes que comparten bloques y codegen con su familia (solo cambian los
+     pines disponibles en los desplegables). */
+  const DEVICE_FAMILY: Record<string, string> = { esp32s3: 'esp32' };
+  /** Familia a la que pertenece el dispositivo activo ('esp32s3' → 'esp32'). */
+  function deviceFamily(): string {
+    return DEVICE_FAMILY[device] || device;
+  }
 
   /* Imports extra que el preámbulo ESP32 añade solo si el programa los usa.
      El catálogo puede declararlos en `entry.imports`; este mapa cubre los
@@ -149,11 +156,29 @@
     }
   ];
 
-  /* Pines del ESP32 para los desplegables: [etiqueta, valor] con etiqueta = número. */
+  /* Pines del ESP32 clásico para los desplegables: [etiqueta, valor]. */
   const PINS_DIGITAL = ['2', '4', '5', '12', '13', '14', '15', '16', '17', '18', '19', '21', '22', '23', '25', '26', '27', '32', '33'];
   /* Solo entradas ADC (GPIO 34-39 no tienen pull-up ni salida). */
   const PINS_ADC = ['32', '33', '34', '35', '36', '39'];
+  /* ESP32-S3: fuera 0/3/45/46 (strapping), 19/20 y 43/44 (USB) y 26-37
+     (flash SPI y PSRAM octal), que además revientan con `invalid pin`. */
+  const PINS_DIGITAL_S3 = ['1', '2', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '21', '38', '39', '40', '41', '42', '47', '48'];
+  const PINS_ADC_S3 = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
   const pinOptions = (list: string[]) => list.map((p) => [p, p]);
+
+  /* Desplegable de pin: la lista depende de la variante de placa activa. Sin
+     `def` el campo arranca en la primera opción de la lista vigente, que puede
+     no ser válida en la otra variante (nunca se hardcodea el pin). */
+  function pinSpec(list: string[], listS3: string[], def?: string) {
+    const spec: any = {
+      name: 'PIN',
+      type: 'dropdown',
+      options: pinOptions(list),
+      optionsByDevice: { esp32: pinOptions(list), esp32s3: pinOptions(listS3) }
+    };
+    if (def !== undefined) spec.def = def;
+    return spec;
+  }
 
   /* Blockly 13 sacó `field_colour` del núcleo (ahora es un plugin), así que un
      `field_colour` en args0 se descartaba en silencio y el bloque perdía su
@@ -203,21 +228,21 @@
 
   /* Blocks whose label placeholders become editable fields. */
   const FIELD_SPECS: Record<string, any[]> = {
-    esp32_pin_out: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL) }, { name: 'LEVEL', type: 'dropdown', options: [['ALTO', '1'], ['BAJO', '0']] }],
-    esp32_pin_read: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL) }, { name: 'VAR', type: 'text', def: 'estado' }],
-    esp32_pin_analog: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_ADC) }, { name: 'VAR', type: 'text', def: 'valor' }],
-    esp32_pwm_set: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL) }, { name: 'DUTY', type: 'number', def: 50 }],
-    esp32_pwm_stop: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL) }],
-    esp32_servo_angle: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL) }, { name: 'ANGLE', type: 'number', def: 90 }],
-    esp32_read_dht: [{ name: 'WHAT', type: 'dropdown', options: [['temperatura', '0'], ['humedad', '1']] }, { name: 'MODEL', type: 'dropdown', options: [['DHT11', 'DHT11'], ['DHT22', 'DHT22']] }, { name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL) }, { name: 'VAR', type: 'text', def: 'temp' }],
-    esp32_read_distance: [{ name: 'TRIG', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '5' }, { name: 'ECHO', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '18' }, { name: 'VAR', type: 'text', def: 'dist' }],
-    esp32_read_pir: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '27' }, { name: 'VAR', type: 'text', def: 'mov' }],
-    esp32_read_ldr: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_ADC), def: '32' }, { name: 'VAR', type: 'text', def: 'luz' }],
-    esp32_read_button: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '4' }, { name: 'VAR', type: 'text', def: 'boton' }],
-    esp32_neopixel_fill: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '16' }, { name: 'N', type: 'number', def: 8 }, { name: 'COLOR', type: 'colour', def: '#ff5252' }],
-    esp32_neopixel_off: [{ name: 'N', type: 'number', def: 8 }, { name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '16' }],
-    esp32_buzzer_tone: [{ name: 'FREQ', type: 'number', def: 700 }, { name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '17' }, { name: 'MS', type: 'number', def: 300 }],
-    esp32_relay: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '26' }, { name: 'STATE', type: 'dropdown', options: [['ON', '1'], ['OFF', '0']] }],
+    esp32_pin_out: [pinSpec(PINS_DIGITAL, PINS_DIGITAL_S3, '2'), { name: 'LEVEL', type: 'dropdown', options: [['ALTO', '1'], ['BAJO', '0']] }],
+    esp32_pin_read: [pinSpec(PINS_DIGITAL, PINS_DIGITAL_S3, '2'), { name: 'VAR', type: 'text', def: 'estado' }],
+    esp32_pin_analog: [pinSpec(PINS_ADC, PINS_ADC_S3), { name: 'VAR', type: 'text', def: 'valor' }],
+    esp32_pwm_set: [pinSpec(PINS_DIGITAL, PINS_DIGITAL_S3, '2'), { name: 'DUTY', type: 'number', def: 50 }],
+    esp32_pwm_stop: [pinSpec(PINS_DIGITAL, PINS_DIGITAL_S3, '2')],
+    esp32_servo_angle: [pinSpec(PINS_DIGITAL, PINS_DIGITAL_S3, '2'), { name: 'ANGLE', type: 'number', def: 90 }],
+    esp32_read_dht: [{ name: 'WHAT', type: 'dropdown', options: [['temperatura', '0'], ['humedad', '1']] }, { name: 'MODEL', type: 'dropdown', options: [['DHT11', 'DHT11'], ['DHT22', 'DHT22']] }, pinSpec(PINS_DIGITAL, PINS_DIGITAL_S3, '2'), { name: 'VAR', type: 'text', def: 'temp' }],
+    esp32_read_distance: [{ name: 'TRIG', type: 'dropdown', options: pinOptions(PINS_DIGITAL), optionsByDevice: { esp32: pinOptions(PINS_DIGITAL), esp32s3: pinOptions(PINS_DIGITAL_S3) }, def: '5' }, { name: 'ECHO', type: 'dropdown', options: pinOptions(PINS_DIGITAL), optionsByDevice: { esp32: pinOptions(PINS_DIGITAL), esp32s3: pinOptions(PINS_DIGITAL_S3) }, def: '18' }, { name: 'VAR', type: 'text', def: 'dist' }],
+    esp32_read_pir: [pinSpec(PINS_DIGITAL, PINS_DIGITAL_S3), { name: 'VAR', type: 'text', def: 'mov' }],
+    esp32_read_ldr: [pinSpec(PINS_ADC, PINS_ADC_S3), { name: 'VAR', type: 'text', def: 'luz' }],
+    esp32_read_button: [pinSpec(PINS_DIGITAL, PINS_DIGITAL_S3, '4'), { name: 'VAR', type: 'text', def: 'boton' }],
+    esp32_neopixel_fill: [pinSpec(PINS_DIGITAL, PINS_DIGITAL_S3, '16'), { name: 'N', type: 'number', def: 8 }, { name: 'COLOR', type: 'colour', def: '#ff5252' }],
+    esp32_neopixel_off: [{ name: 'N', type: 'number', def: 8 }, pinSpec(PINS_DIGITAL, PINS_DIGITAL_S3, '16')],
+    esp32_buzzer_tone: [{ name: 'FREQ', type: 'number', def: 700 }, pinSpec(PINS_DIGITAL, PINS_DIGITAL_S3, '17'), { name: 'MS', type: 'number', def: 300 }],
+    esp32_relay: [pinSpec(PINS_DIGITAL, PINS_DIGITAL_S3), { name: 'STATE', type: 'dropdown', options: [['ON', '1'], ['OFF', '0']] }],
     esp32_wifi_connect: [{ name: 'SSID', type: 'text', def: 'mi-red' }, { name: 'PASS', type: 'text', def: '12345678' }],
     esp32_wifi_is_up: [{ name: 'VAR', type: 'text', def: 'wifi_ok' }],
     esp32_http_get: [{ name: 'URL', type: 'text', def: 'ejemplo.com/datos' }, { name: 'VAR', type: 'text', def: 'resp' }],
@@ -246,13 +271,19 @@
   function typeOf(id: string) { return 'mb_' + id; }
   function idOf(type: string) { return type.indexOf('mb_') === 0 ? type.slice(3) : type; }
 
+  /** Opciones de un desplegable para la placa activa (variante exacta o familia). */
+  function fieldOptions(f) {
+    if (!f.optionsByDevice) return f.options;
+    return f.optionsByDevice[device] || f.optionsByDevice[deviceFamily()] || f.options;
+  }
+
   function fieldArgs(spec) {
     if (!spec) return null;
     return spec.map((f) => {
       if (f.type === 'colour') return { type: 'field_colour', name: f.name, colour: f.def };
       if (f.type === 'number') return { type: 'field_number', name: f.name, value: f.def, min: 0 };
       /* Las opciones de dropdown son etiquetas técnicas ([etiqueta, valor]). */
-      if (f.type === 'dropdown') return { type: 'field_dropdown', name: f.name, options: f.options };
+      if (f.type === 'dropdown') return { type: 'field_dropdown', name: f.name, options: fieldOptions(f) };
       return { type: 'field_input', name: f.name, text: f.def };
     });
   }
@@ -372,7 +403,7 @@
     const id = idOf(block.type);
     const entry = catalogById[id];
     if (!entry) return 'pass';
-    let py = (device === 'esp32' && entry.esp32) ? entry.esp32 : (entry.py || 'pass');
+    let py = (deviceFamily() === 'esp32' && entry.esp32) ? entry.esp32 : (entry.py || 'pass');
     switch (id) {
       /* --- Pines (ESP32): GPIO, PWM y servo --- */
       case 'esp32_pin_out':
@@ -762,7 +793,8 @@
 
 /** Código Python generado desde la pila actual. */
     python() {
-      if (device === 'esp32') return pythonEsp32();
+      /* Las variantes de ESP32 comparten codegen (`esp32s3` → `esp32`). */
+      if (deviceFamily() === 'esp32') return pythonEsp32();
       const header = lang === 'es'
         ? '# Código Python generado desde los bloques'
         : lang === 'zh'

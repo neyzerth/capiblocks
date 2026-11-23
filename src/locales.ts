@@ -204,7 +204,7 @@ const I18N_DICTS = {
     extAiVisionDesc: "Simulate color and shape recognition blocks.",
 
     deviceHelpTitle: "How to Use ESP32",
-    deviceHelpStep1: "Flash the MicroPython firmware onto your ESP32 once (esptool or a web flasher), then plug it in via USB. If no port shows up, install your board's USB driver (CP210x or CH340).",
+    deviceHelpStep1: "Flash the MicroPython firmware onto your ESP32 once (esptool or a web flasher), then plug it in via USB. If no port shows up, install your board's USB driver (CP210x or CH340). Pick your board's variant (ESP32 or ESP32-S3) in the device library.",
     deviceHelpStep2: "Click Serial and pick the port (on Windows it shows up as a COM port): Live runs the program instantly; Upload writes it as main.py so the board runs standalone.",
     deviceHelpStep3: "Without a board connected, the green flag simulates your program on the stage.",
 
@@ -480,7 +480,7 @@ const I18N_DICTS = {
     extAiVisionDesc: "Simula bloques de reconocimiento de colores y formas.",
 
     deviceHelpTitle: "Cómo usar el ESP32",
-    deviceHelpStep1: "Graba una sola vez el firmware MicroPython en tu ESP32 (esptool o un flasheador web) y conéctalo por USB. Si el puerto no aparece, instala el driver USB de tu placa (CP210x o CH340).",
+    deviceHelpStep1: "Graba una sola vez el firmware MicroPython en tu ESP32 (esptool o un flasheador web) y conéctalo por USB. Si el puerto no aparece, instala el driver USB de tu placa (CP210x o CH340). Elige la variante de tu placa (ESP32 o ESP32-S3) en la biblioteca de dispositivos.",
     deviceHelpStep2: "Haz clic en Serial y elige el puerto (en Windows es un COM): Live ejecuta el programa al instante; Subir lo graba como main.py para que la placa corra sola.",
     deviceHelpStep3: "Sin placa conectada, la bandera verde simula tu programa en el escenario.",
 
@@ -744,7 +744,7 @@ const I18N_DICTS = {
     extAiVisionDesc: "模拟颜色和形状识别积木。",
 
     deviceHelpTitle: "如何使用 ESP32",
-    deviceHelpStep1: "先在 ESP32 上刷入一次 MicroPython 固件（esptool 或网页烧录工具），然后用 USB 连接。如果没有出现端口，请安装板子的 USB 驱动（CP210x 或 CH340）。",
+    deviceHelpStep1: "先在 ESP32 上刷入一次 MicroPython 固件（esptool 或网页烧录工具），然后用 USB 连接。如果没有出现端口，请安装板子的 USB 驱动（CP210x 或 CH340）。在设备库中选择你的板子型号（ESP32 或 ESP32-S3）。",
     deviceHelpStep2: "点击串口并选择端口（Windows 中显示为 COM 端口）：在线模式立即运行程序；上传模式写入 main.py 让设备独立运行。",
     deviceHelpStep3: "没有设备时，绿旗会在舞台上模拟运行你的程序。",
 

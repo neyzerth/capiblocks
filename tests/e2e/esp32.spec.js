@@ -192,3 +192,55 @@ test('el ejemplo contador usa buzzer y neopixel del ESP32', async ({ page }) => 
   expect(py).toContain('_capi_np_set(16, 8, 37, 204, 118)');
   expect(py).not.toContain('cyberpi');
 });
+
+/* --- T8b: variante ESP32-S3 con pines válidos por dispositivo --- */
+
+async function useEsp32S3(page) {
+  await page.locator('#addDeviceBtn').click();
+  await page.locator('#deviceLibraryGrid .example-card', { hasText: 'ESP32-S3' }).getByRole('button').click();
+  await page.locator('#addDeviceModal [data-modal-close]').first().click();
+  await page.locator('#deviceListCol .mtarget-card', { hasText: 'ESP32-S3' }).click();
+}
+
+/* Opciones del desplegable PIN del primer bloque del lienzo. */
+async function pinOptions(page) {
+  return page.evaluate(() => {
+    const b = Blockly.getMainWorkspace().getTopBlocks(true)[0];
+    const f = b.getField('PIN');
+    return f.getOptions(false).map((o) => String(o[1]));
+  });
+}
+
+test('la S3 no ofrece los pines de flash/PSRAM y conserva el programa', async ({ page }) => {
+  await boot(page);
+  await addFromPalette(page, /Pins|Pines|引脚/); // esp32_pin_out
+  expect(await pinOptions(page)).toContain('26');
+  expect(await page.evaluate(() => MBBlocks.python())).toContain('Pin(2, Pin.OUT).value(1)');
+
+  await useEsp32S3(page);
+  await expect(page.locator('#infoTargetName')).toHaveText('ESP32-S3');
+  // La variante pertenece a la familia esp32: la paleta sigue completa.
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(10);
+
+  const opts = await pinOptions(page);
+  expect(opts).not.toContain('26');
+  expect(opts).not.toContain('32');
+  expect(opts).toContain('1');
+  // El programa cargado sobrevive al cambio de variante y el codegen es el mismo.
+  expect(await page.evaluate(() => MBBlocks.python())).toContain('Pin(2, Pin.OUT).value(1)');
+});
+
+test('el relé arranca en el primer pin de la lista del ESP32 clásico', async ({ page }) => {
+  await boot(page);
+  await addFromPalette(page, /LED/, 2); // esp32_relay (sin def: primera opción = 2)
+  expect(await page.evaluate(() => MBBlocks.python())).toContain('Pin(2, Pin.OUT).value(1)');
+});
+
+test('el relé arranca en el primer pin de la lista del ESP32-S3', async ({ page }) => {
+  await boot(page);
+  await useEsp32S3(page);
+  await addFromPalette(page, /LED/, 2); // esp32_relay: primera opción S3 = 1
+  const py = await page.evaluate(() => MBBlocks.python());
+  expect(py).toContain('Pin(1, Pin.OUT).value(1)');
+  expect(py).not.toContain('Pin(26');
+});
