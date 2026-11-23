@@ -249,14 +249,19 @@
       throw err;
     }
     let out = '';
+    capture = []; // la salida puede llegar en trozos: se recoge línea a línea
     try {
       out = await waitFor('\x04>', 2500); // término = el programa finito terminó
     } catch (_) {
+      capture = null;
       return { ok: true, output: '', finished: false }; // while True: sigue corriendo
     }
+    const captured = capture.slice();
+    capture = null;
     await exitRaw();
-    const clean = out.replace('OK', '').replace(/\x04/g, '').replace(/\r/g, '').trim();
-    return { ok: true, output: clean, finished: true };
+    const tail = out.replace('OK', '').replace(/\x04/g, '').replace(/\r/g, '').trim();
+    const output = captured.concat(tail ? [tail] : []).join('\n').trim();
+    return { ok: true, output, finished: true };
   }
 
   /**
