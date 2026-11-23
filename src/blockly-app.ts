@@ -72,6 +72,8 @@
     return spec.map((f) => {
       if (f.type === 'colour') return { type: 'field_colour', name: f.name, colour: f.def };
       if (f.type === 'number') return { type: 'field_number', name: f.name, value: f.def, min: 0 };
+      /* Las opciones de dropdown son etiquetas técnicas ([etiqueta, valor]). */
+      if (f.type === 'dropdown') return { type: 'field_dropdown', name: f.name, options: f.options };
       return { type: 'field_input', name: f.name, text: f.def };
     });
   }

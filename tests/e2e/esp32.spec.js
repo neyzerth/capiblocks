@@ -55,3 +55,20 @@ test('al cambiar a CyberPi vuelve el python de cyberpi y viceversa', async ({ pa
   expect(back).not.toContain('cyberpi');
   expect(back).toContain('def on_flag():');
 });
+
+test('con ESP32 la paleta solo muestra las categorías universales', async ({ page }) => {
+  await boot(page);
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(5);
+  await expect(page.locator('.toolbox-categories button', { hasText: /LED/ })).toHaveCount(0);
+  await expect(page.locator('.toolbox-categories button', { hasText: /Audio|音频/ })).toHaveCount(0);
+});
+
+test('la paleta sigue al dispositivo: CyberPi 13 categorías, ESP32 5', async ({ page }) => {
+  await boot(page);
+  await addCyberPi(page);
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(13);
+  await expect(page.locator('.toolbox-categories button', { hasText: /LED/ })).toHaveCount(1);
+
+  await page.locator('#deviceListCol .mtarget-card', { hasText: 'ESP32' }).click();
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(5);
+});

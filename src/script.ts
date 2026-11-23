@@ -11,9 +11,13 @@
   /* ===========================
      Data: Categories, Blocks, Devices, Extensions
      =========================== */
+  /* Categorías de dispositivo. `devices` ausente = universal; si está, la
+     categoría solo aparece con uno de esos dispositivos activo. Las categorías
+     sin `devices` se ocultan solas cuando ningún bloque aplica al dispositivo. */
   const DEVICE_CATEGORIES = [
     { id: 'audio', labelKey: 'catAudio', color: '#ab47bc', icon: 'chip' },
     { id: 'led', labelKey: 'catLed', color: '#9300d8', icon: 'chip' },
+    { id: 'pins', labelKey: 'catPins', color: '#4c97ff', icon: 'chip', devices: ['esp32'] },
     { id: 'display', labelKey: 'catDisplay', color: '#6739b6', icon: 'chip' },
     { id: 'motion_sensing', labelKey: 'catMotionSensing', color: '#ff6f00', icon: 'chip' },
     { id: 'sensing', labelKey: 'catSensing', color: '#ff6f00', icon: 'chip' },
@@ -41,49 +45,49 @@
 
   const BLOCKS_BY_CAT = {
     audio: [
-      { id: 'play_until_done', key: 'blkPlayUntilDone', color: '#ab47bc', py: 'cyberpi.audio.play_until("hi")', action: { type: 'beep', freq: 523 } },
-      { id: 'play_sound', key: 'blkPlaySound', color: '#ab47bc', py: 'cyberpi.audio.play("hi")', action: { type: 'beep', freq: 587 } },
-      { id: 'play_note', key: 'blkPlayNote', color: '#ab47bc', py: 'cyberpi.audio.play_music(60, 0.25)', action: { type: 'beep', freq: 659 } },
-      { id: 'play_hz', key: 'blkPlayHz', color: '#ab47bc', py: 'cyberpi.audio.play_tone(700, 1)', action: { type: 'beep', freq: 700 } },
-      { id: 'set_volume', key: 'blkSetVolume', color: '#ab47bc', py: 'cyberpi.audio.set_vol(80)' },
-      { id: 'stop_sounds', key: 'blkStopSounds', color: '#ab47bc', py: 'cyberpi.audio.stop()' }
+      { id: 'play_until_done', key: 'blkPlayUntilDone', color: '#ab47bc', devices: ['cyberpi'], py: 'cyberpi.audio.play_until("hi")', action: { type: 'beep', freq: 523 } },
+      { id: 'play_sound', key: 'blkPlaySound', color: '#ab47bc', devices: ['cyberpi'], py: 'cyberpi.audio.play("hi")', action: { type: 'beep', freq: 587 } },
+      { id: 'play_note', key: 'blkPlayNote', color: '#ab47bc', devices: ['cyberpi'], py: 'cyberpi.audio.play_music(60, 0.25)', action: { type: 'beep', freq: 659 } },
+      { id: 'play_hz', key: 'blkPlayHz', color: '#ab47bc', devices: ['cyberpi'], py: 'cyberpi.audio.play_tone(700, 1)', action: { type: 'beep', freq: 700 } },
+      { id: 'set_volume', key: 'blkSetVolume', color: '#ab47bc', devices: ['cyberpi'], py: 'cyberpi.audio.set_vol(80)' },
+      { id: 'stop_sounds', key: 'blkStopSounds', color: '#ab47bc', devices: ['cyberpi'], py: 'cyberpi.audio.stop()' }
     ],
     led: [
-      { id: 'led_all', key: 'blkLedAll', color: '#9300d8', py: 'cyberpi.led.on(255, 50, 50)', action: { type: 'led', color: '#ff5252' } },
-      { id: 'led_single', key: 'blkLedSingle', color: '#9300d8', py: 'cyberpi.led.on(30, 170, 255, id=1)', action: { type: 'led', color: '#1eaaff' } },
-      { id: 'led_off', key: 'blkLedOff', color: '#9300d8', py: 'cyberpi.led.off("all")', action: { type: 'led', color: 'off' } },
-      { id: 'led_bri', key: 'blkLedBrightness', color: '#9300d8', py: 'cyberpi.led.set_bri(50)' }
+      { id: 'led_all', key: 'blkLedAll', color: '#9300d8', devices: ['cyberpi'], py: 'cyberpi.led.on(255, 50, 50)', action: { type: 'led', color: '#ff5252' } },
+      { id: 'led_single', key: 'blkLedSingle', color: '#9300d8', devices: ['cyberpi'], py: 'cyberpi.led.on(30, 170, 255, id=1)', action: { type: 'led', color: '#1eaaff' } },
+      { id: 'led_off', key: 'blkLedOff', color: '#9300d8', devices: ['cyberpi'], py: 'cyberpi.led.off("all")', action: { type: 'led', color: 'off' } },
+      { id: 'led_bri', key: 'blkLedBrightness', color: '#9300d8', devices: ['cyberpi'], py: 'cyberpi.led.set_bri(50)' }
     ],
     display: [
-      { id: 'disp_print', key: 'blkDisplayPrint', color: '#6739b6', py: 'cyberpi.console.println("Hello mBlock!")', action: { type: 'screen', text: 'Hello mBlock!' } },
-      { id: 'disp_clear', key: 'blkDisplayClear', color: '#6739b6', py: 'cyberpi.console.clear()', action: { type: 'screen', text: '' } },
-      { id: 'disp_chart', key: 'blkDisplayChart', color: '#6739b6', py: 'cyberpi.linechart.add(75)', action: { type: 'screen', text: 'Chart: 75%' } }
+      { id: 'disp_print', key: 'blkDisplayPrint', color: '#6739b6', devices: ['cyberpi'], py: 'cyberpi.console.println("Hello mBlock!")', action: { type: 'screen', text: 'Hello mBlock!' } },
+      { id: 'disp_clear', key: 'blkDisplayClear', color: '#6739b6', devices: ['cyberpi'], py: 'cyberpi.console.clear()', action: { type: 'screen', text: '' } },
+      { id: 'disp_chart', key: 'blkDisplayChart', color: '#6739b6', devices: ['cyberpi'], py: 'cyberpi.linechart.add(75)', action: { type: 'screen', text: 'Chart: 75%' } }
     ],
     motion_sensing: [
-      { id: 'ms_tilt', key: 'blkMotionTilt', color: '#ff6f00', hat: true, py: '@event.is_tiltforward\ndef on_tilt():' },
-      { id: 'ms_shake', key: 'blkMotionShake', color: '#ff6f00', py: 'strength = cyberpi.get_shakeval()' }
+      { id: 'ms_tilt', key: 'blkMotionTilt', color: '#ff6f00', devices: ['cyberpi'], hat: true, py: '@event.is_tiltforward\ndef on_tilt():' },
+      { id: 'ms_shake', key: 'blkMotionShake', color: '#ff6f00', devices: ['cyberpi'], py: 'strength = cyberpi.get_shakeval()' }
     ],
     sensing: [
-      { id: 'sen_loud', key: 'blkSensingLoudness', color: '#ff6f00', py: 'loudness = cyberpi.get_loudness()' },
-      { id: 'sen_light', key: 'blkSensingLight', color: '#ff6f00', py: 'light = cyberpi.get_bri()' },
-      { id: 'sen_btn', key: 'blkSensingButton', color: '#ff6f00', py: 'if cyberpi.controller.is_press("a"):' }
+      { id: 'sen_loud', key: 'blkSensingLoudness', color: '#ff6f00', devices: ['cyberpi'], py: 'loudness = cyberpi.get_loudness()' },
+      { id: 'sen_light', key: 'blkSensingLight', color: '#ff6f00', devices: ['cyberpi'], py: 'light = cyberpi.get_bri()' },
+      { id: 'sen_btn', key: 'blkSensingButton', color: '#ff6f00', devices: ['cyberpi'], py: 'if cyberpi.controller.is_press("a"):' }
     ],
     lan: [
-      { id: 'lan_send', key: 'blkLanBroadcast', color: '#00d7b0', py: 'cyberpi.mesh_broadcast.set("ping", 1)' },
-      { id: 'lan_recv', key: 'blkLanReceive', color: '#00d7b0', hat: true, py: '@event.mesh_broadcast("ping")\ndef on_lan():' }
+      { id: 'lan_send', key: 'blkLanBroadcast', color: '#00d7b0', devices: ['cyberpi'], py: 'cyberpi.mesh_broadcast.set("ping", 1)' },
+      { id: 'lan_recv', key: 'blkLanReceive', color: '#00d7b0', devices: ['cyberpi'], hat: true, py: '@event.mesh_broadcast("ping")\ndef on_lan():' }
     ],
     ai: [
-      { id: 'ai_speech', key: 'blkAiSpeech', color: '#a6d200', py: 'cyberpi.cloud.listen("es", 2)' },
-      { id: 'ai_text', key: 'blkAiText', color: '#a6d200', py: 'result = cyberpi.cloud.listen_result()' }
+      { id: 'ai_speech', key: 'blkAiSpeech', color: '#a6d200', devices: ['cyberpi'], py: 'cyberpi.cloud.listen("es", 2)' },
+      { id: 'ai_text', key: 'blkAiText', color: '#a6d200', devices: ['cyberpi'], py: 'result = cyberpi.cloud.listen_result()' }
     ],
     iot: [
-      { id: 'iot_wifi', key: 'blkIotWifi', color: '#a6d200', py: 'cyberpi.wifi.connect("Network", "****")' },
-      { id: 'iot_send', key: 'blkIotSend', color: '#a6d200', py: 'cyberpi.cloud.broadcast("status", "ok")' }
+      { id: 'iot_wifi', key: 'blkIotWifi', color: '#a6d200', devices: ['cyberpi'], py: 'cyberpi.wifi.connect("Network", "****")' },
+      { id: 'iot_send', key: 'blkIotSend', color: '#a6d200', devices: ['cyberpi'], py: 'cyberpi.cloud.broadcast("status", "ok")' }
     ],
     events: [
       { id: 'evt_flag', key: 'blkEvtFlag', color: '#ffbf00', hat: true, py: '@event.start\ndef on_start():', esp32: 'def on_flag():' },
-      { id: 'evt_key', key: 'blkEvtKey', color: '#ffbf00', hat: true, py: '@event.is_press("space")\ndef on_key():' },
-      { id: 'evt_start', key: 'blkEvtStart', color: '#ffbf00', hat: true, py: '@event.start\ndef on_cyberpi_start():', esp32: 'def on_start():' }
+      { id: 'evt_key', key: 'blkEvtKey', color: '#ffbf00', devices: ['cyberpi'], hat: true, py: '@event.is_press("space")\ndef on_key():' },
+      { id: 'evt_start', key: 'blkEvtStart', color: '#ffbf00', devices: ['cyberpi'], hat: true, py: '@event.start\ndef on_cyberpi_start():', esp32: 'def on_start():' }
     ],
     control: [
       { id: 'ctrl_wait', key: 'blkCtrlWait', color: '#ffab19', py: 'time.sleep(1)', action: { type: 'wait', ms: 450 } },
@@ -626,8 +630,22 @@
   /* ===========================
      Toolbox & Block Flyout
      =========================== */
+  /* ¿El bloque aplica al dispositivo activo? `devices` ausente = universal. */
+  function blockAppliesToDevice(blk) {
+    return !blk.devices || blk.devices.includes(state.activeDevice);
+  }
+
+  /* La categoría entra en la paleta si aplica al dispositivo y tiene bloques.
+     Las categorías de sprite no dependen del dispositivo conectado. */
+  function categoryVisible(cat) {
+    if (state.activeTargetTab !== 'devices') return true;
+    if (cat.devices && !cat.devices.includes(state.activeDevice)) return false;
+    return getBlocksForCategory(cat.id).length > 0;
+  }
+
   function getActiveCategories() {
-    const base = state.activeTargetTab === 'devices' ? DEVICE_CATEGORIES : SPRITE_CATEGORIES;
+    const base = (state.activeTargetTab === 'devices' ? DEVICE_CATEGORIES : SPRITE_CATEGORIES)
+      .filter(categoryVisible);
     const extras = state.addedExtensions.map((extId) => {
       const ext = EXTENSION_LIBRARY.find((e) => e.id === extId);
       return { id: extId, labelKey: ext ? ext.nameKey : extId, color: ext ? ext.color : '#0fbd8c', icon: 'bubble' };
@@ -679,12 +697,18 @@
     });
   }
 
+  /* Bloques de una categoría que aplican al dispositivo activo. Las extensiones
+     añadidas traen dos bloques de muestra; una categoría desconocida no tiene. */
   function getBlocksForCategory(catId) {
-    if (BLOCKS_BY_CAT[catId]) return BLOCKS_BY_CAT[catId];
-    return [
-      { id: `${catId}_1`, key: 'blkPlayNote', color: '#0fbd8c', py: `# ${catId}\ncyberpi.audio.play_music(64, 0.25)`, action: { type: 'beep', freq: 659 } },
-      { id: `${catId}_2`, key: 'blkSayHello', color: '#0fbd8c', py: `# ${catId}\nprint("Extension active")`, action: { type: 'say', text: 'Extension!' } }
-    ];
+    let list = BLOCKS_BY_CAT[catId];
+    if (!list) {
+      if (!state.addedExtensions.includes(catId)) return [];
+      list = [
+        { id: `${catId}_1`, key: 'blkPlayNote', color: '#0fbd8c', py: `# ${catId}\ncyberpi.audio.play_music(64, 0.25)`, action: { type: 'beep', freq: 659 } },
+        { id: `${catId}_2`, key: 'blkSayHello', color: '#0fbd8c', py: `# ${catId}\nprint("Extension active")`, action: { type: 'say', text: 'Extension!' } }
+      ];
+    }
+    return list.filter(blockAppliesToDevice);
   }
 
   function renderFlyout() {
@@ -701,7 +725,7 @@
     if (state.searchMode) {
       titleEl.textContent = t('search');
       const query = ($('#blockSearchInput')?.value || '').trim().toLowerCase();
-      const all = Object.values(BLOCKS_BY_CAT).flat();
+      const all = Object.values(BLOCKS_BY_CAT).flat().filter(blockAppliesToDevice);
       blocksToShow = query
         ? all.filter((b) => t(b.key).toLowerCase().includes(query))
         : all.slice(0, 12);

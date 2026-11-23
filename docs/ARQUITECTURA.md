@@ -39,16 +39,28 @@ index.html
 
 | Método | Qué hace |
 |---|---|
-| `init({blocksByCat,labelFor,lang,onChange})` | Registra bloques y monta el workspace. |
+| `init({blocksByCat,labelFor,lang,device,onChange})` | Registra bloques y monta el workspace. |
 | `relabel(labelFor)` | Reconstruye los bloques con otro idioma conservando el programa. |
 | `add(id)` | Añade un bloque debajo del contenido actual. |
 | `addAt(id, clientX, clientY)` | Añade un bloque en el punto donde se suelta (arrastre). |
 | `loadProgram(steps)` | Carga un programa de ejemplo (`{id, fields?, do?[]}`). |
 | `count()` / `refreshCount()` | Número de bloques / actualiza el contador visible. |
-| `python()` | Código Python de la pila actual. |
+| `setDevice(id)` | Fija el dispositivo activo: decide el codegen de `python()`. |
+| `python()` | Código Python de la pila actual, según el dispositivo activo. |
 | `actions()` | Lista de acciones para el simulador. |
 | `serialize()` / `load(state)` | Estado del workspace para guardar/restaurar. |
 | `clear()`, `undo()`, `redo()`, `zoomIn/Out/Reset()`, `cleanUp()`, `resize()` | Controles del lienzo. |
+
+### Codegen por dispositivo
+
+Cada entrada de `BLOCKS_BY_CAT` puede declarar `esp32` (código MicroPython) y
+`devices` (lista de placas donde el bloque aparece en la paleta; ausente = universal).
+Con `esp32` activo, `python()` emite un encabezado propio, `import machine, time` +
+`from machine import Pin, PWM, ADC`, imports extra solo si el programa los usa
+(`network`, `ntptime`) y los helpers de los bloques presentes; los sombreros de evento
+se vuelven `def on_flag():` / `def on_start():` y se llaman al final, bajo
+`# --- capiBlocks: arranque ---`. Para cualquier otro dispositivo la salida es la de
+siempre (`import cyberpi, event, time` + decoradores).
 
 ### `MBPythonEditor`
 

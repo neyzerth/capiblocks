@@ -5,6 +5,15 @@ async function boot(page) {
   await page.waitForFunction(() => window.MBBlocks && window.MBBlocks.active());
 }
 
+/* ESP32 es el dispositivo por defecto: para los bloques CyberPi hay que
+   añadir la placa desde la biblioteca y seleccionarla en la lista. */
+async function useCyberPi(page) {
+  await page.locator('#addDeviceBtn').click();
+  await page.locator('#deviceLibraryGrid .example-card', { hasText: 'CyberPi' }).getByRole('button').click();
+  await page.locator('#addDeviceModal [data-modal-close]').first().click();
+  await page.locator('#deviceListCol .mtarget-card', { hasText: 'CyberPi' }).click();
+}
+
 async function addFromPalette(page, catIndex, itemIndex = 0) {
   await page.locator('.toolbox-categories button').nth(catIndex).click();
   await page.locator('#flyoutBlocks button').nth(itemIndex).click();
@@ -22,13 +31,14 @@ async function topBlockRects(page) {
 test('carga la app con el motor de bloques activo', async ({ page }) => {
   await boot(page);
   await expect(page).toHaveTitle(/capiBlocks/);
-  await expect(page.locator('.toolbox-categories button')).toHaveCount(13);
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(5);
   await expect(page.locator('#blocklyDiv svg.blocklySvg')).toBeVisible();
 });
 
 test('añadir un bloque con clic y ver el Python', async ({ page }) => {
   await boot(page);
-  await addFromPalette(page, 1); // LED
+  await useCyberPi(page);
+  await addFromPalette(page, 1); // LED (CyberPi)
   await expect.poll(() => page.evaluate(() => MBBlocks.count())).toBe(1);
   await expect(page.locator('#blockCountNum')).toHaveText('1');
   const py = await page.evaluate(() => MBBlocks.python());
@@ -129,6 +139,13 @@ test('ESP32 es el dispositivo fijado y CyberPi se puede añadir', async ({ page 
   const cyber = page.locator('#deviceLibraryGrid .example-card', { hasText: 'CyberPi' });
   await cyber.getByRole('button').click();
   await expect(page.locator('#deviceListCol .mtarget-card .mtarget-name')).toHaveText(['ESP32', 'CyberPi']);
+
+  // La paleta sigue al dispositivo: CyberPi recupera sus 13 categorías.
+  await page.locator('#addDeviceModal [data-modal-close]').first().click();
+  await page.locator('#deviceListCol .mtarget-card', { hasText: 'CyberPi' }).click();
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(13);
+  await page.locator('#deviceListCol .mtarget-card', { hasText: 'ESP32' }).click();
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(5);
 });
 
 test('el aviso de compatibilidad vive en la barra de navegación', async ({ page }) => {
@@ -142,7 +159,7 @@ test('el aviso de compatibilidad vive en la barra de navegación', async ({ page
 test('no hay scroll lateral a 390 px', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
-  await expect(page.locator('.toolbox-categories button')).toHaveCount(13);
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(5);
   const overflow = await page.evaluate(() => document.scrollingElement.scrollWidth > window.innerWidth + 1);
   expect(overflow).toBe(false);
 });
