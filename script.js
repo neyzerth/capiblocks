@@ -133,8 +133,8 @@
      =========================== */
   const state = {
     activeTargetTab: 'devices',
-    activeDevice: 'cyberpi',
-    addedDevices: ['cyberpi'],
+    activeDevice: 'esp32',
+    addedDevices: ['esp32'],
     addedExtensions: [],
     activeCategory: null,
     searchMode: false,
@@ -1096,6 +1096,8 @@
           if (state.addedDevices.length > 1) {
             state.addedDevices = state.addedDevices.filter((x) => x !== dev.id);
             state.activeDevice = state.addedDevices[0];
+            const nextDev = DEVICE_LIBRARY.find((d) => d.id === state.activeDevice);
+            if (nextDev) $('#infoTargetName').textContent = nextDev.name;
             renderDeviceList();
           }
           return;
@@ -1214,6 +1216,10 @@
 
   bindLanguageControls();
   renderToolbox();
+  {
+    const bootDev = DEVICE_LIBRARY.find((d) => d.id === state.activeDevice);
+    if (bootDev && $('#infoTargetName')) $('#infoTargetName').textContent = bootDev.name;
+  }
   if (window.MBBlocks) {
     MBBlocks.init({
       blocksByCat: BLOCKS_BY_CAT,
@@ -1225,6 +1231,7 @@
       }
     });
   }
+  renderDeviceList();
   renderWorkspaceBlocks();
   updatePythonViews();
   updateDeviceStatusText();

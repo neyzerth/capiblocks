@@ -11,7 +11,7 @@ de un servicio en línea y que se pueda corregir.
 - Lienzo de bloques real (Blockly, render Scratch): los bloques se **arrastran desde la paleta** o se añaden con un clic, y se encajan entre sí.
 - 13 categorías de bloques IoT: Audio, LED, Pantalla, Sensores, LAN, IA, IoT, Eventos, Control,
   Operadores, Variables y bloques propios.
-- Dispositivos: CyberPi, mBot2, Halocode, Arduino Uno y **ESP32**.
+- Dispositivos: **ESP32** (predeterminado y fijado primero), CyberPi, mBot2, Halocode y Arduino Uno.
 - Escenario con mascota capibara, simulación de LEDs, pantalla y sonido.
 - Vista de **Python** generada desde los bloques.
 - Guardar/abrir proyectos en archivo `.json`.
