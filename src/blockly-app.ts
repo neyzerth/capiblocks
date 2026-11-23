@@ -249,11 +249,35 @@
     esp32_http_post: [{ name: 'DATA', type: 'text', def: '{"temp":22}' }, { name: 'URL', type: 'text', def: 'ejemplo.com/api' }],
     esp32_deep_sleep: [{ name: 'SECS', type: 'number', def: 60 }],
     led_all: [{ name: 'COLOR', type: 'colour', def: '#ff5252' }],
-    led_single: [{ name: 'COLOR', type: 'colour', def: '#1eaaff' }],
     disp_print: [{ name: 'TEXT', type: 'text', def: '¡Hola!' }],
     ctrl_wait: [{ name: 'SECS', type: 'number', def: 1 }],
     ctrl_repeat: [{ name: 'TIMES', type: 'number', def: 4 }],
-    play_note: [{ name: 'NOTE', type: 'number', def: 60 }],
+    /* Un hueco [valor] de la etiqueta sin spec aquí se descarta en messageFor y
+       el campo desaparece del bloque: cada token necesita su entrada. */
+    play_until_done: [{ name: 'SOUND', type: 'text', def: 'hi' }],
+    play_sound: [{ name: 'SOUND', type: 'text', def: 'hi' }],
+    play_note: [{ name: 'NOTE', type: 'number', def: 60 }, { name: 'DUR', type: 'number', def: 0.25 }],
+    play_hz: [{ name: 'FREQ', type: 'number', def: 700 }, { name: 'SECS', type: 'number', def: 1 }],
+    set_volume: [{ name: 'VOL', type: 'number', def: 80 }],
+    led_single: [{ name: 'N', type: 'number', def: 1 }, { name: 'COLOR', type: 'colour', def: '#1eaaff' }],
+    led_bri: [{ name: 'BRI', type: 'number', def: 50 }],
+    disp_chart: [{ name: 'VALUE', type: 'number', def: 75 }],
+    ms_tilt: [{ name: 'DIR', type: 'text', def: 'forward' }],
+    lan_send: [{ name: 'MSG', type: 'text', def: 'ping' }],
+    lan_recv: [{ name: 'MSG', type: 'text', def: 'ping' }],
+    ai_speech: [{ name: 'LANG', type: 'text', def: 'es' }],
+    evt_key: [{ name: 'KEY', type: 'text', def: 'space' }],
+    op_add: [{ name: 'A', type: 'number', def: 10 }, { name: 'B', type: 'number', def: 20 }],
+    op_rand: [{ name: 'MIN', type: 'number', def: 1 }, { name: 'MAX', type: 'number', def: 10 }],
+    op_join: [{ name: 'A', type: 'text', def: 'hello' }, { name: 'B', type: 'text', def: 'world' }],
+    my_def: [{ name: 'NAME', type: 'text', def: 'my_routine' }],
+    my_call: [{ name: 'NAME', type: 'text', def: 'my_routine' }],
+    mov_steps: [{ name: 'STEPS', type: 'number', def: 20 }],
+    mov_turn: [{ name: 'DEG', type: 'number', def: 15 }],
+    mov_turn_left: [{ name: 'DEG', type: 'number', def: 15 }],
+    look_say: [{ name: 'TEXT', type: 'text', def: '¡Hola!' }, { name: 'SECS', type: 'number', def: 2 }],
+    look_color: [{ name: 'AMOUNT', type: 'number', def: 25 }],
+    snd_pop: [{ name: 'SOUND', type: 'text', def: 'pop' }],
     iot_wifi: [{ name: 'SSID', type: 'text', def: 'mi-red' }, { name: 'PASS', type: 'text', def: '12345678' }],
     iot_send: [{ name: 'VALUE', type: 'text', def: 'ok' }],
     var_set: [{ name: 'VAR', type: 'text', def: 'score' }, { name: 'VALUE', type: 'number', def: 0 }],
@@ -292,6 +316,7 @@
      etiqueta traducida: `args0` sigue los %n, y el orden de los huecos cambia
      entre idiomas (zh coloca [PIN] antes que [WHAT]). Si el texto del hueco no
      coincide con el nombre de un campo, se toma el siguiente por posición. */
+  const warnedMissingSpec = new Set<string>();
   function messageFor(entry) {
     const label = String(labelFor(entry.id) || entry.id);
     const specs = FIELD_SPECS[entry.id] || [];
@@ -301,7 +326,15 @@
       let spec = specs.filter((s) => s.name === name)[0];
       if (!spec) spec = specs[index];
       index += 1;
-      if (!spec) return '';
+      if (!spec) {
+        /* Un hueco sin spec desaparece del bloque (y su campo con él). El aviso
+           es único por id para no inundar la consola en cada relabel. */
+        if (!warnedMissingSpec.has(entry.id)) {
+          warnedMissingSpec.add(entry.id);
+          console.warn(`[MBBlocks] el bloque "${entry.id}" tiene el hueco [${name}] sin spec en FIELD_SPECS: el campo no se muestra.`);
+        }
+        return '';
+      }
       ordered.push(spec);
       return '%' + ordered.length;
     });
@@ -463,16 +496,63 @@
       }
       case 'led_single': {
         const [r, g, b] = rgbFromHex(fieldValue(block, 'COLOR', '#1eaaff'));
-        return `cyberpi.led.on(${r}, ${g}, ${b}, id=1)`;
+        return `cyberpi.led.on(${r}, ${g}, ${b}, id=${Number(fieldValue(block, 'N', 1)) || 1})`;
       }
+      case 'led_bri':
+        return `cyberpi.led.set_bri(${Number(fieldValue(block, 'BRI', 50)) || 0})`;
       case 'disp_print':
         return `cyberpi.console.println("${esc(fieldValue(block, 'TEXT', '¡Hola!'))}")`;
+      case 'disp_chart':
+        return `cyberpi.linechart.add(${Number(fieldValue(block, 'VALUE', 75)) || 0})`;
       case 'ctrl_wait':
         return `time.sleep(${fieldValue(block, 'SECS', 1)})`;
       case 'ctrl_repeat':
         return `for i in range(${fieldValue(block, 'TIMES', 4)}):`;
+      /* --- Audio (CyberPi) --- */
+      case 'play_until_done':
+        return `cyberpi.audio.play_until("${esc(fieldValue(block, 'SOUND', 'hi'))}")`;
+      case 'play_sound':
+        return `cyberpi.audio.play("${esc(fieldValue(block, 'SOUND', 'hi'))}")`;
       case 'play_note':
-        return `cyberpi.audio.play_music(${fieldValue(block, 'NOTE', 60)}, 0.25)`;
+        return `cyberpi.audio.play_music(${Number(fieldValue(block, 'NOTE', 60)) || 0}, ${Number(fieldValue(block, 'DUR', 0.25)) || 0})`;
+      case 'play_hz':
+        return `cyberpi.audio.play_tone(${Number(fieldValue(block, 'FREQ', 700)) || 0}, ${Number(fieldValue(block, 'SECS', 1)) || 0})`;
+      case 'set_volume':
+        return `cyberpi.audio.set_vol(${Number(fieldValue(block, 'VOL', 80)) || 0})`;
+      /* --- Eventos y movimiento del escenario --- */
+      case 'evt_key':
+        return `@event.is_press("${esc(fieldValue(block, 'KEY', 'space'))}")\ndef on_key():`;
+      case 'ms_tilt':
+        return `@event.is_tilt${fieldValue(block, 'DIR', 'forward')}\ndef on_tilt():`;
+      case 'mov_steps':
+        return `sprite.forward(${Number(fieldValue(block, 'STEPS', 20)) || 0})`;
+      case 'mov_turn':
+        return `sprite.right(${Number(fieldValue(block, 'DEG', 15)) || 0})`;
+      case 'mov_turn_left':
+        return `sprite.left(${Number(fieldValue(block, 'DEG', 15)) || 0})`;
+      case 'look_say':
+        return `sprite.say("${esc(fieldValue(block, 'TEXT', '¡Hola!'))}", ${Number(fieldValue(block, 'SECS', 2)) || 0})`;
+      case 'look_color':
+        return `sprite.change_color(${Number(fieldValue(block, 'AMOUNT', 25)) || 0})`;
+      case 'snd_pop':
+        return `sprite.play("${esc(fieldValue(block, 'SOUND', 'pop'))}")`;
+      /* --- LAN, IA y operadores --- */
+      case 'lan_send':
+        return `cyberpi.mesh_broadcast.set("${esc(fieldValue(block, 'MSG', 'ping'))}", 1)`;
+      case 'lan_recv':
+        return `@event.mesh_broadcast("${esc(fieldValue(block, 'MSG', 'ping'))}")\ndef on_lan():`;
+      case 'ai_speech':
+        return `cyberpi.cloud.listen("${esc(fieldValue(block, 'LANG', 'es'))}", 2)`;
+      case 'op_add':
+        return `total = ${Number(fieldValue(block, 'A', 10)) || 0} + ${Number(fieldValue(block, 'B', 20)) || 0}`;
+      case 'op_rand':
+        return `value = random.randint(${Number(fieldValue(block, 'MIN', 1)) || 0}, ${Number(fieldValue(block, 'MAX', 10)) || 0})`;
+      case 'op_join':
+        return `msg = "${esc(fieldValue(block, 'A', 'hello'))}" + "${esc(fieldValue(block, 'B', 'world'))}"`;
+      case 'my_def':
+        return `def ${fieldValue(block, 'NAME', 'my_routine')}():`;
+      case 'my_call':
+        return `${fieldValue(block, 'NAME', 'my_routine')}()`;
       case 'iot_wifi':
         return `cyberpi.wifi.connect("${esc(fieldValue(block, 'SSID', 'mi-red'))}", "${esc(fieldValue(block, 'PASS', ''))}")`;
       case 'iot_send':
@@ -601,6 +681,20 @@
         const n = Number(fieldValue(block, 'NOTE', 60));
         return { type: 'beep', freq: Math.round(440 * Math.pow(2, (n - 69) / 12)) };
       }
+      case 'play_hz':
+        return { type: 'beep', freq: Number(fieldValue(block, 'FREQ', 700)) || 700 };
+      /* Los bloques de sprite llevan sus campos a la simulación: 20 pasos = 24 px
+         (misma escala que el valor quemado original), 25 de color = 45 grados. */
+      case 'mov_steps':
+        return { type: 'move', dx: Number(fieldValue(block, 'STEPS', 20)) * 1.2 };
+      case 'mov_turn':
+        return { type: 'turn', deg: Number(fieldValue(block, 'DEG', 15)) };
+      case 'mov_turn_left':
+        return { type: 'turn', deg: -Number(fieldValue(block, 'DEG', 15)) };
+      case 'look_say':
+        return { type: 'say', text: fieldValue(block, 'TEXT', '¡Hola!'), secs: Number(fieldValue(block, 'SECS', 2)) };
+      case 'look_color':
+        return { type: 'hue', deg: Number(fieldValue(block, 'AMOUNT', 25)) * 1.8 };
       default:
         return entry.action ? JSON.parse(JSON.stringify(entry.action)) : null;
     }

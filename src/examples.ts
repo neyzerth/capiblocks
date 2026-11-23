@@ -41,6 +41,11 @@ export interface Example {
   thumb: string;
   /** id de DEVICE_LIBRARY si usa bloques exclusivos de esa placa. */
   device?: string;
+  /**
+   * Fondos del proyecto que trae el ejemplo (ids de BACKDROP_LIBRARY).
+   * Sin esto, "siguiente fondo" cicla una lista de uno y no cambia nada.
+   */
+  backdrops?: string[];
   /** Alimenta MBBlocks.loadProgram(steps). */
   steps: ExampleStep[];
 }
