@@ -632,7 +632,7 @@
       renderer: 'zelos',
       media: 'blockly-media/',
       theme: theme(),
-      grid: { spacing: 0, length: 0, colour: 'transparent', snap: false },
+      grid: { spacing: 19.2, length: 1, colour: 'rgba(0, 0, 0, 0.22)', snap: false },
       zoom: { controls: false, wheel: true, startScale: 0.9, maxScale: 2.2, minScale: 0.35, scaleSpeed: 1.15 },
       move: { scrollbars: true, drag: true, wheel: true },
       trashcan: false,

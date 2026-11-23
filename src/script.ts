@@ -2429,8 +2429,20 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
   });
 
   // Settings toggles
+  /* Preferencia de dots: se guarda como mblock.gridDots (1 = visibles,
+     el default) y se aplica al arrancar. */
+  try {
+    if (localStorage.getItem('mblock.gridDots') === '0') {
+      const saved = $('#toggleGridDots');
+      if (saved) saved.checked = false;
+      $('#blocksCanvas')?.classList.add('no-grid');
+    }
+  } catch (_) {}
+
   $('#toggleGridDots')?.addEventListener('change', (e) => {
-    $('#blocksCanvas')?.classList.toggle('no-grid', !e.target.checked);
+    const on = !!(e.target as HTMLInputElement)?.checked;
+    $('#blocksCanvas')?.classList.toggle('no-grid', !on);
+    try { localStorage.setItem('mblock.gridDots', on ? '1' : '0'); } catch (_) {}
   });
 
   $('#resetPrefsBtn')?.addEventListener('click', () => {
@@ -2438,6 +2450,7 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
       localStorage.removeItem('mblock.lang');
       localStorage.removeItem('mblock.privacyAgreed');
       localStorage.removeItem('mblock.lastProject');
+      localStorage.removeItem('mblock.gridDots');
     } catch (_) {}
     $('#toggleGridDots').checked = true;
     $('#blocksCanvas')?.classList.remove('no-grid');

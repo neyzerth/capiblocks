@@ -1504,6 +1504,13 @@ button, input, select, textarea {
   overflow: auto;
 }
 
+/* Sin dots: el fondo del workspace pinta el patrón; se tapa con el color
+   base (workspaceBackgroundColour del tema) — !important gana al fill
+   inline que Blockly pone en el rect. */
+.blocks-canvas.no-grid .blocklyMainBackground {
+  fill: #ffffff !important;
+}
+
 .blocks-canvas.no-grid {
   background-image: none;
 }
