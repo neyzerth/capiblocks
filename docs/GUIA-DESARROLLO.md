@@ -101,6 +101,10 @@ Evita tocar componentes uno por uno.
   `addEventListener`. El atributo queda como hook declarativo para las pruebas.
 - **GitHub Pages cachea 10 minutos** (`max-age=600`): usa Ctrl+Shift+R tras desplegar.
 - **pnpm 12** exige `allowBuilds` en `pnpm-workspace.yaml` para el postinstall de esbuild.
+- **El cierre de modales es asíncrono (~190 ms)**: `closeAllModals()` anima la salida con la
+  clase `.closing` y aplica `hidden` cuando termina. No fijes `hidden` a mano sobre un
+  `.modal-backdrop` ni asumas que desaparece al instante tras un clic: abre y cierra siempre con
+  `openModal`/`closeAllModals`, y en las pruebas usa aserciones que reintentan (`toBeHidden()`).
 
 ## Flujo recomendado antes de un PR
 
