@@ -2528,6 +2528,14 @@ import { EXAMPLES, EXAMPLE_CATEGORIES, type Example } from './examples';
       walk(ex.steps);
       state.blocks = flat;
     }
+    /* Un ejemplo con "siguiente fondo" trae sus fondos: misma escena que un
+       proyecto guardado (ids del catálogo, sin duplicados, primero activo). */
+    if (Array.isArray(ex.backdrops) && ex.backdrops.length) {
+      state.backdrops = normalizeRestoredBackdrops(ex.backdrops);
+      state.activeBackdropId = state.backdrops[0];
+      renderBackdropList();
+      applyBackdropVisual(state.activeBackdropId, $('#stageCanvasBox'));
+    }
     renderWorkspaceBlocks();
     updatePythonViews();
     runBlocksSimulation();

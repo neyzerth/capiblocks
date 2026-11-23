@@ -78,10 +78,11 @@ Al aceptar, el objeto se añade con posición escalonada (+72 px), nombre único
 El catálogo vive en `src/examples.ts`, que fija el contrato y concatena los datos (mismo patrón que
 `sprite-library.ts`):
 
-- `Example` declara `{ id, name, desc, cat, thumb, device?, steps }`. `id` es **estable** (lo usan
+- `Example` declara `{ id, name, desc, cat, thumb, device?, backdrops?, steps }`. `id` es **estable** (lo usan
   los specs y los cuatro ids originales —`panda`, `leds`, `counter`, `esp32-wifi`— se conservan);
   `thumb` es una ruta relativa `assets/examples/<id>.svg`; `steps` es una lista de
-  `ExampleStep` (`{ id, fields?, do?[] }`) que alimenta `MBBlocks.loadProgram`.
+  `ExampleStep` (`{ id, fields?, do?[] }`) que alimenta `MBBlocks.loadProgram`; `backdrops` trae
+  los fondos del proyecto (ids de `BACKDROP_LIBRARY`) cuando el ejemplo usa «siguiente fondo».
 - `EXAMPLE_CATEGORIES` define las píldoras del modal (`iot`, `escenario`, `basico`) con su
   `labelKey` i18n: solo el chrome del modal se traduce; `name`/`desc` van en español directo, como
   los nombres de objetos y fondos.
@@ -99,7 +100,9 @@ render, así que los listeners se pegan **por tarjeta**, no en el arranque.
 `loadExampleProgram(id, { force })` es el único camino de carga: pide confirmación con `askReplace`
 si el lienzo tiene trabajo (salvo `force`), cierra los modales, llama a `applyExampleDevice(ex)` —que
 añade la placa declarada a `state.addedDevices` y la activa con `setActiveDevice`, para que el codegen
-salga con la familia correcta—, monta la pila (`MBBlocks.loadProgram(ex.steps)`), actualiza el Python
+salga con la familia correcta—, monta la pila (`MBBlocks.loadProgram(ex.steps)`), aplica los
+`backdrops` del ejemplo si los declara (mismo patrón que `applyProjectPayload`: normaliza los ids,
+activa el primero y repinta la lista y el escenario), actualiza el Python
 y lanza la simulación. Devuelve `false` si el usuario cancela.
 
 `window.MBExamples = { list, load }` expone el catálogo y la carga sin confirmación para las pruebas

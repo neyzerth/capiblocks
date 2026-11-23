@@ -23,6 +23,8 @@ export const EXAMPLES_ESCENARIO: ReadonlyArray<Example> = [
     desc: 'Capi se mueve, gira, saluda, suena una nota y cambia el fondo, todo en un bucle.',
     cat: 'escenario',
     thumb: 'assets/examples/esc-baile-capi.svg',
+    /* Tres fondos del catálogo para que "siguiente fondo" tenga por dónde ciclar. */
+    backdrops: ['blank', 'grid', 'sky'],
     steps: [
       { id: 'evt_flag' },
       {
@@ -45,6 +47,8 @@ export const EXAMPLES_ESCENARIO: ReadonlyArray<Example> = [
     desc: 'Capi dice hola y cambia de fondo tres veces, con una pausa entre cada uno.',
     cat: 'escenario',
     thumb: 'assets/examples/esc-fondos-saludo.svg',
+    /* El programa usa "siguiente fondo": necesita varios fondos en el proyecto. */
+    backdrops: ['blank', 'grid', 'sky'],
     steps: [
       { id: 'evt_flag' },
       { id: 'look_say' },
