@@ -290,8 +290,10 @@
         : state.blocks,
       savedAt: new Date().toISOString()
     };
+    let stored = false;
     try {
       localStorage.setItem('mblock.lastProject', JSON.stringify(payload));
+      stored = !!localStorage.getItem('mblock.lastProject');
     } catch (_) {}
     if (downloadFile) {
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -301,7 +303,31 @@
       a.click();
       URL.revokeObjectURL(a.href);
     }
-    showToast(t('savedToast'));
+    showToast(stored ? t('savedToast') : t('saveFailedToast'));
+  }
+
+  /* Vuelve a abrir el último proyecto guardado en este navegador. */
+  function restoreLastProject() {
+    let raw = null;
+    try { raw = localStorage.getItem('mblock.lastProject'); } catch (_) {}
+    if (!raw) return false;
+    let p = null;
+    try { p = JSON.parse(raw); } catch (_) { return false; }
+    if (!p) return false;
+
+    if (p.name) syncProjectName(p.name, '');
+    if (p.device && DEVICE_LIBRARY.some((d) => d.id === p.device)) {
+      if (!state.addedDevices.includes(p.device)) state.addedDevices.unshift(p.device);
+      state.activeDevice = p.device;
+      const dev = DEVICE_LIBRARY.find((d) => d.id === p.device);
+      if (dev && $('#infoTargetName')) $('#infoTargetName').textContent = dev.name;
+    }
+    if (p.blocks && p.blocks.engine === 'blockly' && window.MBBlocks && MBBlocks.active()) {
+      MBBlocks.load(p.blocks.state);
+    } else if (Array.isArray(p.blocks)) {
+      state.blocks = p.blocks;
+    }
+    return true;
   }
 
   function exportPythonFile() {
@@ -324,6 +350,9 @@
       if (action === 'new') {
         pushUndo();
         state.blocks = [];
+        if (window.MBBlocks && MBBlocks.active()) MBBlocks.clear();
+        try { localStorage.removeItem('mblock.lastProject'); } catch (_) {}
+        syncProjectName(t('untitled'), '');
         renderWorkspaceBlocks();
         updatePythonViews();
         showToast(t('newProjectConfirm'));
@@ -1282,6 +1311,7 @@
     });
   }
   renderDeviceList();
+  restoreLastProject();
   renderWorkspaceBlocks();
   updatePythonViews();
   updateDeviceStatusText();
