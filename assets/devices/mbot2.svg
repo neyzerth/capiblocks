@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" width="120" height="90" role="img" aria-label="mBot2">
+  <rect width="120" height="90" fill="#26313c"/>
+  <!-- Sombra de apoyo -->
+  <ellipse cx="60" cy="80" rx="46" ry="4" fill="#1d242b"/>
+  <!-- Orugas continuas -->
+  <rect x="10" y="28" width="22" height="48" rx="11" fill="#26313c" stroke="#3a4552" stroke-width="2"/>
+  <rect x="88" y="28" width="22" height="48" rx="11" fill="#26313c" stroke="#3a4552" stroke-width="2"/>
+  <g stroke="#3a4552" stroke-width="2" stroke-linecap="round">
+    <path d="M13 35 h16"/>
+    <path d="M13 71 h16"/>
+    <path d="M91 35 h16"/>
+    <path d="M91 71 h16"/>
+  </g>
+  <!-- Ruedas motrices -->
+  <g fill="#111922" stroke="#6d7c8d" stroke-width="1.2">
+    <circle cx="21" cy="39" r="6"/>
+    <circle cx="21" cy="65" r="6"/>
+    <circle cx="99" cy="39" r="6"/>
+    <circle cx="99" cy="65" r="6"/>
+  </g>
+  <g fill="#e8f0f7">
+    <circle cx="21" cy="39" r="2"/>
+    <circle cx="21" cy="65" r="2"/>
+    <circle cx="99" cy="39" r="2"/>
+    <circle cx="99" cy="65" r="2"/>
+  </g>
+  <!-- Chasis -->
+  <rect x="26" y="58" width="68" height="14" rx="4" fill="#0d5a86"/>
+  <!-- Cuerpo -->
+  <rect x="28" y="22" width="64" height="44" rx="8" fill="#1eaaff" stroke="#0d5a86" stroke-width="1.6"/>
+  <!-- Módulo de control con pantalla -->
+  <rect x="42" y="28" width="36" height="22" rx="4" fill="#111922" stroke="#3a4552" stroke-width="1.2"/>
+  <rect x="45" y="31" width="30" height="16" rx="2" fill="#1eaaff" opacity="0.2"/>
+  <rect x="48" y="34" width="15" height="3" rx="1.5" fill="#e8f0f7"/>
+  <rect x="48" y="40" width="22" height="3" rx="1.5" fill="#25cc76"/>
+  <!-- Sensor ultrasónico frontal -->
+  <rect x="44" y="55" width="32" height="12" rx="3" fill="#26313c" stroke="#3a4552" stroke-width="1.2"/>
+  <circle cx="53" cy="61" r="4" fill="#e8f0f7"/>
+  <circle cx="53" cy="61" r="1.8" fill="#111922"/>
+  <circle cx="67" cy="61" r="4" fill="#e8f0f7"/>
+  <circle cx="67" cy="61" r="1.8" fill="#111922"/>
+  <!-- LED superior -->
+  <circle cx="60" cy="17" r="4.6" fill="#ffcf40" opacity="0.3"/>
+  <circle cx="60" cy="17" r="2.6" fill="#ffcf40"/>
+</svg>

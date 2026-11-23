@@ -152,13 +152,15 @@ import { EXAMPLES, EXAMPLE_CATEGORIES, type Example } from './examples';
     ]
   };
 
+  /* `file` apunta a la ilustración local de la placa; el nombre del archivo es
+     el id (estable, regla 3), así que una placa nueva = un SVG con su id. */
   const DEVICE_LIBRARY = [
-    { id: 'cyberpi', name: 'CyberPi', desc: 'Wi-Fi & AI single-board computer' },
-    { id: 'mbot2', name: 'mBot2', desc: 'Smart educational coding robot' },
-    { id: 'halocode', name: 'Halocode', desc: 'Wireless IoT board with LED ring' },
-    { id: 'arduino_uno', name: 'Arduino Uno', desc: 'Classic microcontroller board' },
-    { id: 'esp32', name: 'ESP32', desc: 'Wi-Fi + Bluetooth IoT microcontroller' },
-    { id: 'esp32s3', name: 'ESP32-S3', desc: 'Wi-Fi + BLE board with PSRAM' }
+    { id: 'cyberpi', name: 'CyberPi', desc: 'Wi-Fi & AI single-board computer', file: 'assets/devices/cyberpi.svg' },
+    { id: 'mbot2', name: 'mBot2', desc: 'Smart educational coding robot', file: 'assets/devices/mbot2.svg' },
+    { id: 'halocode', name: 'Halocode', desc: 'Wireless IoT board with LED ring', file: 'assets/devices/halocode.svg' },
+    { id: 'arduino_uno', name: 'Arduino Uno', desc: 'Classic microcontroller board', file: 'assets/devices/arduino_uno.svg' },
+    { id: 'esp32', name: 'ESP32', desc: 'Wi-Fi + Bluetooth IoT microcontroller', file: 'assets/devices/esp32.svg' },
+    { id: 'esp32s3', name: 'ESP32-S3', desc: 'Wi-Fi + BLE board with PSRAM', file: 'assets/devices/esp32s3.svg' }
   ];
 
   /* Variantes que comparten bloques y codegen con su familia (los nombres de
@@ -2217,6 +2219,17 @@ import { EXAMPLES, EXAMPLE_CATEGORIES, type Example } from './examples';
     `).join('');
   }
 
+  /* Mini ilustración de reserva para ids que ya no están en el catálogo
+     (proyectos muy antiguos): rejilla genérica 4:3, nunca una caja rota. */
+  const DEVICE_THUMB_FALLBACK = '<svg viewBox="0 0 120 90" aria-hidden="true">'
+    + '<rect width="120" height="90" fill="#26313c"/>'
+    + '<rect x="26" y="18" width="68" height="54" rx="5" fill="#1d242b" stroke="#3a4552" stroke-width="2"/>'
+    + '<rect x="44" y="30" width="32" height="14" rx="2" fill="#111922"/>'
+    + '<rect x="50" y="34" width="20" height="6" rx="1" fill="#1eaaff" opacity="0.7"/>'
+    + '<circle cx="44" cy="58" r="3" fill="#ff695a"/>'
+    + '<circle cx="56" cy="58" r="3" fill="#25cc76"/>'
+    + '</svg>';
+
   function renderDeviceLibrary() {
     const grid = $('#deviceLibraryGrid');
     if (!grid) return;
@@ -2224,11 +2237,19 @@ import { EXAMPLES, EXAMPLE_CATEGORIES, type Example } from './examples';
     DEVICE_LIBRARY.forEach((dev) => {
       const added = state.addedDevices.includes(dev.id);
       const card = document.createElement('div');
-      card.className = 'example-card';
+      card.className = 'device-card';
+      card.setAttribute('data-device-id', dev.id);
       card.innerHTML = `
-        <h3>${dev.name}</h3>
-        <p>${dev.desc}</p>
-        <button type="button" class="${added ? 'modal-btn-secondary' : 'modal-btn-primary'}">${added ? t('addedBtn') : t('addBtn')}</button>
+        <div class="device-thumb">
+          <img src="${dev.file}" alt="${dev.name}" draggable="false">
+        </div>
+        <div class="device-body">
+          <h3>${dev.name}</h3>
+          <p>${dev.desc}</p>
+          <div class="device-actions">
+            <button type="button" class="${added ? 'modal-btn-secondary' : 'modal-btn-primary'}">${added ? t('addedBtn') : t('addBtn')}</button>
+          </div>
+        </div>
       `;
       card.querySelector('button')?.addEventListener('click', () => {
         if (!added) {
@@ -2248,21 +2269,15 @@ import { EXAMPLES, EXAMPLE_CATEGORIES, type Example } from './examples';
     $$('.mtarget-card', col).forEach((el) => el.remove());
 
     state.addedDevices.forEach((devId) => {
-      const dev = DEVICE_LIBRARY.find((d) => d.id === devId) || { id: devId, name: devId };
+      const dev = DEVICE_LIBRARY.find((d) => d.id === devId) || { id: devId, name: devId, desc: '', file: '' };
       const card = document.createElement('div');
       card.className = 'mtarget-card' + (state.activeDevice === dev.id ? ' selected' : '');
       card.innerHTML = `
         <button type="button" class="mtarget-delete-btn" aria-label="Remove ${dev.name}">×</button>
         <div class="mtarget-thumb">
-          <svg viewBox="0 0 64 42" width="46" height="30" role="img" aria-label="${dev.name}">
-            <rect x="4" y="4" width="56" height="34" rx="5" fill="#3a4552" stroke="#1d242b" stroke-width="1.5"/>
-            <rect x="22" y="10" width="20" height="16" rx="2" fill="#111922"/>
-            <rect x="25" y="13" width="14" height="10" rx="1" fill="#1eaaff" opacity="0.75"/>
-            <circle cx="13" cy="21" r="4.5" fill="#1d242b" stroke="#6d7c8d" stroke-width="1"/>
-            <circle cx="51" cy="16" r="2.6" fill="#ff695a"/>
-            <circle cx="51" cy="25" r="2.6" fill="#25cc76"/>
-            <rect x="19" y="30" width="26" height="3" rx="1.5" fill="#63b3ed"/>
-          </svg>
+          ${dev.file
+            ? `<img class="device-thumb-img" src="${dev.file}" alt="${dev.name}" draggable="false">`
+            : DEVICE_THUMB_FALLBACK}
         </div>
         <p class="mtarget-name">${dev.name}</p>
       `;

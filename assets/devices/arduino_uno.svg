@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" width="120" height="90" role="img" aria-label="Arduino Uno">
+  <rect width="120" height="90" fill="#26313c"/>
+  <!-- PCB azul -->
+  <rect x="12" y="26" width="96" height="48" rx="4" fill="#1eaaff" stroke="#0d5a86" stroke-width="1.6"/>
+  <!-- Serigrafía -->
+  <g stroke="#e8f0f7" stroke-width="1.2" stroke-linecap="round" opacity="0.45">
+    <path d="M20 44 h10"/>
+    <path d="M20 60 h14"/>
+    <path d="M84 42 h14"/>
+    <path d="M84 62 h12"/>
+  </g>
+  <!-- Regletas negras de pines -->
+  <rect x="30" y="19" width="52" height="10" rx="2" fill="#111922" stroke="#3a4552" stroke-width="1.2"/>
+  <rect x="26" y="70" width="58" height="10" rx="2" fill="#111922" stroke="#3a4552" stroke-width="1.2"/>
+  <g fill="#ffcf40">
+    <circle cx="35" cy="24" r="1.9"/>
+    <circle cx="43" cy="24" r="1.9"/>
+    <circle cx="51" cy="24" r="1.9"/>
+    <circle cx="59" cy="24" r="1.9"/>
+    <circle cx="67" cy="24" r="1.9"/>
+    <circle cx="75" cy="24" r="1.9"/>
+    <circle cx="31" cy="75" r="1.9"/>
+    <circle cx="39" cy="75" r="1.9"/>
+    <circle cx="47" cy="75" r="1.9"/>
+    <circle cx="55" cy="75" r="1.9"/>
+    <circle cx="63" cy="75" r="1.9"/>
+    <circle cx="71" cy="75" r="1.9"/>
+    <circle cx="79" cy="75" r="1.9"/>
+  </g>
+  <!-- Conector USB-B -->
+  <rect x="80" y="17" width="21" height="19" rx="2" fill="#c9d4de" stroke="#6d7c8d" stroke-width="1.2"/>
+  <rect x="84" y="22" width="13" height="9" rx="1.5" fill="#8d9aa7"/>
+  <!-- Jack de alimentación -->
+  <rect x="14" y="18" width="19" height="16" rx="3" fill="#111922" stroke="#3a4552" stroke-width="1.2"/>
+  <circle cx="24" cy="26" r="4.2" fill="#26313c"/>
+  <!-- Microcontrolador ATmega -->
+  <rect x="52" y="40" width="28" height="11" rx="1.5" fill="#111922"/>
+  <g fill="#3a4552">
+    <rect x="54" y="38" width="2" height="2"/>
+    <rect x="59" y="38" width="2" height="2"/>
+    <rect x="64" y="38" width="2" height="2"/>
+    <rect x="69" y="38" width="2" height="2"/>
+    <rect x="74" y="38" width="2" height="2"/>
+    <rect x="54" y="51" width="2" height="2"/>
+    <rect x="59" y="51" width="2" height="2"/>
+    <rect x="64" y="51" width="2" height="2"/>
+    <rect x="69" y="51" width="2" height="2"/>
+    <rect x="74" y="51" width="2" height="2"/>
+  </g>
+  <!-- LEDs de alimentación y pin 13 -->
+  <circle cx="26" cy="56" r="2.2" fill="#25cc76"/>
+  <circle cx="34" cy="56" r="2.2" fill="#ffcf40"/>
+  <!-- Pulsador de reset -->
+  <circle cx="86" cy="52" r="4.6" fill="#ff695a" stroke="#111922" stroke-width="1.2"/>
+  <circle cx="86" cy="52" r="1.8" fill="#111922" opacity="0.5"/>
+</svg>

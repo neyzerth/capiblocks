@@ -17,7 +17,7 @@ async function addFromPalette(page, label, itemIndex = 0) {
 
 async function addCyberPi(page) {
   await page.locator('#addDeviceBtn').click();
-  await page.locator('#deviceLibraryGrid .example-card', { hasText: 'CyberPi' }).getByRole('button').click();
+  await page.locator('#deviceLibraryGrid .device-card', { hasText: 'CyberPi' }).getByRole('button').click();
   await page.locator('#addDeviceModal [data-modal-close]').first().click();
   await page.locator('#deviceListCol .mtarget-card', { hasText: 'CyberPi' }).click();
 }
@@ -197,7 +197,7 @@ test('el ejemplo contador usa buzzer y neopixel del ESP32', async ({ page }) => 
 
 async function useEsp32S3(page) {
   await page.locator('#addDeviceBtn').click();
-  await page.locator('#deviceLibraryGrid .example-card', { hasText: 'ESP32-S3' }).getByRole('button').click();
+  await page.locator('#deviceLibraryGrid .device-card', { hasText: 'ESP32-S3' }).getByRole('button').click();
   await page.locator('#addDeviceModal [data-modal-close]').first().click();
   await page.locator('#deviceListCol .mtarget-card', { hasText: 'ESP32-S3' }).click();
 }

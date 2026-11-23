@@ -9,7 +9,7 @@ async function boot(page) {
    añadir la placa desde la biblioteca y seleccionarla en la lista. */
 async function useCyberPi(page) {
   await page.locator('#addDeviceBtn').click();
-  await page.locator('#deviceLibraryGrid .example-card', { hasText: 'CyberPi' }).getByRole('button').click();
+  await page.locator('#deviceLibraryGrid .device-card', { hasText: 'CyberPi' }).getByRole('button').click();
   await page.locator('#addDeviceModal [data-modal-close]').first().click();
   await page.locator('#deviceListCol .mtarget-card', { hasText: 'CyberPi' }).click();
 }
@@ -148,9 +148,21 @@ test('ESP32 es el dispositivo fijado y CyberPi se puede añadir', async ({ page 
   await expect(page.locator('#deviceListCol .mtarget-card .mtarget-name')).toHaveText(['ESP32']);
 
   await page.locator('#addDeviceBtn').click();
-  const cyber = page.locator('#deviceLibraryGrid .example-card', { hasText: 'CyberPi' });
+  // Cada placa trae su ilustración local (assets/devices/<id>.svg).
+  const deviceCards = page.locator('#deviceLibraryGrid .device-card');
+  await expect(deviceCards).toHaveCount(6);
+  await expect(deviceCards.locator('img')).toHaveCount(6);
+  await expect.poll(() => page.evaluate(() =>
+    Array.from(document.querySelectorAll('#deviceLibraryGrid .device-card img'))
+      .every((img) => img.complete && img.naturalWidth > 0)
+  )).toBe(true);
+  const cyber = page.locator('#deviceLibraryGrid .device-card', { hasText: 'CyberPi' });
   await cyber.getByRole('button').click();
   await expect(page.locator('#deviceListCol .mtarget-card .mtarget-name')).toHaveText(['ESP32', 'CyberPi']);
+  // El panel lateral usa el arte de cada placa, no un SVG genérico.
+  const panelThumb = (name) => page.locator('#deviceListCol .mtarget-card', { hasText: name }).locator('.mtarget-thumb img');
+  await expect(panelThumb('ESP32')).toHaveAttribute('src', /assets\/devices\/esp32\.svg$/);
+  await expect(panelThumb('CyberPi')).toHaveAttribute('src', /assets\/devices\/cyberpi\.svg$/);
 
   // La paleta sigue al dispositivo: CyberPi recupera sus 13 categorías.
   await page.locator('#addDeviceModal [data-modal-close]').first().click();
