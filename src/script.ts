@@ -204,13 +204,22 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
      Utilities
      =========================== */
   let toastTimer: any = null;
+  let toastHideTimer: any = null;
   function showToast(msg) {
     const banner = $('#toastBanner');
     if (!banner) return;
     banner.textContent = msg;
-    banner.hidden = false;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { banner.hidden = true; }, 2200);
+    clearTimeout(toastHideTimer);
+    banner.classList.remove('hiding');
+    banner.hidden = false;
+    toastTimer = setTimeout(() => {
+      banner.classList.add('hiding');
+      toastHideTimer = setTimeout(() => {
+        banner.hidden = true;
+        banner.classList.remove('hiding');
+      }, 200);
+    }, 2200);
   }
 
   function formatBlockMarkup(rawText) {
@@ -2125,18 +2134,40 @@ import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_
   /* ===========================
      Modals & Libraries
      =========================== */
+  /* Cierre animado: .closing dispara la animación de salida del CSS y el
+     `hidden` se aplica cuando termina (MODAL_CLOSE_MS). Las pruebas e2e
+     usan aserciones que reintentan, así que el retraso es seguro. */
+  const MODAL_CLOSE_MS = 190;
+  const modalCloseTimers = new WeakMap();
+
+  function closeModalEl(m) {
+    if (m.hidden || m.classList.contains('closing')) return;
+    m.classList.add('closing');
+    clearTimeout(modalCloseTimers.get(m));
+    modalCloseTimers.set(m, setTimeout(() => {
+      m.classList.remove('closing');
+      m.hidden = true;
+      modalCloseTimers.delete(m);
+    }, MODAL_CLOSE_MS));
+  }
+
   function openModal(id) {
     closeMenus();
     closeAllModals();
     const el = $(`#${id}`);
-    if (el) el.hidden = false;
+    if (el) {
+      /* Reabrir a mitad del cierre: cancelar la salida pendiente. */
+      clearTimeout(modalCloseTimers.get(el));
+      el.classList.remove('closing');
+      el.hidden = false;
+    }
     if (id === 'envModal') renderEnvCheck();
     if (id === 'addDeviceModal') renderDeviceLibrary();
     if (id === 'extensionModal') renderExtensionLibrary();
   }
 
   function closeAllModals() {
-    $$('.modal-backdrop').forEach((m) => { m.hidden = true; });
+    $$('.modal-backdrop').forEach(closeModalEl);
   }
 
   $$('[data-modal-open]').forEach((btn) => {
