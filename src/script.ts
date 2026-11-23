@@ -1,3 +1,5 @@
+import { SPRITE_LIBRARY, SPRITE_CATEGORIES as SPRITE_ASSET_CATEGORIES, BACKDROP_LIBRARY, BACKDROP_CATEGORIES } from './sprite-library';
+
 /**
  * UI del IDE: menús, dispositivos, paleta, ejemplos, guardado y simulación.
  * El catálogo BLOCKS_BY_CAT es la fuente única de los bloques; el workspace de
@@ -187,8 +189,13 @@
     blocks: [],
     undoStack: [],
     redoStack: [],
-    sprite: { x: 0, y: 0, size: 100, dir: 90, visible: true, hue: 0 },
-    backdrop: 'blank',
+    sprites: [{ id: 'capi', name: 'Capi', x: 0, y: 0, size: 100, dir: 90, visible: true, hue: 0, asset: 'capi' }],
+    activeSpriteId: 'capi',
+    /* Fondos del proyecto (ids del catálogo BACKDROP_LIBRARY) y el que está puesto.
+       mBlock trata cada fondo como un disfraz del escenario: la lista puede crecer
+       desde la biblioteca y "siguiente fondo" cicla por ella. */
+    backdrops: ['blank'],
+    activeBackdropId: 'blank',
     running: false,
     runTimers: []
   };
@@ -296,6 +303,10 @@
       renderWorkspaceBlocks();
       renderDeviceLibrary();
       renderExtensionLibrary();
+      renderSpriteList();
+      renderSpriteLibraryModal();
+      renderBackdropList();
+      renderBackdropLibraryModal();
       renderEnvCheck();
       updateEnvBadge();
       updateDeviceStatusText();
@@ -322,20 +333,55 @@
     }
   });
 
-  function saveProjectLocally(downloadFile = false) {
+  /* Límite blando para localStorage: la cuota típica es ~5 MB por origen y el
+     navegador cuenta UTF-16, de ahí el margen de 2 MB. */
+  const LOCAL_PROJECT_LIMIT = 2 * 1024 * 1024;
+
+  /* Proyecto serializado completo. Lo comparten el guardado en localStorage y la
+     descarga .json (que siempre lleva sprites y fondos enteros). */
+  function buildProjectPayload() {
     const name = ($('#projectInput')?.value || t('untitled')).trim() || t('untitled');
-    const payload = {
+    return {
       name,
       lang: window.__I18N_LANG || 'en',
       device: state.activeDevice,
       blocks: (window.MBBlocks && MBBlocks.active())
         ? { engine: 'blockly', state: MBBlocks.serialize() }
         : state.blocks,
+      sprites: state.sprites,
+      activeSpriteId: state.activeSpriteId,
+      backdrops: state.backdrops,
+      activeBackdropId: state.activeBackdropId,
       savedAt: new Date().toISOString()
     };
+  }
+
+  /* Un objeto subido lleva su imagen incrustada como data-URI y puede pesar MB. */
+  function isUploadedSprite(sprite) {
+    return !!sprite && typeof sprite.asset === 'string' && sprite.asset.startsWith('data:');
+  }
+
+  /* Copia del payload para localStorage. Si el JSON completo pasa del límite,
+     quita SOLO los sprites subidos (data-URI): los excluidos siguen vivos en la
+     sesión y la descarga .json los conserva. Si aun así no cabe, el try/catch de
+     saveProjectLocally lo convierte en "no se pudo guardar". */
+  function payloadForStorage(payload) {
+    const full = JSON.stringify(payload);
+    if (full.length <= LOCAL_PROJECT_LIMIT) return { json: full, excluded: 0 };
+    const sprites = payload.sprites.filter((s) => !isUploadedSprite(s));
+    return {
+      json: JSON.stringify({ ...payload, sprites }),
+      excluded: payload.sprites.length - sprites.length
+    };
+  }
+
+  function saveProjectLocally(downloadFile = false) {
+    const payload = buildProjectPayload();
+    const name = payload.name;
+    const storage = payloadForStorage(payload);
     let stored = false;
     try {
-      localStorage.setItem('mblock.lastProject', JSON.stringify(payload));
+      localStorage.setItem('mblock.lastProject', storage.json);
       stored = !!localStorage.getItem('mblock.lastProject');
     } catch (_) {}
     if (downloadFile) {
@@ -346,17 +392,90 @@
       a.click();
       URL.revokeObjectURL(a.href);
     }
-    showToast(stored ? t('savedToast') : t('saveFailedToast'));
+    if (!stored) showToast(t('saveFailedToast'));
+    else if (storage.excluded > 0) showToast(t('customSpritesNotStored'));
+    else showToast(t('savedToast'));
   }
 
-  /* Vuelve a abrir el último proyecto guardado en este navegador. */
-  function restoreLastProject() {
-    let raw: string | null = null;
-    try { raw = localStorage.getItem('mblock.lastProject'); } catch (_) {}
-    if (!raw) return false;
-    let p: any = null;
-    try { p = JSON.parse(raw); } catch (_) { return false; }
-    if (!p) return false;
+  /* Valor numérico tolerante: un proyecto editado a mano no debe romper el render. */
+  function sceneNumber(value, fallback) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  function defaultCapiSprite() {
+    return { id: 'capi', name: 'Capi', x: 0, y: 0, size: 100, dir: 90, visible: true, hue: 0, asset: 'capi' };
+  }
+
+  /* Normaliza un sprite guardado: conserva su id (lo usan render y pruebas),
+     repara ids ausentes o repetidos y descarta entradas que no son objetos. */
+  function normalizeRestoredSprite(raw, index, used) {
+    if (!raw || typeof raw !== 'object') return null;
+    let id = typeof raw.id === 'string' ? raw.id.trim() : '';
+    if (!id || used.has(id)) {
+      let n = index + 1;
+      do { id = `sprite_restored_${n}`; n += 1; } while (used.has(id));
+    }
+    used.add(id);
+    return {
+      id,
+      name: (typeof raw.name === 'string' && raw.name.trim()) || t('spriteName'),
+      x: sceneNumber(raw.x, 0),
+      y: sceneNumber(raw.y, 0),
+      size: sceneNumber(raw.size, 100),
+      dir: sceneNumber(raw.dir, 90),
+      visible: raw.visible !== false,
+      hue: sceneNumber(raw.hue, 0),
+      /* Cualquier asset vale, incluidos los data-URI de objetos subidos. */
+      asset: (typeof raw.asset === 'string' && raw.asset) || 'capi'
+    };
+  }
+
+  /* Fondos guardados: solo ids del catálogo, sin duplicados; si no queda ninguno,
+     el lienzo blanco. */
+  function normalizeRestoredBackdrops(list) {
+    const ids: string[] = [];
+    if (Array.isArray(list)) {
+      list.forEach((id) => {
+        if (typeof id === 'string' && backdropById(id) && !ids.includes(id)) ids.push(id);
+      });
+    }
+    return ids.length ? ids : ['blank'];
+  }
+
+  /* Aplica la escena de un proyecto cargado y repinta todo lo que depende de ella.
+     Payloads viejos sin sprites/fondos vuelven al Capi + lienzo blanco de siempre. */
+  function restoreProjectScene(p) {
+    const used = new Set<string>();
+    const sprites: any[] = [];
+    if (Array.isArray(p.sprites)) {
+      p.sprites.forEach((raw, index) => {
+        const sprite = normalizeRestoredSprite(raw, index, used);
+        if (sprite) sprites.push(sprite);
+      });
+    }
+    state.sprites = sprites.length ? sprites : [defaultCapiSprite()];
+    state.activeSpriteId = state.sprites.some((s) => s.id === p.activeSpriteId)
+      ? p.activeSpriteId
+      : state.sprites[0].id;
+
+    state.backdrops = normalizeRestoredBackdrops(p.backdrops);
+    state.activeBackdropId = state.backdrops.includes(p.activeBackdropId)
+      ? p.activeBackdropId
+      : state.backdrops[0];
+
+    renderSpriteList();
+    renderSprites();
+    renderBackdropList();
+    applyBackdropVisual(state.activeBackdropId, $('#stageCanvasBox'));
+    syncSpriteInputs();
+    updateInfoTargetName();
+  }
+
+  /* Restaura un proyecto ya parseado. Camino único para localStorage y para abrir
+     un .json: nombre, dispositivo, bloques y escena (sprites + fondos). */
+  function applyProjectPayload(p) {
+    if (!p || typeof p !== 'object') return false;
 
     if (p.name) syncProjectName(p.name, '');
     if (p.device && DEVICE_LIBRARY.some((d) => d.id === p.device)) {
@@ -368,7 +487,19 @@
     } else if (Array.isArray(p.blocks)) {
       state.blocks = p.blocks;
     }
+    restoreProjectScene(p);
     return true;
+  }
+
+  /* Vuelve a abrir el último proyecto guardado en este navegador. */
+  function restoreLastProject() {
+    let raw: string | null = null;
+    try { raw = localStorage.getItem('mblock.lastProject'); } catch (_) {}
+    if (!raw) return false;
+    let p: any = null;
+    try { p = JSON.parse(raw); } catch (_) { return false; }
+    if (!p) return false;
+    return applyProjectPayload(p);
   }
 
   function exportPythonFile() {
@@ -414,19 +545,13 @@
     reader.onload = () => {
       try {
         const parsed = JSON.parse(String(reader.result));
-        const enginePayload = parsed.blocks && parsed.blocks.engine === 'blockly' ? parsed.blocks.state : null;
-        if (enginePayload && window.MBBlocks && MBBlocks.active()) {
-          MBBlocks.load(enginePayload);
-          if (parsed.name) syncProjectName(parsed.name, '');
-          renderWorkspaceBlocks();
-          updatePythonViews();
-        } else if (Array.isArray(parsed.blocks)) {
-          pushUndo();
-          state.blocks = parsed.blocks;
-          if (parsed.name) syncProjectName(parsed.name, '');
-          renderWorkspaceBlocks();
-          updatePythonViews();
-        }
+        /* Los proyectos viejos guardaban solo el array de bloques: se puede
+           deshacer la carga con Ctrl+Z. Los de Blockly no pasan por el undo. */
+        if (Array.isArray(parsed?.blocks) && !(parsed.blocks.engine === 'blockly')) pushUndo();
+        /* Mismo camino que localStorage: nombre, dispositivo, bloques, sprites y fondos. */
+        applyProjectPayload(parsed);
+        renderWorkspaceBlocks();
+        updatePythonViews();
       } catch (_) {}
     };
     reader.readAsText(file);
@@ -445,15 +570,535 @@
   /* ===========================
      Stage Controls & Sprite Execution
      =========================== */
-  function applySpriteTransform() {
-    const el = $('#stageSprite');
-    if (!el) return;
-    const scale = Math.max(0.2, Math.min(2, state.sprite.size / 100));
-    const rot = state.sprite.dir - 90;
-    el.style.visibility = state.sprite.visible ? 'visible' : 'hidden';
-    el.style.transform = `translate(${state.sprite.x}px, ${-state.sprite.y}px) rotate(${rot}deg) scale(${scale})`;
-    el.style.filter = state.sprite.hue ? `hue-rotate(${state.sprite.hue}deg)` : 'none';
+  /* Devuelve el sprite activo; si su id ya no existe cae al primero y corrige el estado. */
+  function activeSprite(): any {
+    const active = state.sprites.find((s) => s.id === state.activeSpriteId);
+    if (active) return active;
+    const first = state.sprites[0] || null;
+    if (first) state.activeSpriteId = first.id;
+    return first;
   }
+
+  /* SVG aprobado del capibara, clonado de #stageSprite en el primer render (regla 4). */
+  let capiTemplateSvg: Element | null = null;
+
+  function captureCapiTemplate(root: ParentNode) {
+    if (capiTemplateSvg) return;
+    const template = root.querySelector('#stageSprite svg')
+      || root.querySelector('.stage-sprite-wrap[data-sprite-id="capi"] svg')
+      || root.querySelector('.stage-sprite-wrap svg');
+    if (template) capiTemplateSvg = template.cloneNode(true) as Element;
+  }
+
+  /* Contenido visual de un sprite: el capibara aprobado o el asset externo (futuro). */
+  function spriteVisual(sprite): Element | null {
+    if (sprite.asset === 'capi') {
+      return capiTemplateSvg ? (capiTemplateSvg.cloneNode(true) as Element) : null;
+    }
+    const img = document.createElement('img');
+    img.src = String(sprite.asset || '');
+    img.alt = sprite.name || '';
+    img.draggable = false;
+    return img;
+  }
+
+  /* Aplica transform/visibilidad/color de un sprite a su wrap. */
+  function applySpriteStyle(wrap: HTMLElement, sprite) {
+    const scale = Math.max(0.2, Math.min(2, sprite.size / 100));
+    const rot = sprite.dir - 90;
+    wrap.style.visibility = sprite.visible ? 'visible' : 'hidden';
+    wrap.style.transform = `translate(-50%, -50%) translate(${sprite.x}px, ${-sprite.y}px) rotate(${rot}deg) scale(${scale})`;
+    wrap.style.filter = sprite.hue ? `hue-rotate(${sprite.hue}deg)` : 'none';
+  }
+
+  /* Pinta todos los sprites de la escena; uno por <div class="stage-sprite-wrap">. */
+  function renderSprites() {
+    const box = $('#stageCanvasBox');
+    if (!box) return;
+    captureCapiTemplate(box);
+    $$('.stage-sprite-wrap', box).forEach((el) => el.remove());
+    const anchor = $('#stageScreenReadout', box);
+
+    state.sprites.forEach((sprite) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'stage-sprite-wrap';
+      wrap.setAttribute('data-sprite-id', sprite.id);
+      if (sprite.id === 'capi') wrap.id = 'stageSprite';
+
+      const visual = spriteVisual(sprite);
+      if (visual) wrap.appendChild(visual);
+      applySpriteStyle(wrap, sprite);
+      if (anchor) box.insertBefore(wrap, anchor);
+      else box.appendChild(wrap);
+    });
+  }
+
+  /* Sincroniza la escena sin recrear los wraps, para conservar la transición CSS. */
+  function updateStage() {
+    const box = $('#stageCanvasBox');
+    if (!box) return;
+    const wraps = $$('.stage-sprite-wrap', box);
+    const rendered = wraps.map((w) => w.getAttribute('data-sprite-id')).join('|');
+    const wanted = state.sprites.map((s) => s.id).join('|');
+    if (rendered !== wanted) {
+      renderSprites();
+      return;
+    }
+    state.sprites.forEach((sprite, i) => applySpriteStyle(wraps[i], sprite));
+  }
+
+  /* ===========================
+     Sprite list (pestaña Objetos)
+     =========================== */
+  let spriteIdSeq = 0;
+
+  /* Id único para sprites nuevos (biblioteca/subidas); nunca repite uno existente. */
+  function nextSpriteId(): string {
+    let id = '';
+    do {
+      spriteIdSeq += 1;
+      id = `sprite_${Date.now().toString(36)}_${spriteIdSeq}`;
+    } while (state.sprites.some((s) => s.id === id));
+    return id;
+  }
+
+  /* Vuelca los valores del sprite activo en los inputs de propiedades. */
+  function syncSpriteInputs() {
+    const sprite = activeSprite();
+    if (!sprite) return;
+    const setValue = (selector: string, value) => {
+      const input = $(selector);
+      if (input && String(input.value) !== String(value)) input.value = value;
+    };
+    setValue('#spriteNameInput', sprite.name);
+    setValue('#spriteXInput', sprite.x);
+    setValue('#spriteYInput', sprite.y);
+    setValue('#spriteSizeInput', sprite.size);
+    setValue('#spriteDirInput', sprite.dir);
+    const visible = $('#spriteVisibleCheck');
+    if (visible) visible.checked = Boolean(sprite.visible);
+  }
+
+  /* "nombre | ..." del encabezado: sigue al sprite activo cuando la pestaña Objetos está abierta. */
+  function updateInfoTargetName() {
+    if (state.activeTargetTab !== 'sprites') return;
+    const infoName = $('#infoTargetName');
+    const sprite = activeSprite();
+    if (infoName && sprite) infoName.textContent = sprite.name;
+  }
+
+  function selectSprite(id) {
+    if (!state.sprites.some((s) => s.id === id)) return;
+    state.activeSpriteId = id;
+    syncSpriteInputs();
+    renderSpriteList();
+    updateInfoTargetName();
+  }
+
+  /* Borra un sprite; nunca deja la escena vacía. */
+  function deleteSprite(id) {
+    if (state.sprites.length <= 1) {
+      showToast(t('cannotDeleteLastSprite'));
+      return;
+    }
+    const index = state.sprites.findIndex((s) => s.id === id);
+    if (index === -1) return;
+    const wasActive = state.activeSpriteId === id;
+    state.sprites.splice(index, 1);
+    if (wasActive || !state.sprites.some((s) => s.id === state.activeSpriteId)) {
+      state.activeSpriteId = state.sprites[0].id;
+    }
+    renderSprites();
+    syncSpriteInputs();
+    renderSpriteList();
+    updateInfoTargetName();
+  }
+
+  /* ===========================
+     Biblioteca de objetos (modal)
+     =========================== */
+
+  /* Estado efímero del modal: pestaña, categoría, búsqueda y tarjeta seleccionada. */
+  const spriteLibraryState = {
+    tab: 'library',
+    cat: 'all',
+    query: '',
+    selected: null as null | { id: string; name: string; asset: string }
+  };
+
+  /* Búsqueda sin acentos ni mayúsculas: "avion" encuentra "Avión". */
+  function normalizeSearchText(value) {
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  }
+
+  /* Nombre visible único dentro del proyecto: si ya existe, añade " 2", " 3"... */
+  function uniqueSpriteName(base) {
+    const wanted = String(base || '').trim() || t('spriteName');
+    let name = wanted;
+    let n = 2;
+    while (state.sprites.some((s) => String(s.name).toLowerCase() === name.toLowerCase())) {
+      name = `${wanted} ${n}`;
+      n += 1;
+    }
+    return name;
+  }
+
+  /* Posición escalonada como mBlock (+72 px por sprite), sin salirse del escenario. */
+  function staggeredSpritePosition() {
+    const box = $('#stageCanvasBox');
+    const halfW = (box ? box.clientWidth : 400) / 2;
+    const halfH = (box ? box.clientHeight : 212) / 2;
+    /* 40 px cubre el ancho real de un wrapper (66 px con size 100) y evita que
+       el sprite quede cortado en el borde del escenario. */
+    const margin = 40;
+    const clamp = (value, min, max) => Math.round(Math.max(min, Math.min(max, value)));
+    return {
+      x: clamp(72 * state.sprites.length, -halfW + margin, halfW - margin),
+      y: clamp(25, -halfH + margin, halfH - margin)
+    };
+  }
+
+  /* Añade un sprite al proyecto (biblioteca o subida), lo selecciona y repinta lista/escena. */
+  function addSpriteFromAsset(name, asset) {
+    const pos = staggeredSpritePosition();
+    const sprite = {
+      id: nextSpriteId(),
+      name: uniqueSpriteName(name),
+      x: pos.x,
+      y: pos.y,
+      size: 100,
+      dir: 90,
+      visible: true,
+      hue: 0,
+      asset
+    };
+    state.sprites.push(sprite);
+    state.activeSpriteId = sprite.id;
+    renderSprites();
+    syncSpriteInputs();
+    renderSpriteList();
+    updateInfoTargetName();
+    return sprite;
+  }
+
+  /* Entradas del grid según la pestaña; "Mis objetos" solo lista assets subidos (data-URI).
+     Aceptar sobre una tarjeta de "Mis objetos" vuelve a añadir una copia (no la mueve). */
+  function currentLibraryItems() {
+    if (spriteLibraryState.tab === 'mine') {
+      return state.sprites
+        .filter((s) => typeof s.asset === 'string' && s.asset.startsWith('data:'))
+        .map((s) => ({ id: s.id, name: s.name, cat: 'mine', file: s.asset }));
+    }
+    return SPRITE_LIBRARY;
+  }
+
+  function updateSpriteLibraryOk() {
+    const ok = $('#spriteLibraryOkBtn');
+    if (ok) ok.disabled = !spriteLibraryState.selected;
+  }
+
+  function resetSpriteLibrary() {
+    spriteLibraryState.tab = 'library';
+    spriteLibraryState.cat = 'all';
+    spriteLibraryState.query = '';
+    spriteLibraryState.selected = null;
+    const search = $('#spriteLibrarySearch');
+    if (search) search.value = '';
+    updateSpriteLibraryOk();
+  }
+
+  /* Pinta pestañas, pills, buscador y grid con el filtro actual. */
+  function renderSpriteLibraryModal() {
+    const modal = $('#spriteLibraryModal');
+    if (!modal) return;
+
+    $$('.library-tab', modal).forEach((tab) => {
+      const active = tab.getAttribute('data-sprite-tab') === spriteLibraryState.tab;
+      tab.classList.toggle('active', active);
+      tab.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+
+    const cats = $('#spriteCats', modal);
+    if (cats) {
+      cats.hidden = spriteLibraryState.tab === 'mine';
+      cats.innerHTML = '';
+      if (spriteLibraryState.tab === 'library') {
+        const pills = [{ id: 'all', label: t('catAll') }].concat(
+          SPRITE_ASSET_CATEGORIES.map((cat) => ({ id: cat.id, label: t(cat.labelKey, cat.label) }))
+        );
+        pills.forEach((pill) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          const isActive = spriteLibraryState.cat === pill.id;
+          btn.className = 'cat-pill' + (isActive ? ' active' : '');
+          btn.setAttribute('data-cat', pill.id);
+          btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+          btn.textContent = pill.label;
+          btn.addEventListener('click', () => {
+            spriteLibraryState.cat = pill.id;
+            renderSpriteLibraryModal();
+          });
+          cats.appendChild(btn);
+        });
+      }
+    }
+
+    const search = $('#spriteLibrarySearch', modal);
+    if (search && search.value !== spriteLibraryState.query) search.value = spriteLibraryState.query;
+
+    const grid = $('#spriteGrid', modal);
+    const empty = $('#spriteLibraryEmpty', modal);
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const query = normalizeSearchText(spriteLibraryState.query);
+    const items = currentLibraryItems().filter((item) => {
+      if (spriteLibraryState.tab === 'library' && spriteLibraryState.cat !== 'all' && item.cat !== spriteLibraryState.cat) {
+        return false;
+      }
+      return !query || normalizeSearchText(item.name).includes(query);
+    });
+
+    items.forEach((item) => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      const isSelected = Boolean(spriteLibraryState.selected && spriteLibraryState.selected.id === item.id);
+      card.className = 'asset-card' + (isSelected ? ' selected' : '');
+      card.setAttribute('data-asset-id', item.id);
+      card.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+      card.title = item.name;
+
+      const img = document.createElement('img');
+      img.src = item.file;
+      img.alt = '';
+      img.draggable = false;
+      img.loading = 'lazy';
+      card.appendChild(img);
+
+      const label = document.createElement('span');
+      label.className = 'asset-name';
+      label.textContent = item.name;
+      card.appendChild(label);
+
+      /* Un clic marca; doble clic añade y cierra sin pasar por Aceptar. */
+      card.addEventListener('click', () => {
+        spriteLibraryState.selected = { id: item.id, name: item.name, asset: item.file };
+        renderSpriteLibraryModal();
+      });
+      card.addEventListener('dblclick', () => {
+        spriteLibraryState.selected = { id: item.id, name: item.name, asset: item.file };
+        acceptSpriteLibrarySelection();
+      });
+      grid.appendChild(card);
+    });
+
+    const hasItems = items.length > 0;
+    grid.hidden = !hasItems;
+    if (empty) {
+      empty.hidden = hasItems;
+      const text = $('#spriteLibraryEmptyText', modal);
+      const hasUploads = state.sprites.some((s) => typeof s.asset === 'string' && s.asset.startsWith('data:'));
+      if (text) text.textContent = spriteLibraryState.tab === 'mine' && !hasUploads
+        ? t('mySpritesEmpty')
+        : t('noResults');
+    }
+    updateSpriteLibraryOk();
+  }
+
+  function acceptSpriteLibrarySelection() {
+    const selected = spriteLibraryState.selected;
+    if (!selected) return;
+    addSpriteFromAsset(selected.name, selected.asset);
+    closeAllModals();
+    resetSpriteLibrary();
+  }
+
+  /* Abre el modal (una sola vez): repinta el grid y limpia la selección previa. */
+  function openSpriteLibrary() {
+    if (!$('#spriteLibraryModal')) return;
+    resetSpriteLibrary();
+    renderSpriteLibraryModal();
+    openModal('spriteLibraryModal');
+  }
+
+  $$('[data-sprite-tab]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      spriteLibraryState.tab = btn.getAttribute('data-sprite-tab');
+      spriteLibraryState.cat = 'all';
+      spriteLibraryState.selected = null;
+      renderSpriteLibraryModal();
+    });
+  });
+
+  $('#spriteLibrarySearch')?.addEventListener('input', (e) => {
+    spriteLibraryState.query = e.target.value;
+    renderSpriteLibraryModal();
+  });
+
+  $('#spriteLibraryOkBtn')?.addEventListener('click', acceptSpriteLibrarySelection);
+
+  $('#spriteUploadBtn')?.addEventListener('click', () => $('#spriteUploadInput')?.click());
+
+  $('#spriteUploadInput')?.addEventListener('change', (e) => {
+    const input = e.target;
+    const file = input.files && input.files[0];
+    if (!file) return;
+    if (!/^image\/(png|svg\+xml)$/i.test(file.type)) {
+      showToast(t('uploadFailed'));
+      input.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      /* El data-URI se guarda dentro del sprite: un PNG grande puede agotar el
+         localStorage (~5 MB por origen) al guardar el proyecto. La tarea de
+         guardado deberá limitar/omitir los assets > 2 MB y avisar con un toast. */
+      addSpriteFromAsset(String(file.name).replace(/\.[^.]+$/, ''), String(reader.result));
+      spriteLibraryState.tab = 'mine';
+      spriteLibraryState.cat = 'all';
+      spriteLibraryState.query = '';
+      spriteLibraryState.selected = null;
+      const search = $('#spriteLibrarySearch');
+      if (search) search.value = '';
+      renderSpriteLibraryModal();
+    };
+    reader.onerror = () => showToast(t('uploadFailed'));
+    reader.readAsDataURL(file);
+    input.value = '';
+  });
+
+
+  /* Miniatura: clon del capibara aprobado (asset 'capi') o el <img> del asset. */
+  function spriteThumb(sprite): HTMLElement {
+    const thumb = document.createElement('div');
+    thumb.className = 'mtarget-thumb';
+    if (sprite.asset === 'capi') {
+      if (!capiTemplateSvg) captureCapiTemplate(document);
+      const svg = capiTemplateSvg ? (capiTemplateSvg.cloneNode(true) as Element) : null;
+      if (svg) {
+        svg.setAttribute('width', '34');
+        svg.setAttribute('height', '40');
+        svg.setAttribute('aria-hidden', 'true');
+        svg.removeAttribute('role');
+        svg.removeAttribute('aria-label');
+        thumb.appendChild(svg);
+      }
+      return thumb;
+    }
+    const img = document.createElement('img');
+    img.src = String(sprite.asset || '');
+    img.alt = '';
+    img.width = 40;
+    img.height = 40;
+    img.draggable = false;
+    thumb.appendChild(img);
+    return thumb;
+  }
+
+  /* Pinta la lista de tarjetas: una por sprite, X en la activa y "+ Añadir" al final. */
+  function renderSpriteList() {
+    const list = $('#spriteList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    state.sprites.forEach((sprite) => {
+      const isActive = sprite.id === state.activeSpriteId;
+      const card = document.createElement('div');
+      card.className = 'mtarget-card' + (isActive ? ' selected' : '');
+      card.setAttribute('data-sprite-id', sprite.id);
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      card.setAttribute('aria-label', sprite.name);
+      card.title = sprite.name;
+      card.appendChild(spriteThumb(sprite));
+
+      const name = document.createElement('p');
+      name.className = 'mtarget-name';
+      name.textContent = sprite.name;
+      card.appendChild(name);
+
+      if (isActive) {
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'mtarget-delete-btn';
+        del.textContent = '×';
+        del.setAttribute('aria-label', `${t('deleteSprite')}: ${sprite.name}`);
+        del.title = t('deleteSprite');
+        del.addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteSprite(sprite.id);
+        });
+        card.appendChild(del);
+      }
+
+      card.addEventListener('click', () => selectSprite(sprite.id));
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          selectSprite(sprite.id);
+        }
+      });
+      list.appendChild(card);
+    });
+
+    const add = document.createElement('div');
+    add.className = 'mtarget-card mtarget-card--add';
+    add.setAttribute('role', 'button');
+    add.setAttribute('tabindex', '0');
+    add.setAttribute('data-modal-open', 'spriteLibraryModal');
+    add.setAttribute('aria-label', t('add'));
+    add.title = t('add');
+    const circle = document.createElement('span');
+    circle.className = 'add-circle';
+    circle.setAttribute('aria-hidden', 'true');
+    circle.textContent = '+';
+    add.appendChild(circle);
+    const addName = document.createElement('p');
+    addName.className = 'mtarget-name';
+    addName.textContent = t('add');
+    add.appendChild(addName);
+    /* La tarjeta se crea después del binding global de [data-modal-open] (solo
+       cubre elementos estáticos), así que este es el único listener que abre el
+       modal; el atributo queda como hook declarativo y para las pruebas. */
+    add.addEventListener('click', openSpriteLibrary);
+    add.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openSpriteLibrary();
+      }
+    });
+    list.appendChild(add);
+  }
+
+  /* API mínima de sprites: la usan las pruebas y la futura biblioteca (Task 4+). */
+  (window as any).MBSprites = {
+    list: () => state.sprites,
+    active: () => state.activeSpriteId,
+    add: (sprite) => {
+      const id = (sprite && sprite.id) || nextSpriteId();
+      state.sprites.push({
+        x: 0, y: 0, size: 100, dir: 90, visible: true, hue: 0, asset: 'capi',
+        ...sprite,
+        id
+      });
+      renderSprites();
+      selectSprite(id);
+      return id;
+    },
+    select: selectSprite,
+    remove: deleteSprite,
+    render: () => {
+      renderSprites();
+      renderSpriteList();
+      syncSpriteInputs();
+      updateInfoTargetName();
+    }
+  };
 
   function stopExecution() {
     state.running = false;
@@ -485,25 +1130,26 @@
     actions.forEach((act) => {
       const timerId = setTimeout(() => {
         if (!state.running) return;
-        if (act.type === 'move') {
-          state.sprite.x = Math.max(-70, Math.min(70, state.sprite.x + (act.dx || 20)));
+        const sprite = activeSprite();
+        if (act.type === 'move' && sprite) {
+          sprite.x = Math.max(-70, Math.min(70, sprite.x + (act.dx || 20)));
           const xIn = $('#spriteXInput');
-          if (xIn) xIn.value = state.sprite.x;
-          applySpriteTransform();
-        } else if (act.type === 'turn') {
-          state.sprite.dir = (state.sprite.dir + (act.deg || 15)) % 360;
+          if (xIn) xIn.value = sprite.x;
+          updateStage();
+        } else if (act.type === 'turn' && sprite) {
+          sprite.dir = (sprite.dir + (act.deg || 15)) % 360;
           const dIn = $('#spriteDirInput');
-          if (dIn) dIn.value = state.sprite.dir;
-          applySpriteTransform();
+          if (dIn) dIn.value = sprite.dir;
+          updateStage();
         } else if (act.type === 'say') {
           const bubble = $('#stageSpeechBubble');
           if (bubble) {
             bubble.textContent = act.text || 'Hello!';
             bubble.hidden = false;
           }
-        } else if (act.type === 'hue') {
-          state.sprite.hue = (state.sprite.hue + (act.deg || 30)) % 360;
-          applySpriteTransform();
+        } else if (act.type === 'hue' && sprite) {
+          sprite.hue = (sprite.hue + (act.deg || 30)) % 360;
+          updateStage();
         } else if (act.type === 'led') {
           const strip = $('#stageLedStrip');
           if (strip) {
@@ -522,9 +1168,11 @@
         } else if (act.type === 'beep') {
           playTone(act.freq || 523);
         } else if (act.type === 'backdrop') {
-          const order = ['blank', 'grid', 'sky', 'night'];
-          const next = order[(order.indexOf(state.backdrop) + 1) % order.length];
-          setBackdrop(next);
+          /* Cicla la lista de fondos del proyecto (no el orden fijo del catálogo).
+             Con un solo fondo vuelve a sí mismo: no hay cambio visible. */
+          const order = state.backdrops.length ? state.backdrops : ['blank'];
+          const next = order[(order.indexOf(state.activeBackdropId) + 1) % order.length];
+          setBackdrop(next || order[0]);
         }
       }, delay);
       state.runTimers.push(timerId);
@@ -541,11 +1189,14 @@
       window.MBSerial.interrupt().catch(() => {});
     }
     stopExecution();
-    state.sprite = { x: 0, y: 0, size: 100, dir: 90, visible: true, hue: 0 };
+    const sprite = activeSprite();
+    if (sprite) {
+      Object.assign(sprite, { x: 0, y: 0, size: 100, dir: 90, visible: true, hue: 0 });
+    }
     if ($('#spriteXInput')) $('#spriteXInput').value = 0;
     if ($('#spriteYInput')) $('#spriteYInput').value = 0;
     if ($('#spriteDirInput')) $('#spriteDirInput').value = 90;
-    applySpriteTransform();
+    updateStage();
   });
 
   $('#fullscreenBtn')?.addEventListener('click', () => {
@@ -588,7 +1239,7 @@
       if (tab === 'devices') {
         const dev = DEVICE_LIBRARY.find((d) => d.id === state.activeDevice);
         infoName.textContent = dev ? dev.name : t('cyberpi');
-      } else if (tab === 'sprites') infoName.textContent = $('#spriteNameInput')?.value || t('panda');
+      } else if (tab === 'sprites') infoName.textContent = activeSprite()?.name || $('#spriteNameInput')?.value || t('panda');
       else infoName.textContent = t('background');
     }
 
@@ -748,32 +1399,303 @@
     });
   });
 
-  // Sprite inputs
-  $('#spriteXInput')?.addEventListener('input', (e) => { state.sprite.x = Number(e.target.value) || 0; applySpriteTransform(); });
-  $('#spriteYInput')?.addEventListener('input', (e) => { state.sprite.y = Number(e.target.value) || 0; applySpriteTransform(); });
-  $('#spriteSizeInput')?.addEventListener('input', (e) => { state.sprite.size = Number(e.target.value) || 100; applySpriteTransform(); });
-  $('#spriteDirInput')?.addEventListener('input', (e) => { state.sprite.dir = Number(e.target.value) || 90; applySpriteTransform(); });
-  $('#spriteVisibleCheck')?.addEventListener('change', (e) => { state.sprite.visible = e.target.checked; applySpriteTransform(); });
-
-  // Backdrop presets
-  function setBackdrop(name) {
-    state.backdrop = name;
-    const stageBox = $('#stageCanvasBox');
-    const preview = $('#bgPreviewBox');
-    ['backdrop-grid', 'backdrop-sky', 'backdrop-night'].forEach((cls) => {
-      stageBox?.classList.remove(cls);
-      preview?.classList.remove(cls);
-    });
-    if (name !== 'blank') {
-      stageBox?.classList.add(`backdrop-${name}`);
-      preview?.classList.add(`backdrop-${name}`);
+  // Sprite inputs (propiedades del sprite activo)
+  $('#spriteNameInput')?.addEventListener('input', (e) => {
+    const sprite = activeSprite();
+    if (!sprite) return;
+    sprite.name = e.target.value;
+    const card = $$('.mtarget-card', $('#spriteList') || document)
+      .find((c) => c.getAttribute('data-sprite-id') === sprite.id);
+    if (card) {
+      const label = $('.mtarget-name', card);
+      if (label) label.textContent = sprite.name;
+      card.setAttribute('aria-label', sprite.name);
+      card.title = sprite.name;
+      const del = $('.mtarget-delete-btn', card);
+      if (del) del.setAttribute('aria-label', `${t('deleteSprite')}: ${sprite.name}`);
     }
-    $$('.bg-preset-btn').forEach((b) => b.classList.toggle('active', b.getAttribute('data-backdrop') === name));
+    updateInfoTargetName();
+  });
+  $('#spriteXInput')?.addEventListener('input', (e) => { const s = activeSprite(); if (s) s.x = Number(e.target.value) || 0; updateStage(); });
+  $('#spriteYInput')?.addEventListener('input', (e) => { const s = activeSprite(); if (s) s.y = Number(e.target.value) || 0; updateStage(); });
+  $('#spriteSizeInput')?.addEventListener('input', (e) => { const s = activeSprite(); if (s) s.size = Number(e.target.value) || 100; updateStage(); });
+  $('#spriteDirInput')?.addEventListener('input', (e) => { const s = activeSprite(); if (s) s.dir = Number(e.target.value) || 90; updateStage(); });
+  $('#spriteVisibleCheck')?.addEventListener('change', (e) => { const s = activeSprite(); if (s) s.visible = e.target.checked; updateStage(); });
+
+  /* ===========================
+     Fondos del proyecto (pestaña Fondo + biblioteca)
+     =========================== */
+
+  /* Clases de los presets CSS: las que ya pinta style.css. */
+  const BACKDROP_PRESET_CLASSES = ['backdrop-grid', 'backdrop-sky', 'backdrop-night'];
+
+  function backdropById(id) {
+    return BACKDROP_LIBRARY.find((b) => b.id === id) || null;
   }
 
-  $$('.bg-preset-btn').forEach((btn) => {
-    btn.addEventListener('click', () => setBackdrop(btn.getAttribute('data-backdrop')));
+  /* Nombre visible: presets con clave i18n; assets con el nombre del catálogo. */
+  const BACKDROP_I18N_KEYS = {
+    blank: 'backdropBlank',
+    grid: 'backdropGrid',
+    sky: 'backdropSky',
+    night: 'backdropNight'
+  };
+  function backdropLabel(asset) {
+    const key = BACKDROP_I18N_KEYS[asset.id];
+    return key ? t(key, asset.name) : asset.name;
+  }
+
+  /* Pinta un fondo sobre un elemento: preset → clase CSS; asset → background-image
+     local (regla 1: sin URLs remotas). Un id desconocido deja el lienzo blanco. */
+  function applyBackdropVisual(id, el) {
+    if (!el) return;
+    BACKDROP_PRESET_CLASSES.forEach((cls) => el.classList.remove(cls));
+    el.classList.remove('backdrop-asset');
+    el.style.backgroundImage = '';
+    const asset = backdropById(id);
+    if (!asset) return;
+    if (asset.file) {
+      el.classList.add('backdrop-asset');
+      el.style.backgroundImage = `url("${asset.file}")`;
+    } else if (asset.id !== 'blank') {
+      el.classList.add(`backdrop-${asset.id}`);
+    }
+  }
+
+  /* Activa un fondo del catálogo (debe estar en el proyecto, pero no lo exige). */
+  function setBackdrop(id) {
+    const asset = backdropById(id);
+    state.activeBackdropId = asset ? asset.id : 'blank';
+    applyBackdropVisual(state.activeBackdropId, $('#stageCanvasBox'));
+    renderBackdropList();
+  }
+
+  /* Añade un fondo al proyecto; si ya existe solo lo activa (sin duplicados). */
+  function addBackdrop(id) {
+    const asset = backdropById(id);
+    if (!asset) return false;
+    if (!state.backdrops.includes(asset.id)) state.backdrops.push(asset.id);
+    setBackdrop(asset.id);
+    return true;
+  }
+
+  /* Miniatura: preset → swatch con las clases del escenario; asset → <img> local. */
+  function backdropThumb(asset, className) {
+    const thumb = document.createElement('div');
+    thumb.className = className;
+    if (asset.file) {
+      const img = document.createElement('img');
+      img.src = asset.file;
+      img.alt = '';
+      img.loading = 'lazy';
+      img.draggable = false;
+      thumb.appendChild(img);
+    } else {
+      const swatch = document.createElement('div');
+      swatch.className = 'bg-swatch';
+      applyBackdropVisual(asset.id, swatch);
+      thumb.appendChild(swatch);
+    }
+    return thumb;
+  }
+
+  /* Lista de fondos del proyecto: una tarjeta por fondo, "+" y contador dinámico. */
+  function renderBackdropList() {
+    const list = $('#backdropList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    state.backdrops
+      .map((id) => backdropById(id))
+      .filter(Boolean)
+      .forEach((asset) => {
+        const isActive = asset.id === state.activeBackdropId;
+        const card = document.createElement('div');
+        card.className = 'bg-card' + (isActive ? ' selected' : '');
+        card.setAttribute('data-backdrop-id', asset.id);
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        card.setAttribute('aria-label', backdropLabel(asset));
+        card.title = backdropLabel(asset);
+        card.appendChild(backdropThumb(asset, 'bg-thumb'));
+
+        const name = document.createElement('p');
+        name.className = 'bg-card-name';
+        name.textContent = backdropLabel(asset);
+        card.appendChild(name);
+
+        card.addEventListener('click', () => setBackdrop(asset.id));
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setBackdrop(asset.id);
+          }
+        });
+        list.appendChild(card);
+      });
+
+    const add = document.createElement('div');
+    add.className = 'bg-card bg-card--add';
+    add.setAttribute('role', 'button');
+    add.setAttribute('tabindex', '0');
+    add.setAttribute('data-modal-open', 'backdropLibraryModal');
+    add.setAttribute('aria-label', t('add'));
+    add.title = t('add');
+    const circle = document.createElement('span');
+    circle.className = 'add-circle';
+    circle.setAttribute('aria-hidden', 'true');
+    circle.textContent = '+';
+    add.appendChild(circle);
+    const addName = document.createElement('p');
+    addName.className = 'bg-card-name';
+    addName.textContent = t('add');
+    add.appendChild(addName);
+    /* Igual que en la lista de sprites: la tarjeta nace después del binding global
+       de [data-modal-open], así que este listener es el que abre el modal. */
+    add.addEventListener('click', openBackdropLibrary);
+    add.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openBackdropLibrary();
+      }
+    });
+    list.appendChild(add);
+
+    const count = $('#backdropCountText');
+    if (count) count.textContent = `${t('numberOfCostumes')}: ${state.backdrops.length}`;
+  }
+
+  /* Estado efímero del modal de fondos: categoría, búsqueda y tarjeta marcada. */
+  const backdropLibraryState = {
+    cat: 'all',
+    query: '',
+    selected: null as null | string
+  };
+
+  function updateBackdropLibraryOk() {
+    const ok = $('#backdropLibraryOkBtn');
+    if (ok) ok.disabled = !backdropLibraryState.selected;
+  }
+
+  function resetBackdropLibrary() {
+    backdropLibraryState.cat = 'all';
+    backdropLibraryState.query = '';
+    backdropLibraryState.selected = null;
+    const search = $('#backdropLibrarySearch');
+    if (search) search.value = '';
+    updateBackdropLibraryOk();
+  }
+
+  /* Pinta pills, buscador y grid del modal con el filtro actual. */
+  function renderBackdropLibraryModal() {
+    const modal = $('#backdropLibraryModal');
+    if (!modal) return;
+
+    const cats = $('#backdropCats', modal);
+    if (cats) {
+      cats.innerHTML = '';
+      const pills = [{ id: 'all', label: t('catAll') }].concat(
+        BACKDROP_CATEGORIES.map((cat) => ({ id: cat.id, label: t(cat.labelKey, cat.label) }))
+      );
+      pills.forEach((pill) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const isActive = backdropLibraryState.cat === pill.id;
+        btn.className = 'cat-pill' + (isActive ? ' active' : '');
+        btn.setAttribute('data-cat', pill.id);
+        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        btn.textContent = pill.label;
+        btn.addEventListener('click', () => {
+          backdropLibraryState.cat = pill.id;
+          renderBackdropLibraryModal();
+        });
+        cats.appendChild(btn);
+      });
+    }
+
+    const search = $('#backdropLibrarySearch', modal);
+    if (search && search.value !== backdropLibraryState.query) search.value = backdropLibraryState.query;
+
+    const grid = $('#backdropGrid', modal);
+    const empty = $('#backdropLibraryEmpty', modal);
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const query = normalizeSearchText(backdropLibraryState.query);
+    const items = BACKDROP_LIBRARY.filter((item) => {
+      if (backdropLibraryState.cat !== 'all' && item.cat !== backdropLibraryState.cat) return false;
+      return !query || normalizeSearchText(backdropLabel(item)).includes(query);
+    });
+
+    items.forEach((item) => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      const isSelected = backdropLibraryState.selected === item.id;
+      card.className = 'asset-card asset-card--backdrop' + (isSelected ? ' selected' : '');
+      card.setAttribute('data-asset-id', item.id);
+      card.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+      card.title = backdropLabel(item);
+      card.appendChild(backdropThumb(item, 'asset-thumb'));
+
+      const label = document.createElement('span');
+      label.className = 'asset-name';
+      label.textContent = backdropLabel(item);
+      card.appendChild(label);
+
+      /* Un clic marca; doble clic añade y cierra sin pasar por Aceptar. */
+      card.addEventListener('click', () => {
+        backdropLibraryState.selected = item.id;
+        renderBackdropLibraryModal();
+      });
+      card.addEventListener('dblclick', () => {
+        backdropLibraryState.selected = item.id;
+        acceptBackdropLibrarySelection();
+      });
+      grid.appendChild(card);
+    });
+
+    const hasItems = items.length > 0;
+    grid.hidden = !hasItems;
+    if (empty) {
+      empty.hidden = hasItems;
+      const text = $('#backdropLibraryEmptyText', modal);
+      if (text) text.textContent = t('noResults');
+    }
+    updateBackdropLibraryOk();
+  }
+
+  function acceptBackdropLibrarySelection() {
+    const selected = backdropLibraryState.selected;
+    if (!selected) return;
+    addBackdrop(selected);
+    closeAllModals();
+    resetBackdropLibrary();
+  }
+
+  function openBackdropLibrary() {
+    if (!$('#backdropLibraryModal')) return;
+    resetBackdropLibrary();
+    renderBackdropLibraryModal();
+    openModal('backdropLibraryModal');
+  }
+
+  $('#backdropLibrarySearch')?.addEventListener('input', (e) => {
+    backdropLibraryState.query = e.target.value;
+    renderBackdropLibraryModal();
   });
+
+  $('#backdropLibraryOkBtn')?.addEventListener('click', acceptBackdropLibrarySelection);
+
+  /* API mínima de fondos para pruebas y para la futura tarea de guardado. */
+  (window as any).MBBackdrops = {
+    list: () => state.backdrops.slice(),
+    active: () => state.activeBackdropId,
+    catalog: () => BACKDROP_LIBRARY.map((b) => b.id),
+    add: addBackdrop,
+    set: setBackdrop,
+    render: renderBackdropList
+  };
 
   /* ===========================
      Toolbox & Block Flyout
@@ -1533,5 +2455,9 @@
   updatePythonViews();
   updateDeviceStatusText();
   updateUndoRedoButtons();
-  applySpriteTransform();
+  renderSprites();
+  renderSpriteList();
+  syncSpriteInputs();
+  /* Pinta la lista de fondos y aplica el activo (restoreLastProject puede cambiarlo). */
+  setBackdrop(state.activeBackdropId);
 })();

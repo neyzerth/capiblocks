@@ -39,6 +39,16 @@ También puede abrirse `dist/index.html` directamente (`file://`).
 `DEVICE_LIBRARY` en `src/script.ts`: `{ id, name, desc }`. Aparece en la biblioteca
 (Añadir dispositivo) y se puede fijar como activo.
 
+### Añadir un objeto o un fondo a la biblioteca
+
+1. Copia el archivo a `assets/sprites/` o `assets/backdrops/` (CC0 o propio) y anota su origen en
+   `THIRD-PARTY-NOTICES.md`.
+2. Agrega la entrada en `SPRITE_LIBRARY` o `BACKDROP_LIBRARY` (`src/sprite-library.ts`) con un **id
+   nuevo**: los ids se guardan en los proyectos y renombrarlos rompe las partidas guardadas.
+3. Si añades una categoría, agrégala al tipo y a `SPRITE_CATEGORIES`/`BACKDROP_CATEGORIES` con su
+   `labelKey`, y traduce la clave en `src/locales.ts`.
+4. `pnpm build` copia `assets/` a `dist/`; `node check.mjs` confirma que no hay URLs externas.
+
 ### Añadir un idioma
 
 1. Copia el bloque de un idioma en `src/locales.ts` y traduce los valores.
@@ -68,7 +78,9 @@ Evita tocar componentes uno por uno.
 - **El cuerpo de un sombrero es su cadena siguiente**: al generar Python, indenta `getNextBlock()`
   del bloque con `hat`; si no, sale `def` sin cuerpo.
 - **El guardado usa `{engine:'blockly', state}`**: si cambias el formato, mantén la lectura del
-  formato viejo (arreglo plano).
+  formato viejo (arreglo plano). Desde los objetos y fondos, el payload lleva además `sprites`,
+  `activeSpriteId`, `backdrops` y `activeBackdropId`; un proyecto sin esas claves debe seguir
+  abriéndose con el Capi y el lienzo blanco.
 - **CodeMirror necesita `refresh()`** cuando su contenedor pasa de oculto a visible (pestaña Python).
 - **Playwright no pulsa elementos ocultos**: abre el modal antes de pulsar sus botones.
 - **Nada de literales `http://` en `src/`**: `check.mjs` falla si el bundle contiene una URL
@@ -77,6 +89,16 @@ Evita tocar componentes uno por uno.
 - **Se desarrolla en Linux, se usa en Windows**: Web Serial abstrae el puerto (COM o `/dev/tty*`
   es indistinto para la app); lo único específico del sistema es el driver USB de la placa
   (CP210x o CH340), ya explicado en el manual dentro del modal de ayuda.
+- **Corre los tests con `CI=1` cuando haya otros worktree activos**: `playwright.config.ts`
+  levanta su servidor en `:8123` y reutiliza cualquiera que ya escuche (fuera de CI). Si otra
+  sesión del repo tiene su servidor arriba, `CI=1 pnpm exec playwright test` obliga a un puerto
+  propio y truena ruidosamente en vez de probar la app del vecino sin darse cuenta.
+- **Los tests levantan su propio servidor en `:8123`**: al limpiar procesos de prueba, mata solo
+  el PID que arrancaste o el del puerto 8123: un `pkill -f serve.mjs` se llevó por delante el
+  `serve.mjs` de otro worktree en `:8080`.
+- **Las tarjetas «+ Añadir» nacen después del binding global**: `[data-modal-open]` solo se engancha
+  al cargar la página, así que `renderSpriteList()` y `renderBackdropList()` añaden su propio
+  `addEventListener`. El atributo queda como hook declarativo para las pruebas.
 - **GitHub Pages cachea 10 minutos** (`max-age=600`): usa Ctrl+Shift+R tras desplegar.
 - **pnpm 12** exige `allowBuilds` en `pnpm-workspace.yaml` para el postinstall de esbuild.
 

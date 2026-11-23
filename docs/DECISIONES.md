@@ -79,7 +79,73 @@ verificación y tests end-to-end.
 **Consecuencias:** Pages cachea 10 minutos; cada push a `main` publica. Limitaciones de Pages
 (tamaño, sin headers propios) son aceptables para este sitio.
 
-## ADR-008 · MicroPython, no Arduino C++
+## ADR-008 · Biblioteca de objetos y fondos: assets CC0 de Kenney
+
+**Contexto:** mBlock copia la biblioteca de Scratch (sprites y escenas) desde su CDN. capiBlocks
+necesita lo mismo, pero sin recursos externos y sin cargas legales para un proyecto educativo.
+
+**Alternativas:** assets de Scratch (**CC BY-SA 2.0**: atribución obligatoria y share-alike, además
+de servirlos desde un CDN), Pixabay (su licencia prohíbe redistribuir el asset como tal), dibujar
+las ~36 piezas (mucho trabajo y estilo irregular), Kenney.
+
+**Decisión:** 24 objetos y 12 fondos (4 presets CSS y 8 imágenes) **CC0 de Kenney**, con los assets
+de imagen versionados en `assets/`, normalizados a PNG ligero y con la procedencia anotada en
+`THIRD-PARTY-NOTICES.md`.
+
+**Consecuencias:** CC0 no exige atribución ni share-alike (la mención a Kenney es cortesía), así que
+los assets pueden mezclarse con el código MIT sin condiciones. La biblioteca es pequeña a propósito
+(24+12, menos de 300 KB): `dist/` sigue siendo ligero y todo carga desde `file://`. Ampliarla es
+añadir entradas al catálogo con un **id nuevo**; los ids existentes no se renombran porque se
+guardan en los proyectos.
+
+## ADR-009 · El capibara se clona, no se redibuja
+
+**Contexto:** con varios objetos en escena hacen falta varias copias del mismo SVG, en el escenario y
+en las miniaturas de la lista.
+
+**Alternativas:** redibujar el capibara por tamaño (rompe la regla 4 y multiplica el mantenimiento),
+usar un `<img>` con el SVG como archivo aparte (obliga a mover el dibujo fuera del HTML), clonar el
+nodo existente.
+
+**Decisión:** `captureCapiTemplate()` clona una vez el SVG de `#stageSprite` en `capiTemplateSvg`, y
+`spriteVisual()`/`spriteThumb()` clonan esa plantilla; `applySpriteStyle()` aplica el
+`translate/rotate/scale` al contenedor de cada objeto.
+
+**Consecuencias:** una sola fuente de verdad del dibujo aprobado y ningún redibujado; si el SVG
+cambia, cambian todas las copias. Los objetos de la biblioteca son `<img>` normales y no entran en
+esta regla.
+
+## ADR-010 · localStorage con tope de 2 MB y descarte de objetos subidos
+
+**Contexto:** un objeto subido se incrusta como `data:` dentro del proyecto y puede pesar varios MB;
+`localStorage` ronda los 5 MB por origen y el navegador cuenta UTF-16.
+
+**Alternativas:** no permitir subidas (pierde la función más útil), guardar solo rutas (imposible
+para archivos del usuario), comprimir imágenes en el navegador (más código y calidad dudosa), fijar
+un tope y avisar.
+
+**Decisión:** `payloadForStorage()` deja el JSON completo si cabe en 2 MB; si no, quita **solo** los
+sprites con `asset` `data:` y muestra un aviso. El `.json` descargado siempre los incluye todos.
+
+**Consecuencias:** el guardado local no falla en silencio por cuota y el resto del proyecto se
+conserva; al recargar pueden faltar los objetos subidos, y para no perderlos hay que descargar el
+`.json`. Si al quitar los subidos todavía no cabe, el guardado falla con aviso. Los objetos de la
+biblioteca (rutas del catálogo) nunca se descartan.
+
+## ADR-011 · Fuera de alcance: editor de pintura, disfraces y sonidos
+
+**Contexto:** en mBlock, «Pintar» y los botones Disfraces/Sonidos abren editores grandes (lienzo de
+dibujo, gestor de trajes y de audio) que no aportan al objetivo IoT del proyecto.
+
+**Decisión:** no implementarlos. «Pintar» y «Subir fondo» quedan deshabilitados con un tooltip de
+«pendiente», y Disfraces/Sonidos se muestran sin acción. Quien necesite arte propio sube un PNG o
+SVG desde la biblioteca de objetos.
+
+**Consecuencias:** el esfuerzo se queda en arrastrar/encajar, el simulador y las bibliotecas; se
+evita duplicar un editor de imágenes dentro del IDE. **Revisar si:** se pide edición de arte o
+sonido como actividad de clase.
+
+## ADR-013 · MicroPython, no Arduino C++
 
 **Contexto:** para que los bloques ejecuten en un ESP32 real sin backend, el navegador debe
 producir algo que la placa entienda.
@@ -94,7 +160,7 @@ Solo se usan módulos del firmware oficial (`machine`, `time`, `network`, `dht`,
 `ntptime`, `usocket`); MQTT (`umqtt.simple`) y OLED (`ssd1306`) no vienen de fábrica y esperan al
 flasheador/`mip` de la fase 3. Requiere grabar MicroPython una vez en la placa.
 
-## ADR-009 · Web Serial directo, sin helper local (mLink)
+## ADR-014 · Web Serial directo, sin helper local (mLink)
 
 **Contexto:** mBlock web necesita instalar mLink2 para hablar con el hardware.
 
@@ -107,7 +173,7 @@ mantener) frente a la API Web Serial del navegador.
 **Consecuencias:** no hay nada que instalar; el selector de puerto exige un gesto humano (los e2e
 lo cubren con un puerto falso). El único punto OS-específico es el driver USB de la placa.
 
-## ADR-010 · REPL crudo y subida en base64
+## ADR-015 · REPL crudo y subida en base64
 
 **Contexto:** hay que ejecutar código y guardar un archivo en la placa sin instalar nada en ella.
 
@@ -119,7 +185,7 @@ decodifica con `ubinascii` (viene en el firmware) y cierra con un soft reset (Ct
 del REPL crudo llega pegado a la primera línea de salida (se limpia en `replRun`); un programa
 infinito no devuelve terminador y se reporta como `finished: false`.
 
-## ADR-011 · HTTP sin TLS en v1
+## ADR-016 · HTTP sin TLS en v1
 
 **Contexto:** `urequests`/TLS no están garantizados en el firmware de fábrica y añaden peso.
 
@@ -130,7 +196,7 @@ esquema y el helper elimina cualquier `://` con `split`.
 el propio bloque y en la guía. Evita además literales de URL externa en el bundle, que
 `check.mjs` prohíbe.
 
-## ADR-012 · Pines válidos según la variante de ESP32
+## ADR-017 · Pines válidos según la variante de ESP32
 
 **Contexto:** el mismo código ejecutado en un ESP32-S3 revienta con `ValueError: invalid pin` al
 usar GPIO 26: en la S3 los GPIO 26-32 son la flash SPI y 33-37 la PSRAM octal.
