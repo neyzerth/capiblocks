@@ -40,7 +40,7 @@ async function topBlockRects(page) {
 test('carga la app con el motor de bloques activo', async ({ page }) => {
   await boot(page);
   await expect(page).toHaveTitle(/capiBlocks/);
-  await expect(page.locator('.toolbox-categories button')).toHaveCount(9);
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(10);
   await expect(page.locator('#blocklyDiv svg.blocklySvg')).toBeVisible();
 });
 
@@ -154,7 +154,7 @@ test('ESP32 es el dispositivo fijado y CyberPi se puede añadir', async ({ page 
   await page.locator('#deviceListCol .mtarget-card', { hasText: 'CyberPi' }).click();
   await expect(page.locator('.toolbox-categories button')).toHaveCount(13);
   await page.locator('#deviceListCol .mtarget-card', { hasText: 'ESP32' }).click();
-  await expect(page.locator('.toolbox-categories button')).toHaveCount(9);
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(10);
 });
 
 test('el aviso de compatibilidad vive en la barra de navegación', async ({ page }) => {
@@ -168,7 +168,7 @@ test('el aviso de compatibilidad vive en la barra de navegación', async ({ page
 test('no hay scroll lateral a 390 px', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
-  await expect(page.locator('.toolbox-categories button')).toHaveCount(9);
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(10);
   const overflow = await page.evaluate(() => document.scrollingElement.scrollWidth > window.innerWidth + 1);
   expect(overflow).toBe(false);
 });

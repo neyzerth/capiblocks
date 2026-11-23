@@ -86,6 +86,66 @@
         '    time.sleep_ms(int(ms))',
         '    p.deinit()'
       ].join('\n')
+    },
+    {
+      ids: ['esp32_wifi_connect'],
+      code: [
+        'def _capi_wifi(ssid, key):',
+        '    import network',
+        '    w = network.WLAN(network.STA_IF)',
+        '    w.active(True)',
+        '    if not w.isconnected():',
+        '        w.connect(ssid, key)',
+        '        for _ in range(50):',
+        '            if w.isconnected(): break',
+        '            time.sleep(0.2)',
+        '    return w.isconnected()'
+      ].join('\n')
+    },
+    {
+      ids: ['esp32_http_get'],
+      code: [
+        'def _capi_http_get(url):',
+        '    import usocket',
+        "    url = url.split('://')[-1]",
+        "    parts = url.split('/')",
+        '    host = parts[0]',
+        "    path = '/' + '/'.join(parts[1:]) if len(parts) > 1 else '/'",
+        '    port = 80',
+        "    if ':' in host:",
+        '        host, p = host.split(\':\')',
+        '        port = int(p)',
+        '    a = usocket.getaddrinfo(host, port)[0][-1]',
+        '    s = usocket.socket()',
+        '    s.connect(a)',
+        "    s.send(bytes('GET %s HTTP/1.0\\r\\nHost: %s\\r\\nConnection: close\\r\\n\\r\\n' % (path, host), 'utf-8'))",
+        '    r = s.read()',
+        '    s.close()',
+        "    return r.decode() if r else ''"
+      ].join('\n')
+    },
+    {
+      ids: ['esp32_http_post'],
+      code: [
+        'def _capi_http_post(url, data):',
+        '    import usocket',
+        "    url = url.split('://')[-1]",
+        "    parts = url.split('/')",
+        '    host = parts[0]',
+        "    path = '/' + '/'.join(parts[1:]) if len(parts) > 1 else '/'",
+        '    port = 80',
+        "    if ':' in host:",
+        '        host, p = host.split(\':\')',
+        '        port = int(p)',
+        '    a = usocket.getaddrinfo(host, port)[0][-1]',
+        '    s = usocket.socket()',
+        '    s.connect(a)',
+        "    body = bytes(data, 'utf-8')",
+        "    s.send(bytes('POST %s HTTP/1.0\\r\\nHost: %s\\r\\nContent-Type: application/json\\r\\nContent-Length: %d\\r\\nConnection: close\\r\\n\\r\\n' % (path, host, len(body)), 'utf-8') + body)",
+        '    r = s.read()',
+        '    s.close()',
+        "    return r.decode() if r else ''"
+      ].join('\n')
     }
   ];
 
@@ -112,6 +172,11 @@
     esp32_neopixel_off: [{ name: 'N', type: 'number', def: 8 }, { name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '16' }],
     esp32_buzzer_tone: [{ name: 'FREQ', type: 'number', def: 700 }, { name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '17' }, { name: 'MS', type: 'number', def: 300 }],
     esp32_relay: [{ name: 'PIN', type: 'dropdown', options: pinOptions(PINS_DIGITAL), def: '26' }, { name: 'STATE', type: 'dropdown', options: [['ON', '1'], ['OFF', '0']] }],
+    esp32_wifi_connect: [{ name: 'SSID', type: 'text', def: 'mi-red' }, { name: 'PASS', type: 'text', def: '12345678' }],
+    esp32_wifi_is_up: [{ name: 'VAR', type: 'text', def: 'wifi_ok' }],
+    esp32_http_get: [{ name: 'URL', type: 'text', def: 'ejemplo.com/datos' }, { name: 'VAR', type: 'text', def: 'resp' }],
+    esp32_http_post: [{ name: 'DATA', type: 'text', def: '{"temp":22}' }, { name: 'URL', type: 'text', def: 'ejemplo.com/api' }],
+    esp32_deep_sleep: [{ name: 'SECS', type: 'number', def: 60 }],
     led_all: [{ name: 'COLOR', type: 'colour', def: '#ff5252' }],
     led_single: [{ name: 'COLOR', type: 'colour', def: '#1eaaff' }],
     disp_print: [{ name: 'TEXT', type: 'text', def: '¡Hola!' }],
@@ -302,6 +367,19 @@
         return `_capi_tone(${fieldValue(block, 'PIN', '17')}, ${Number(fieldValue(block, 'FREQ', 700)) || 0}, ${Number(fieldValue(block, 'MS', 300)) || 0})`;
       case 'esp32_relay':
         return `Pin(${fieldValue(block, 'PIN', '26')}, Pin.OUT).value(${fieldValue(block, 'STATE', '1')})`;
+      /* --- Conectividad y energía (ESP32) --- */
+      case 'esp32_wifi_connect':
+        return `_capi_wifi("${esc(fieldValue(block, 'SSID', 'mi-red'))}", "${esc(fieldValue(block, 'PASS', '12345678'))}")`;
+      case 'esp32_wifi_is_up':
+        return `${fieldValue(block, 'VAR', 'wifi_ok')} = network.WLAN(network.STA_IF).isconnected()`;
+      case 'esp32_http_get':
+        return `${fieldValue(block, 'VAR', 'resp')} = _capi_http_get("${esc(fieldValue(block, 'URL', 'ejemplo.com/datos'))}")`;
+      case 'esp32_http_post':
+        return `_capi_http_post("${esc(fieldValue(block, 'URL', 'ejemplo.com/api'))}", "${esc(fieldValue(block, 'DATA', '{"temp":22}'))}")`;
+      case 'esp32_ntp_sync':
+        return 'ntptime.settime()';
+      case 'esp32_deep_sleep':
+        return `machine.deepsleep(int(${Number(fieldValue(block, 'SECS', 60)) || 0} * 1000))`;
       case 'led_all': {
         const [r, g, b] = rgbFromHex(fieldValue(block, 'COLOR', '#ff5252'));
         return `cyberpi.led.on(${r}, ${g}, ${b})`;

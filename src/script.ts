@@ -102,7 +102,13 @@
     ],
     iot: [
       { id: 'iot_wifi', key: 'blkIotWifi', color: '#a6d200', devices: ['cyberpi'], py: 'cyberpi.wifi.connect("Network", "****")' },
-      { id: 'iot_send', key: 'blkIotSend', color: '#a6d200', devices: ['cyberpi'], py: 'cyberpi.cloud.broadcast("status", "ok")' }
+      { id: 'iot_send', key: 'blkIotSend', color: '#a6d200', devices: ['cyberpi'], py: 'cyberpi.cloud.broadcast("status", "ok")' },
+      /* WiFi, HTTP y NTP del ESP32 (sin TLS: el helper limpia el esquema). */
+      { id: 'esp32_wifi_connect', key: 'blkEsp32Wifi', color: '#a6d200', devices: ['esp32'], esp32: '_capi_wifi("SSID", "PASS")' },
+      { id: 'esp32_wifi_is_up', key: 'blkEsp32WifiUp', color: '#a6d200', devices: ['esp32'], esp32: 'VAR = network.WLAN(network.STA_IF).isconnected()' },
+      { id: 'esp32_http_get', key: 'blkEsp32HttpGet', color: '#a6d200', devices: ['esp32'], esp32: 'VAR = _capi_http_get("URL")' },
+      { id: 'esp32_http_post', key: 'blkEsp32HttpPost', color: '#a6d200', devices: ['esp32'], esp32: '_capi_http_post("URL", "DATA")' },
+      { id: 'esp32_ntp_sync', key: 'blkEsp32Ntp', color: '#a6d200', devices: ['esp32'], esp32: 'ntptime.settime()' }
     ],
     events: [
       { id: 'evt_flag', key: 'blkEvtFlag', color: '#ffbf00', hat: true, py: '@event.start\ndef on_start():', esp32: 'def on_flag():' },
@@ -113,7 +119,8 @@
       { id: 'ctrl_wait', key: 'blkCtrlWait', color: '#ffab19', py: 'time.sleep(1)', action: { type: 'wait', ms: 450 } },
       { id: 'ctrl_repeat', key: 'blkCtrlRepeat', color: '#ffab19', py: 'for count in range(4):' },
       { id: 'ctrl_forever', key: 'blkCtrlForever', color: '#ffab19', py: 'while True:' },
-      { id: 'ctrl_if', key: 'blkCtrlIf', color: '#ffab19', py: 'if True:' }
+      { id: 'ctrl_if', key: 'blkCtrlIf', color: '#ffab19', py: 'if True:' },
+      { id: 'esp32_deep_sleep', key: 'blkEsp32Sleep', color: '#ffab19', devices: ['esp32'], esp32: 'machine.deepsleep(int(SECS * 1000))' }
     ],
     operators: [
       { id: 'op_add', key: 'blkOpAdd', color: '#59c059', py: 'total = 10 + 20' },

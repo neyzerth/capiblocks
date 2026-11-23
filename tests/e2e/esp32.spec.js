@@ -58,19 +58,19 @@ test('al cambiar a CyberPi vuelve el python de cyberpi y viceversa', async ({ pa
 
 test('con ESP32 la paleta no muestra las categorías de CyberPi', async ({ page }) => {
   await boot(page);
-  await expect(page.locator('.toolbox-categories button')).toHaveCount(9);
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(10);
   await expect(page.locator('.toolbox-categories button', { hasText: /Display|Pantalla|显示/ })).toHaveCount(0);
   await expect(page.locator('.toolbox-categories button', { hasText: /Motion Sensing|Sensor de movimiento|体感/ })).toHaveCount(0);
 });
 
-test('la paleta sigue al dispositivo: CyberPi 13 categorías, ESP32 9', async ({ page }) => {
+test('la paleta sigue al dispositivo: CyberPi 13 categorías, ESP32 10', async ({ page }) => {
   await boot(page);
   await addCyberPi(page);
   await expect(page.locator('.toolbox-categories button')).toHaveCount(13);
   await expect(page.locator('.toolbox-categories button', { hasText: /LED/ })).toHaveCount(1);
 
   await page.locator('#deviceListCol .mtarget-card', { hasText: 'ESP32' }).click();
-  await expect(page.locator('.toolbox-categories button')).toHaveCount(9);
+  await expect(page.locator('.toolbox-categories button')).toHaveCount(10);
 });
 
 /* --- T3: pines --- */
@@ -112,4 +112,31 @@ test('el bloque neopixel genera su helper y enciende la tira del escenario', asy
   const strip = page.locator('#stageLedStrip');
   await expect(strip).toBeVisible();
   await expect(strip.locator('.led-dot').first()).toHaveCSS('background-color', 'rgb(255, 82, 82)');
+});
+
+/* --- T6: conectividad y energía --- */
+
+test('wifi y http generan sus imports, helpers y llamadas con los valores por defecto', async ({ page }) => {
+  await boot(page);
+  await addFromPalette(page, /Events|Eventos|事件/);
+  await addFromPalette(page, /IoT|物联网/);        // conectar WiFi
+  await addFromPalette(page, /IoT|物联网/, 2);     // http get
+  const py = await page.evaluate(() => MBBlocks.python());
+  expect(py).toContain('import network');
+  expect(py).toContain('def _capi_wifi(ssid, key):');
+  expect(py).toContain('def _capi_http_get(url):');
+  expect(py).toContain('_capi_wifi("mi-red", "12345678")');
+  expect(py).toContain('resp = _capi_http_get("ejemplo.com/datos")');
+  expect(py).toContain('on_flag()');
+  // El helper quita el esquema; el bloque no escribe ninguna URL externa.
+  expect(py).not.toContain('http://');
+  expect(py).not.toContain('https://');
+});
+
+test('el bloque de deep sleep va en Control y usa milisegundos', async ({ page }) => {
+  await boot(page);
+  await addFromPalette(page, /Control|控制/);
+  await expect(page.locator('#flyoutBlocks button')).toHaveCount(5);
+  await addFromPalette(page, /Control|控制/, 4);
+  expect(await page.evaluate(() => MBBlocks.python())).toContain('machine.deepsleep(int(60 * 1000))');
 });
